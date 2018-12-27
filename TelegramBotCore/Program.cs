@@ -1,4 +1,5 @@
 ﻿using System;
+using TelegramBotCore.Telegram;
 
 namespace TelegramBotCore
 {
@@ -6,7 +7,11 @@ namespace TelegramBotCore
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            var bot = new Bot("{YOUR TOKEN HERE}");
+            while (true)
+            {
+                Console.ReadLine();
+            }
         }
     }
 }
