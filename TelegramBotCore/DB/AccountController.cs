@@ -7,6 +7,15 @@ namespace TelegramBotCore.DB
 {
     public class AccountsController : AbstractController
     {
+        protected override string Name => "Accounts";
+
+        protected override Column[] Columns => new[]
+        {
+            new Column("Id", "INTEGER UNIQUE"),
+            new Column("ChatId", "Integer"),
+            new Column("Name", "Text"),
+            new Column("PRIMARY KEY", "(Id)")
+        };
         public AccountsController(SqliteConnection connection) : base(connection)
         {
         }
