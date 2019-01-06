@@ -1,9 +1,8 @@
 ﻿using Microsoft.Data.Sqlite;
-using System;
 using System.Collections.Generic;
 using TelegramBotCore.Telegram;
 
-namespace TelegramBotCore.DB
+namespace TelegramBotCore.DB.Controllers
 {
     public class AccountsController : AbstractController
     {
@@ -11,10 +10,9 @@ namespace TelegramBotCore.DB
 
         protected override Column[] Columns => new[]
         {
-            new Column("Id", "INTEGER UNIQUE"),
-            new Column("ChatId", "Integer"),
-            new Column("Name", "Text"),
-            new Column("PRIMARY KEY", "(Id)")
+            new Column("Id", Integer, PrimaryKey),
+            new Column("ChatId", Integer),
+            new Column("Name", Text),
         };
         public AccountsController(SqliteConnection connection) : base(connection)
         {
@@ -121,6 +119,5 @@ namespace TelegramBotCore.DB
             comm.Parameters.Add("@id", Integer).Value = account.Id;
             await comm.ExecuteNonQueryAsync();
         }
-
     }
 }

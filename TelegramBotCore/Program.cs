@@ -1,13 +1,15 @@
 ﻿using System;
+using TelegramBotCore.DB;
 using TelegramBotCore.Telegram;
 
 namespace TelegramBotCore
 {
-    class Program
+    internal class Program
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
-            var bot = new Bot("{YOUR TOKEN HERE}");
+            Controller.Start("database.db");
+            var bot = new Bot("494598173:AAEgnATNyRt7fqecoVGwWmIGswKQyfm2NgY");
             while (true)
             {
                 Console.ReadLine();

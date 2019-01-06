@@ -1,4 +1,5 @@
 ﻿using Microsoft.Data.Sqlite;
+using System.Text;
 
 namespace TelegramBotCore.DB
 {
@@ -10,6 +11,10 @@ namespace TelegramBotCore.DB
         protected SqliteType Real = SqliteType.Real;
         protected SqliteType Blob = SqliteType.Blob;
 
+        protected SqliteParam Unique = SqliteParam.Unique;
+        protected SqliteParam NotNull = SqliteParam.Not_Null;
+        protected SqliteParam PrimaryKey = SqliteParam.Primary_Key;
+
         protected abstract string Name { get; }
         protected abstract Column[] Columns { get; }
 
@@ -19,16 +24,32 @@ namespace TelegramBotCore.DB
             var cmd = connection.CreateCommand();
             cmd.CommandText = $"SELECT name FROM sqlite_master WHERE type = 'table' AND name = '{Name}';";
             var reader = cmd.ExecuteReader();
-            while (reader.Read()) return;
+            if (reader.Read()) return;
+
             cmd = connection.CreateCommand();
+            StringBuilder text = new StringBuilder($"CREATE TABLE {Name}(");
+            string key = "";
+            for (var i = 0; i < Columns.Length; i++)
+            {
+                var column = Columns[i];
+                text.Append($" {column.Name} {column.Type}");
+                foreach (var param in column.Params)
+                {
+                    string p = param.ToString().Replace("_", " ");
+                    if (param != SqliteParam.Primary_Key)
+                        text.Append(p);
+                    else
+                    {
+                        key = p + $"('{column.Name}')";
+                    }
+                }
+                if (i + 1 < Columns.Length) text.Append(",");
+                if (i + 1 == Columns.Length && key != "") text.Append(",");
+            }
+            text.Append(key);
+            text.Append(");");
 
-            string text = $"CREATE TABLE {Name}(";
-            foreach (var column in Columns)
-                text += $" {column.Name} {column.Params}, ";
-            text = text.Substring(0, text.Length - 2);
-            text += ");";
-
-            cmd.CommandText = text;
+            cmd.CommandText = text.ToString();
             cmd.ExecuteNonQuery();
         }
 
@@ -37,7 +58,6 @@ namespace TelegramBotCore.DB
             if (string.IsNullOrEmpty(stringToParse.ToString())) return 0;
             return int.Parse(stringToParse.ToString());
         }
-
         protected double ParseDouble(object stringToParse)
         {
             if (string.IsNullOrEmpty(stringToParse.ToString())) return 0;
@@ -45,15 +65,21 @@ namespace TelegramBotCore.DB
         }
     }
 
+    public enum SqliteParam
+    {
+        Unique, Not_Null, Primary_Key
+    }
+
     public struct Column
     {
         public string Name;
-        public string Params;
-
-        public Column(string name, string @params)
+        public SqliteType Type;
+        public SqliteParam[] Params;
+        public Column(string name, SqliteType type, params SqliteParam[] param)
         {
             Name = name;
-            Params = @params;
+            Type = type;
+            Params = param;
         }
     }
 }
