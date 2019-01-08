@@ -9,7 +9,7 @@ namespace TelegramBotCore
         private static void Main(string[] args)
         {
             Controller.Start("database.db");
-            var bot = new Bot("494598173:AAEgnATNyRt7fqecoVGwWmIGswKQyfm2NgY");
+            var bot = new Bot("{YOUR TOKEN HERE}");
             while (true)
             {
                 Console.ReadLine();
