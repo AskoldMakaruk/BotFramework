@@ -2,6 +2,7 @@
 using System.Drawing.Imaging;
 using System.IO;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.InputFiles;
 using TelegramBotCore.DB.Model;
 
 namespace TelegramBotCore.Telegram.Commands
@@ -22,11 +23,12 @@ namespace TelegramBotCore.Telegram.Commands
                     else
                         await client.GetInfoAndDownloadFileAsync (message.Photo[0].FileId, ms);
                     Bitmap bm = new Bitmap (ms);
-                    double ratio = 512 / bm.Height > bm.Width ? bm.Height : bm.Width;
+                    double ratio = 512 / (double) (bm.Height > bm.Width ? bm.Height : bm.Width);
                     bm = new Bitmap (bm, (int) (bm.Height * ratio), (int) (bm.Width * ratio));
                     ms.Seek (0, SeekOrigin.Begin);
                     bm.Save (ms, ImageFormat.Png);
-                    await client.SendPhotoAsync (account.ChatId, new InputMedia (ms, "photo.png"));
+                    ms.Seek (0, SeekOrigin.Begin);
+                    await client.SendDocumentAsync (account.ChatId, new InputOnlineFile (ms, "photo.png"));
                     bm.Dispose ();
                 }
             }

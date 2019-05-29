@@ -21,6 +21,7 @@ namespace TelegramBotCore.Telegram
         {
             _commandsList = new List<Command> ();
             Context = new TelegramContext ();
+            Context.Database.EnsureCreated();
 
             Type baseType = typeof (Command);
             IEnumerable<Type> botCommands =
@@ -55,7 +56,7 @@ namespace TelegramBotCore.Telegram
                     {
                     ChatId = e.Message.Chat.Id,
                     Name = e.Message.Chat.Username,
-                    Status = AccountStatus.Start,
+                    Status = AccountStatus.Free,
                     };
                     if (e.Message.Chat.Username == null)
                         senderAccount.Name = e.Message.Chat.FirstName + " " + e.Message.Chat.LastName;
