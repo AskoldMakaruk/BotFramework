@@ -1,4 +1,5 @@
 ﻿using Telegram.Bot.Types;
+using TelegramBotCore.DB.Model;
 
 namespace  TelegramBotCore.Telegram.Commands
 {

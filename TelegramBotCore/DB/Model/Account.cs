@@ -1,4 +1,4 @@
-﻿namespace TelegramBotCore.Telegram
+﻿namespace TelegramBotCore.DB.Model
 {
     public class Account
     {
@@ -16,7 +16,4 @@
         Balance,
         SelectAccount
     }
-    
-
-  
 }
