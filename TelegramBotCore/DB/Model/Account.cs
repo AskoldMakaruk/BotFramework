@@ -2,9 +2,10 @@
 {
     public class Account
     {
-        public string Name { get; set; }
         public int Id { get; set; }
+        public string Name { get; set; }
         public long ChatId { get; set; }
+        public string Language { get; set; }
 
         public AccountStatus Status { get; set; }
     }
@@ -13,7 +14,5 @@
     {
         Free,
         Start,
-        Balance,
-        SelectAccount
     }
 }

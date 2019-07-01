@@ -1,23 +1,39 @@
 ﻿using Telegram.Bot.Types;
+using Telegram.Bot.Types.ReplyMarkups;
+using TelegramBotCore.Controllers;
 using TelegramBotCore.DB.Model;
+using TelegramBotCore.Telegram;
 
-namespace  TelegramBotCore.Telegram.Commands
+namespace StickerMemeBot.Telegram.Commands
 {
     public abstract class Command
     {
-        public abstract AccountStatus Status { get; }
-        public abstract void Execute(Message message, Bot client, Account account);
-        public virtual void Relieve(Message message, Bot client, Account account)
+        public Command(Message message, Bot client, Account account)
         {
-            new MainCommand().Execute(message, client, account);
+            Message = message;
+            Client = client;
+            Account = account;
         }
-        public virtual bool HasSameStatus(AccountStatus accountStatus)
-        {
-            return accountStatus == Status;
-        }
-        public virtual bool ContainsHome(string text, Account a)
-        {
-            return (text.Contains("На главную") || text.Contains("/done") || text == "/exit");
-        }
+        public TelegramController Controller { get; set; }
+        public Message Message { get; }
+        public Bot Client { get; }
+        public Account Account { get; }
+
+        // 0 not at all
+        // 1 just handle reply
+        // 2 main condition is true
+        // 3 role staff
+        // 4 high priority
+
+        // public override int Suitability()
+        //         {
+        //             int res = 0;
+        //             if (Account.Status == AccountStatus.Details) res++;
+        //             if (Message.Text != null) res++;
+        //             return res;
+        //         }
+
+        public abstract int Suitability();
+        public abstract void Execute();
     }
 }

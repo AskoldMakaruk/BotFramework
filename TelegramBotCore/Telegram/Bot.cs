@@ -1,96 +1,74 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
+using StickerMemeBot.Telegram.Commands;
+using StickerMemeBot.Telegram.Queries;
 using Telegram.Bot;
 using Telegram.Bot.Args;
 using Telegram.Bot.Types.InputFiles;
-using TelegramBotCore.DB;
+using TelegramBotCore.Controllers;
 using TelegramBotCore.DB.Model;
-using TelegramBotCore.Telegram.Commands;
 
 namespace TelegramBotCore.Telegram
 {
     public class Bot : TelegramBotClient
     {
 
-        private static List<Command> _commandsList;
-        public static IReadOnlyList<Command> Commands => _commandsList.AsReadOnly ();
-        public TelegramContext Context;
-        public Bot (string token) : base (token)
+        public Bot(string token) : base(token)
         {
-            _commandsList = new List<Command> ();
-            Context = new TelegramContext ();
-            Context.Database.EnsureCreated();
-
-            Type baseType = typeof (Command);
-            IEnumerable<Type> botCommands =
-                Assembly.GetAssembly (baseType).GetTypes ().
-            Where (types => types.BaseType != null &&
-                (types.BaseType.BaseType != null &&
-                    (types.BaseType != null &&
-                        (!types.IsAbstract && (types.BaseType == baseType || types.BaseType.BaseType == baseType || types.BaseType.BaseType.BaseType == baseType)))));
-
-            foreach (Type botCommand in botCommands)
-            {
-                var c = (Command) Activator.CreateInstance (botCommand);
-                _commandsList.Add (c);
-            }
-
             OnMessage += OnMessageRecieved;
-            StartReceiving ();
+            StartReceiving();
         }
 
-        public void OnMessageRecieved (object sender, MessageEventArgs e)
+        public void OnMessageRecieved(object sender, MessageEventArgs e)
+        {
+            Console.WriteLine(DateTime.Now.ToShortTimeString() + " " + e.Message.From.Username + ": " + e.Message.Text);
+            try
+            {
+                var contoller = new TelegramController();
+                contoller.Start();
+
+                var account = contoller.FromMessage(e.Message);
+
+                var baseType = typeof(Command);
+                var assembly = baseType.Assembly;
+                var command = assembly.GetTypes().Where(t => t.IsSubclassOf(baseType) && !t.IsAbstract).Select(c => Activator.CreateInstance(c, e.Message, this, account) as Command).OrderBy(c => c.Suitability()).First();
+                command.Controller = contoller;
+                command.Execute();
+            }
+            catch (Exception ex) { Console.WriteLine(ex); }
+        }
+        public void OnQueryReceived(object sender, CallbackQueryEventArgs e)
         {
             try
             {
-                Console.WriteLine (DateTime.Now.ToShortTimeString () + " " + e.Message.From.Username + ": " + e.Message.Text);
+                Console.WriteLine(DateTime.Now.ToShortTimeString() + " " + e.CallbackQuery.From.Username + ": " + e.CallbackQuery.Data);
+                var contoller = new TelegramController();
+                contoller.Start();
 
-                #region Account
-                Account senderAccount = Context.Accounts.FirstOrDefault (a => a.ChatId == e.Message.Chat.Id);
-                if (senderAccount == null)
-                {
+                var account = contoller.FromQuery(e.CallbackQuery);
 
-                    senderAccount = new Account
-                    {
-                    ChatId = e.Message.Chat.Id,
-                    Name = e.Message.Chat.Username,
-                    Status = AccountStatus.Free,
-                    };
-                    if (e.Message.Chat.Username == null)
-                        senderAccount.Name = e.Message.Chat.FirstName + " " + e.Message.Chat.LastName;
-                }
-                #endregion
+                var baseType = typeof(Query);
+                var assembly = baseType.Assembly;
 
-                foreach (var command in Commands)
-                {
-                    if (command.HasSameStatus (senderAccount.Status))
-                    {
-                        if (e.Message.Text != null && command.ContainsHome (e.Message?.Text, senderAccount))
-                        {
-                            command.Relieve (e.Message, this, senderAccount);
-                            break;
-                        }
-                        command.Execute (e.Message, this, senderAccount);
-                        break;
-                    }
-                }
+                var command = assembly.GetTypes().Where(t => t.IsSubclassOf(baseType) && !t.IsAbstract).Select(c => Activator.CreateInstance(c, e.CallbackQuery, this, account) as Query).Where(c => c.IsSuitable()).First();
+
+                command.Controller = contoller;
+                command.Execute();
             }
-            catch (Exception ex) { Console.WriteLine (ex); }
+            catch (Exception ex) { Console.WriteLine(ex); }
         }
 
-        public async void SendMessage (long chatId, object mes)
+        public async void SendMessage(long chatId, object mes)
         {
-            await SendTextMessageAsync (chatId, mes.ToString ());
+            await SendTextMessageAsync(chatId, mes.ToString());
         }
-        public async void SendMessage (Account account, object mes)
+        public async void SendMessage(Account account, object mes)
         {
-            await SendTextMessageAsync (account.ChatId, mes.ToString ());
+            await SendTextMessageAsync(account.ChatId, mes.ToString());
         }
-        public void SendPhoto (InputOnlineFile file, long chatId)
+        public void SendPhoto(InputOnlineFile file, long chatId)
         {
-            SendPhotoAsync (chatId, file);
+            SendPhotoAsync(chatId, file);
         }
     }
 }

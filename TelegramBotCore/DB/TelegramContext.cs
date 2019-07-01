@@ -6,12 +6,11 @@ namespace TelegramBotCore.DB
     public class TelegramContext : DbContext
     {
         public DbSet<Account> Accounts { get; set; }
-        public DbSet<DbMessage> DbMessages { get; set; }
-        public DbSet<DbButton> DbButtons { get; set; }
+        public DbSet<Text> Texts { get; set; }
 
-        protected override void OnConfiguring (DbContextOptionsBuilder optionsBuilder)
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlite ("Data Source=database.db");
+            optionsBuilder.UseSqlite("Data Source=database.db");
         }
     }
 }
