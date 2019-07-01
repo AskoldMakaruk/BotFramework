@@ -1,5 +1,4 @@
 ﻿using Telegram.Bot.Types;
-using Telegram.Bot.Types.ReplyMarkups;
 using TelegramBotCore.Controllers;
 using TelegramBotCore.DB.Model;
 using TelegramBotCore.Telegram;
@@ -24,15 +23,6 @@ namespace StickerMemeBot.Telegram.Commands
         // 2 main condition is true
         // 3 role staff
         // 4 high priority
-
-        // public override int Suitability()
-        //         {
-        //             int res = 0;
-        //             if (Account.Status == AccountStatus.Details) res++;
-        //             if (Message.Text != null) res++;
-        //             return res;
-        //         }
-
         public abstract int Suitability();
         public abstract void Execute();
     }

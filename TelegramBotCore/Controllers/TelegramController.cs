@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Microsoft.EntityFrameworkCore;
 using Telegram.Bot.Types;
 using TelegramBotCore.DB;
 using TelegramBotCore.DB.Model;
@@ -95,7 +94,6 @@ namespace TelegramBotCore.Controllers
             Account account = Context.Accounts.FirstOrDefault(a => a.ChatId == message.From.Id);
             if (account == null)
             {
-                //TODO create new  account maybe? or do something idk  
                 account = new Account()
                 {
                 ChatId = message.From.Id,
@@ -110,13 +108,13 @@ namespace TelegramBotCore.Controllers
             return account;
 
         }
-        private Account CreateAccount(Message message, string[] p = null)
+        private Account CreateAccount(Message message)
         {
             var account = new Account
             {
-            ChatId = message.Chat.Id,
-            Name = message.Chat.Username,
-            Status = AccountStatus.Start,
+                ChatId = message.Chat.Id,
+                Name = message.Chat.Username,
+                Status = AccountStatus.Start,
             };
             if (message.Chat.Username == null)
                 account.Name = message.Chat.FirstName + " " + message.Chat.LastName;
