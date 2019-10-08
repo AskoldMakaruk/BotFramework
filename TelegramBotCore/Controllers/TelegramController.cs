@@ -51,27 +51,19 @@ namespace TelegramBotCore.Controllers
         }
         public Account FromMessage(Message message)
         {
-            bool start = message.Text?.Length > "/start".Length && message.Text.StartsWith("/start");
+            var start = message.Text?.Length > "/start".Length && message.Text.StartsWith("/start");
             if (Accounts.ContainsKey(message.Chat.Id) && !start)
             {
                 return Accounts[message.Chat.Id];
             }
-            Account account = Context.Accounts.FirstOrDefault(a => a.ChatId == message.Chat.Id);
+            var account = Context.Accounts.FirstOrDefault(a => a.ChatId == message.Chat.Id);
             if (message.Text != null)
                 if (start)
                 {
-                    string param = message.Text.Substring(7);
+                    var param = message.Text.Substring(7);
                     var base64EncodedBytes = Convert.FromBase64String(param);
                     param = Encoding.UTF8.GetString(base64EncodedBytes);
                     var p = param.Split("*");
-
-                    // p[0] == m
-                    // p[1] = memeId
-                    // p[2] = referal
-
-                    //p[0] = type m = memetocart a = admin in = referal invite
-                    //p[1] = channel link
-                    //p[2] = account username
                     switch (p[0])
                     {
                         case "in":
@@ -91,7 +83,7 @@ namespace TelegramBotCore.Controllers
         }
         public Account FromQuery(CallbackQuery message)
         {
-            Account account = Context.Accounts.FirstOrDefault(a => a.ChatId == message.From.Id);
+            var account = Context.Accounts.FirstOrDefault(a => a.ChatId == message.From.Id);
             if (account == null)
             {
                 account = new Account()
@@ -135,7 +127,7 @@ namespace TelegramBotCore.Controllers
                 Context.Texts.Add(text);
                 SaveChanges();
             }
-            List<string> langs = new List<string>() { "ru", "en", "ua" };
+            var langs = new List<string>() { "ru", "en", "ua" };
             langs.Remove(language);
             foreach (var l in langs)
                 if (Context.Texts.FirstOrDefault(t => t.Key == key && t.Language == l) == null)
