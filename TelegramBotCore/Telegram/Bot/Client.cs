@@ -23,7 +23,7 @@ namespace TelegramBotCore.Telegram.Bot
                 .Where(t => t.IsSubclassOf(baseType) && !t.IsAbstract)
                 .Select(c => Activator.CreateInstance(c) as Command)
                 .Where(c => c != null)
-                .ToDictionary(x => new Func<Message, Account, int>(x.Suitability), x => x);
+                .ToDictionary(x => new Func<Message, Account, bool>(x.Suitable), x => x);
 
             baseType = typeof(Query);
             assembly = baseType.Assembly;
@@ -42,7 +42,7 @@ namespace TelegramBotCore.Telegram.Bot
         }
 
         private TelegramBotClient Bot { get; }
-        protected Dictionary<Func<Message, Account, int>, Command> Commands { get; set; }
+        protected Dictionary<Func<Message, Account, bool>, Command> Commands { get; set; }
         protected Dictionary<Func<CallbackQuery, Account, bool>, Query> Queries { get; set; }
 
         public async void HandleQuery(CallbackQuery query)
@@ -90,14 +90,11 @@ namespace TelegramBotCore.Telegram.Bot
             }
 
             var command = GetCommand(message, account);
-            var canceled = command.Canceled(message, account);
 
             Console.WriteLine(
-                $"Command: {command}, status: {account.Status.ToString()}, canceled: {canceled}");
+                $"Command: {command}, status: {account.NextCommand.ToString()}");
 
-            await SendTextMessageAsync(canceled ?
-                command.Relieve(message, this, account) :
-                command.Execute(message, this, account));
+            await SendTextMessageAsync(command.Execute(message, this, account));
         }
 
         protected Command GetCommand(Message message, Account account)

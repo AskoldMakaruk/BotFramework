@@ -11,18 +11,16 @@ namespace TelegramBotCore.Telegram.Commands
 {
     public class MainCommand : Command
     {
-        public override int Suitability(Message message, Account account)
+        public override bool Suitable(Message message, Account account)
         {
-            var res = 0;
-            if (account.Status == AccountStatus.Free) res++;
-            return res;
+            return (account.Status == AccountStatus.Free);
         }
 
         public override Response Execute(Message message, Client client, Account account)
         {
             if (message.Document != null || message.Photo != null)
             {
-                using (var ms = new MemoryStream())
+                using(var ms = new MemoryStream())
                 {
                     if (message.Document != null)
                         client.GetInfoAndDownloadFileAsync(message.Document.FileId, ms).RunSynchronously();

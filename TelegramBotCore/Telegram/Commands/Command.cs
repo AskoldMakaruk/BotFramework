@@ -1,5 +1,5 @@
-﻿using Telegram.Bot.Types;
-using TelegramBotCore.Controllers;
+﻿using System;
+using Telegram.Bot.Types;
 using TelegramBotCore.DB.Model;
 using TelegramBotCore.Telegram.Bot;
 
@@ -7,21 +7,35 @@ namespace TelegramBotCore.Telegram.Commands
 {
     public abstract class Command
     {
-        // 0 not at all
-        // 1 just handle reply
-        // 2 main condition is true
-        public abstract int Suitability(Message message, Account account);
+        public abstract bool Suitable(Message message, Account account);
         public abstract Response Execute(Message message, Client client, Account account);
-
-        public virtual bool Canceled(Message message, Account account)
+        public abstract InputType InputTypes { get; }
+    }
+    public abstract class KeyboardButtonCommand : Command
+    {
+        public abstract string Name { get; }
+        public abstract CommandStatus Keyboard { get; }
+        public override bool Suitable(Message message, Account account)
         {
-            return message.Text.ToLower().Equals("cancel") ||
-                message.Text.ToLower().Equals("/cancel");
+            return message.Text == Name && account.NextCommand == Keyboard;
         }
+    }
+    public abstract class InputCommand : Command
+    {
 
-        public virtual Response Relieve(Message message, Client client, Account account)
-        {
-            return new MainCommand().Execute(message, client, account);
-        }
+    }
+    public enum CommandStatus
+    {
+        Main
+    }
+
+    [Flags]
+    public enum InputType
+    {
+        Text = 1,
+        Photo = 2,
+        Document = 4,
+        Stiker = 8,
+        SuccessfulPayment = 16
     }
 }
