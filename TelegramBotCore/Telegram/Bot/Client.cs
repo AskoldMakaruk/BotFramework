@@ -19,31 +19,31 @@ namespace TelegramBotCore.Telegram.Bot
             var assembly = baseType.Assembly;
 
             Commands = assembly
-                       .GetTypes()
-                       .Where(t => t.IsSubclassOf(baseType) && !t.IsAbstract)
-                       .Select(c => Activator.CreateInstance(c) as Command)
-                       .Where(c => c != null)
-                       .ToDictionary(x => new Func<Message, Account, int>(x.Suitability), x => x);
+                .GetTypes()
+                .Where(t => t.IsSubclassOf(baseType) && !t.IsAbstract)
+                .Select(c => Activator.CreateInstance(c) as Command)
+                .Where(c => c != null)
+                .ToDictionary(x => new Func<Message, Account, int>(x.Suitability), x => x);
 
             baseType = typeof(Query);
             assembly = baseType.Assembly;
 
             Queries = assembly
-                      .GetTypes()
-                      .Where(t => t.IsSubclassOf(baseType) && !t.IsAbstract)
-                      .Select(c => Activator.CreateInstance(c) as Query)
-                      .Where(c => c != null)
-                      .ToDictionary(x => new Func<CallbackQuery, Account, bool>(x.IsSuitable), x => x);
+                .GetTypes()
+                .Where(t => t.IsSubclassOf(baseType) && !t.IsAbstract)
+                .Select(c => Activator.CreateInstance(c) as Query)
+                .Where(c => c != null)
+                .ToDictionary(x => new Func<CallbackQuery, Account, bool>(x.IsSuitable), x => x);
 
-            Bot                 =  new TelegramBotClient(token);
-            Bot.OnMessage       += OnMessageRecieved;
+            Bot = new TelegramBotClient(token);
+            Bot.OnMessage += OnMessageRecieved;
             Bot.OnCallbackQuery += OnQueryReceived;
             Bot.StartReceiving();
         }
 
-        private   TelegramBotClient                                     Bot      { get; }
-        protected Dictionary<Func<Message, Account, int>, Command>      Commands { get; set; }
-        protected Dictionary<Func<CallbackQuery, Account, bool>, Query> Queries  { get; set; }
+        private TelegramBotClient Bot { get; }
+        protected Dictionary<Func<Message, Account, int>, Command> Commands { get; set; }
+        protected Dictionary<Func<CallbackQuery, Account, bool>, Query> Queries { get; set; }
 
         public async void HandleQuery(CallbackQuery query)
         {
@@ -74,7 +74,7 @@ namespace TelegramBotCore.Telegram.Bot
 
         public async void HandleMessage(Message message)
         {
-            var     chatId = message.Chat.Id;
+            var chatId = message.Chat.Id;
             Account account;
 
             if (TelegramController.Accounts.ContainsKey(chatId))
@@ -85,19 +85,19 @@ namespace TelegramBotCore.Telegram.Bot
             {
                 var contoller = new TelegramController();
                 contoller.Start();
-                account            = contoller.FromMessage(message);
+                account = contoller.FromMessage(message);
                 account.Controller = contoller;
             }
 
-            var command  = GetCommand(message, account);
+            var command = GetCommand(message, account);
             var canceled = command.Canceled(message, account);
 
             Console.WriteLine(
                 $"Command: {command}, status: {account.Status.ToString()}, canceled: {canceled}");
 
-            await SendTextMessageAsync(canceled
-                                       ? command.Relieve(message, account)
-                                       : command.Execute(message, this, account));
+            await SendTextMessageAsync(canceled ?
+                command.Relieve(message, this, account) :
+                command.Execute(message, this, account));
         }
 
         protected Command GetCommand(Message message, Account account)
@@ -127,7 +127,7 @@ namespace TelegramBotCore.Telegram.Bot
         public void OnQueryReceived(object sender, CallbackQueryEventArgs e)
         {
             Console.WriteLine(DateTime.Now.ToShortTimeString() + " " + e.CallbackQuery.From.Username + ": " +
-                              e.CallbackQuery.Data);
+                e.CallbackQuery.Data);
             try
             {
                 HandleQuery(e.CallbackQuery);
