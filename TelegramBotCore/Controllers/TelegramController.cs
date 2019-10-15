@@ -5,14 +5,16 @@ using System.Text;
 using Telegram.Bot.Types;
 using TelegramBotCore.DB;
 using TelegramBotCore.DB.Model;
+using TelegramBotCore.Telegram.Commands;
 
 namespace TelegramBotCore.Controllers
 {
     public class TelegramController
     {
-        private static bool Delete = true;
-        private static bool First = true;
-        private TelegramContext Context;
+        private static bool            Delete = true;
+        private static bool            First  = true;
+        private        TelegramContext Context;
+
         public void Start()
         {
             Context = new TelegramContext();
@@ -30,15 +32,17 @@ namespace TelegramBotCore.Controllers
                 }
                 else
                     Context.Database.EnsureCreated();
-                First = false;
 
+                First = false;
             }
             else
                 Context.Database.EnsureCreated();
         }
-        #region Account
+
+#region Account
 
         public static Dictionary<long, Account> Accounts = new Dictionary<long, Account>();
+
         public Account FromId(int id)
         {
             var account = Accounts.Values.FirstOrDefault(a => a.Id == id);
@@ -47,8 +51,10 @@ namespace TelegramBotCore.Controllers
                 account = Context.Accounts.Find(id);
                 Accounts.Add(account.ChatId, account);
             }
+
             return account;
         }
+
         public Account FromMessage(Message message)
         {
             var start = message.Text?.Length > "/start".Length && message.Text.StartsWith("/start");
@@ -56,11 +62,12 @@ namespace TelegramBotCore.Controllers
             {
                 return Accounts[message.Chat.Id];
             }
+
             var account = Context.Accounts.FirstOrDefault(a => a.ChatId == message.Chat.Id);
             if (message.Text != null)
                 if (start)
                 {
-                    var param = message.Text.Substring(7);
+                    var param              = message.Text.Substring(7);
                     var base64EncodedBytes = Convert.FromBase64String(param);
                     param = Encoding.UTF8.GetString(base64EncodedBytes);
                     var p = param.Split("*");
@@ -72,15 +79,18 @@ namespace TelegramBotCore.Controllers
                             break;
                     }
                 }
+
             if (account == null)
             {
                 account = CreateAccount(message);
             }
+
             if (!Accounts.ContainsKey(account.ChatId))
                 Accounts.Add(account.ChatId, account);
             account.Language = message.From.LanguageCode;
             return account;
         }
+
         public Account FromQuery(CallbackQuery message)
         {
             var account = Context.Accounts.FirstOrDefault(a => a.ChatId == message.From.Id);
@@ -88,25 +98,25 @@ namespace TelegramBotCore.Controllers
             {
                 account = new Account()
                 {
-                ChatId = message.From.Id,
-                Language = message.From.LanguageCode,
-                Name = message.From.Username,
-                Status = AccountStatus.Start
+                    ChatId   = message.From.Id,
+                    Language = message.From.LanguageCode,
+                    Name     = message.From.Username,
+                    Status   = CommandStatus.Main
                 };
                 Context.Accounts.Add(account);
                 SaveChanges();
-
             }
-            return account;
 
+            return account;
         }
+
         private Account CreateAccount(Message message)
         {
             var account = new Account
             {
                 ChatId = message.Chat.Id,
-                Name = message.Chat.Username,
-                Status = AccountStatus.Start,
+                Name   = message.Chat.Username,
+                Status = CommandStatus.Main,
             };
             if (message.Chat.Username == null)
                 account.Name = message.Chat.FirstName + " " + message.Chat.LastName;
@@ -115,28 +125,31 @@ namespace TelegramBotCore.Controllers
             return account;
         }
 
-        #endregion
+#endregion
 
-        #region Localisation
+#region Localisation
+
         public string GetText(string key, string language)
         {
             var text = Context.Texts.FirstOrDefault(t => t.Key == key && t.Language == language);
             if (text == null)
             {
-                text = new Text() { Key = key, Value = key, Language = language };
+                text = new Text() {Key = key, Value = key, Language = language};
                 Context.Texts.Add(text);
                 SaveChanges();
             }
-            var langs = new List<string>() { "ru", "en", "ua" };
+
+            var langs = new List<string>() {"ru", "en", "ua"};
             langs.Remove(language);
             foreach (var l in langs)
                 if (Context.Texts.FirstOrDefault(t => t.Key == key && t.Language == l) == null)
-                    Context.Texts.Add(new Text() { Key = key, Value = key, Language = l });
+                    Context.Texts.Add(new Text() {Key = key, Value = key, Language = l});
             SaveChanges();
 
             return text.Value;
         }
-        #endregion
+
+#endregion
 
         public void SaveChanges() => Context.SaveChanges();
     }

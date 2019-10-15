@@ -92,7 +92,7 @@ namespace TelegramBotCore.Telegram.Bot
             var command = GetCommand(message, account);
 
             Console.WriteLine(
-                $"Command: {command}, status: {account.NextCommand.ToString()}");
+                $"Command: {command}, status: {account.Status.ToString()}");
 
             await SendTextMessageAsync(command.Execute(message, this, account));
         }

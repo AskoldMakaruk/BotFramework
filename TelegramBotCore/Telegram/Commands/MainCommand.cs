@@ -3,24 +3,23 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Threading.Tasks;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.InputFiles;
 using TelegramBotCore.DB.Model;
 using TelegramBotCore.Telegram.Bot;
 
 namespace TelegramBotCore.Telegram.Commands
 {
-    public class MainCommand : Command
+    public class MainCommand : InputCommand
     {
-        public override bool Suitable(Message message, Account account)
-        {
-            return (account.Status == AccountStatus.Free);
-        }
+        public override MessageType[] InputTypes => new[] {MessageType.Text};
+        public override CommandStatus Status     => CommandStatus.Main;
 
         public override Response Execute(Message message, Client client, Account account)
         {
             if (message.Document != null || message.Photo != null)
             {
-                using(var ms = new MemoryStream())
+                using (var ms = new MemoryStream())
                 {
                     if (message.Document != null)
                         client.GetInfoAndDownloadFileAsync(message.Document.FileId, ms).RunSynchronously();
