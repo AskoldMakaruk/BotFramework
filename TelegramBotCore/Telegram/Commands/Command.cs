@@ -2,51 +2,66 @@
 using System.Linq;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using TelegramBotCore.DB.Model;
-using TelegramBotCore.Telegram.Bot;
 
-namespace TelegramBotCore.Telegram.Commands
+namespace BotFramework.Commands
 {
-    public abstract class Command
+    public interface ICommand
     {
-        public abstract bool     Suitable(Message message, Account account);
-        public abstract Response Execute(Message  message, Client  client, Account account);
+        Response Execute(Message message, Client.Client client, long accId);
     }
 
-    public abstract class KeyboardButtonCommand : Command
+    public interface IOneOfMany : ICommand
     {
-        public abstract   string        Name     { get; }
-        public abstract   CommandStatus Keyboard { get; }
-
-        public override bool Suitable(Message message, Account account)
-        {
-            return message.Text == Name && account.Status == Keyboard;
-        }
+        bool Suitable(Message message, long accId);
     }
 
-    public abstract class InputCommand : Command
+    public abstract class KeyboardButtonCommand : IOneOfMany
+    {
+        public abstract string        Name     { get; }
+        public virtual bool Suitable(Message message, long accId) =>
+            message.Text == Name;
+
+        public abstract Response Execute(Message message, Client.Client client, long accId);
+    }
+
+    public abstract class InputCommand : ICommand
     {
         public abstract MessageType[] InputTypes { get; }
-        public abstract CommandStatus Status     { get; }
 
-        public override bool Suitable(Message message, Account account)
+        public virtual bool Suitable(Message message, long accId) =>
+            InputTypes.Contains(message.Type);
+
+        public Response Execute(Message message, Client.Client client, long accId)
         {
-            return InputTypes.Contains(message.Type) && account.Status == Status;
+            if(!Suitable(message, accId))
+                throw new BadInputException("Invalid input");
+            return Run(message, client, accId);
         }
+
+        protected abstract Response Run(Message message, Client.Client client, long accId);
     }
 
-    public abstract class StaticCommand : Command
+    public abstract class StaticCommand : IOneOfMany
     {
         public abstract string Alias { get; }
 
-        public override bool Suitable(Message message, Account account)
-        {
-            return message.Text == Alias;
-        }
+        public virtual bool Suitable(Message message, long accId) =>
+            message.Text == Alias;
+
+        public abstract Response Execute(Message message, Client.Client client, long accUd);
     }
 
-    public enum CommandStatus
+    //todo this
+    public class BadInputException : Exception
     {
-        Main
+        public Response ErrResponse;
+        public BadInputException(string name)
+        {
+            
+        }
+        public BadInputException(Response errResponse)
+        {
+            ErrResponse = errResponse;
+        }
     }
 }

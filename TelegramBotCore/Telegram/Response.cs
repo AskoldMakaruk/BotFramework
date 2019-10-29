@@ -1,84 +1,123 @@
-﻿using Telegram.Bot.Types.InputFiles;
+﻿using System.Collections.Generic;
+using BotFramework.Commands;
+using Telegram.Bot.Types;
+using Telegram.Bot.Types.InputFiles;
 using Telegram.Bot.Types.ReplyMarkups;
-using TelegramBotCore.DB.Model;
+using Monad;
 
-namespace TelegramBotCore.Telegram
+namespace BotFramework
 {
+    /*
+      todo add command to all constructors
+      todo set dafalt next commands as prev commands
+     */
     public class Response
     {
-        public static Response TextMessage(Account account, string text, IReplyMarkup replyMarkup = null,
-                                           int     replyToMessageId = 0)
-            => new Response(account, text, replyMarkup, replyToMessageId);
-
-        private Response(Account account, string text, IReplyMarkup replyMarkup = null, int replyToMessageId = 0)
+        public Response(ICommand command)
         {
-            Account          = account;
-            Text             = text;
-            ReplyToMessageId = replyToMessageId;
-            ReplyMarkup      = replyMarkup;
-            Type             = ResponseType.TextMessage;
+            nextPossible = EitherStrict.Left<ICommand, IEnumerable<IOneOfMany>>(command);
+            Responses = new List<ResponseMessage>();
         }
 
-        public static Response EditTextMessage(Account      account, int editMessageId, string text,
-                                               IReplyMarkup replyMarkup = null)
-            => new Response(account, editMessageId, text, replyMarkup);
-
-        private Response(Account account, int editMessageId, string text, IReplyMarkup replyMarkup = null)
+        public Response(params IOneOfMany[] nextPossible) => new Response(nextPossible); //а замість парамс сюди можна передавати просто массив?
+        public Response(IEnumerable<IOneOfMany> nextPossible)
         {
-            Account       = account;
-            Text          = text;
-            ReplyMarkup   = replyMarkup;
-            EditMessageId = editMessageId;
-            Type          = ResponseType.EditTextMesage;
+            this.nextPossible = EitherStrict.Right<ICommand, IEnumerable<IOneOfMany>>(nextPossible);
+            Responses = new List<ResponseMessage>();
+        }
+        public Response()
+        {
+            nextPossible = null;
+            Responses = new List<ResponseMessage>();
+        }
+        public List<ResponseMessage> Responses { get; set; }
+
+        public EitherStrict<ICommand, IEnumerable<IOneOfMany>>? nextPossible { get; }
+        
+        
+        #region Constructors
+        public Response TextMessage(ChatId chat, string text, IReplyMarkup replyMarkup = null,
+                                    int    replyToMessageId = 0)
+        {
+            Responses.Add(new ResponseMessage(ResponseType.TextMessage)
+            {
+                ChatId           = chat,
+                Text             = text,
+                ReplyMarkup      = replyMarkup,
+                ReplyToMessageId = replyToMessageId
+            });
+            return this;
         }
 
-        public static Response AnswerQueryMessage(string answerToMessageId, string text)
-            => new Response(answerToMessageId, text, true);
-
-        private Response(string answerToMessageId, string text, bool answerQuery = true)
+        public Response EditTextMessage(ChatId       chatId, int editMessageId, string text,
+                                        IReplyMarkup replyMarkup = null)
         {
-            AnswerToMessageId = answerToMessageId;
-            Text              = text;
-            AnswerQuery       = answerQuery;
-            Type              = ResponseType.AnswerQuery;
+            Responses.Add(new ResponseMessage(ResponseType.EditTextMesage)
+            {
+                ChatId        = chatId,
+                EditMessageId = editMessageId,
+                Text          = text,
+                ReplyMarkup   = replyMarkup
+            });
+            return this;
         }
 
-        public static Response SendDocument(Account         account,
-                                            InputOnlineFile document,
-                                            string          caption          = null,
-                                            int             replyToMessageId = 0,
-                                            IReplyMarkup    replyMarkup      = null)
-            => new Response(account, document, caption, replyToMessageId, replyMarkup);
-
-        private Response(Account         account,
-                         InputOnlineFile document,
-                         string          caption = null,
-                         //ParseMode         parseMode           = ParseMode.Default,
-                         //bool              disableNotification = false,
-                         int          replyToMessageId = 0,
-                         IReplyMarkup replyMarkup      = null
-            //CancellationToken cancellationToken   = default(CancellationToken),
-            //InputMedia        thumb               = null
-        )
+        public Response AnswerQueryMessage(string answerToMessageId, string text)
         {
-            Account          = account;
-            Text             = caption;
-            ReplyToMessageId = replyToMessageId;
-            ReplyMarkup      = replyMarkup;
-            Document         = document;
-            Type             = ResponseType.SendDocument;
+            Responses.Add(new ResponseMessage(ResponseType.AnswerQuery)
+            {
+                AnswerToMessageId = answerToMessageId,
+                Text              = text
+            });
+            return this;
         }
 
+        public Response SendDocument(long         account,
+                                     InputOnlineFile document,
+                                     string          caption          = null,
+                                     int             replyToMessageId = 0,
+                                     IReplyMarkup    replyMarkup      = null)
+        {
+            Responses.Add(new ResponseMessage(ResponseType.SendDocument)
+            {
+                ChatId           = account,
+                Text             = caption,
+                ReplyToMessageId = replyToMessageId,
+                ReplyMarkup      = replyMarkup,
+                Document         = document
+            });
+            return this;
+        }
 
-        public Account         Account           { get; set; }
-        public string          Text              { get; set; }
-        public int             ReplyToMessageId  { get; set; } = 0;
-        public IReplyMarkup    ReplyMarkup       { get; set; }
-        public int             EditMessageId     { get; set; } = 0;
-        public bool            AnswerQuery       { get; set; } = false;
-        public string          AnswerToMessageId { get; set; }
-        public InputOnlineFile Document          { get; set; }
-        public ResponseType    Type              { get; private set; }
+        public Response EditMessageMarkup(ChatId               accountChatId, int messageMessageId,
+                                          InlineKeyboardMarkup addMemeButton)
+        {
+            Responses.Add(new ResponseMessage(ResponseType.EditMessageMarkup)
+            {ChatId = accountChatId, MessageId = messageMessageId, ReplyMarkup = addMemeButton});
+            return this;
+        }
+        #endregion
+    }
+
+    public class ResponseMessage
+    {
+        public ResponseMessage(ResponseType type)
+        {
+            Type = type;
+        }
+
+        public ResponseMessage() { }
+
+        public ChatId                        ChatId            { get; set; }
+        public string                        Text              { get; set; }
+        public int                           ReplyToMessageId  { get; set; }
+        public IReplyMarkup                  ReplyMarkup       { get; set; }
+        public int                           EditMessageId     { get; set; }
+        public string                        AnswerToMessageId { get; set; }
+        public InputOnlineFile               Document          { get; set; }
+        public ResponseType                  Type              { get; }
+        public IEnumerable<IAlbumInputMedia> Album             { get; set; }
+        public int                           MessageId         { get; set; }
     }
 
     public enum ResponseType
@@ -86,6 +125,9 @@ namespace TelegramBotCore.Telegram
         TextMessage,
         EditTextMesage,
         AnswerQuery,
-        SendDocument
+        SendDocument,
+        SendPhoto,
+        Album,
+        EditMessageMarkup
     }
 }

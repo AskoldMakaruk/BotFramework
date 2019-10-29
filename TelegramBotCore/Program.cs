@@ -1,6 +1,5 @@
 ﻿using System;
-using TelegramBotCore.Telegram;
-using TelegramBotCore.Telegram.Bot;
+using BotFramework.Client;
 
 namespace TelegramBotCore
 {

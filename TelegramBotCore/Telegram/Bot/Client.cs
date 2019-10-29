@@ -1,31 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using BotFramework.Commands;
+using BotFramework.Queries;
+using Microsoft.EntityFrameworkCore;
+using Monad;
 using Telegram.Bot;
 using Telegram.Bot.Args;
 using Telegram.Bot.Types;
-using TelegramBotCore.Controllers;
-using TelegramBotCore.DB.Model;
-using TelegramBotCore.Telegram.Commands;
-using TelegramBotCore.Telegram.Queries;
 
-namespace TelegramBotCore.Telegram.Bot
+namespace BotFramework.Client
 {
     public partial class Client
     {
-        public Client(string token)
+        public static Dictionary<long, EitherStrict<ICommand, IEnumerable<IOneOfMany>>?> nextCommands;
+        public Client(string token, Assembly assembly = null)
         {
-            var baseType = typeof(Command);
-            var assembly = baseType.Assembly;
+            assembly = assembly ??
+            //повертає ассебмлю з якої викликається конструктор
+            Assembly.GetCallingAssembly();
 
-            Commands = assembly
-                .GetTypes()
-                .Where(t => t.IsSubclassOf(baseType) && !t.IsAbstract)
-                .Select(c => Activator.CreateInstance(c) as Command)
-                .Where(c => c != null)
-                .ToDictionary(x => new Func<Message, Account, bool>(x.Suitable), x => x);
-
-            baseType = typeof(Query);
+            var baseType = typeof(Query);
             assembly = baseType.Assembly;
 
             Queries = assembly
@@ -33,38 +29,48 @@ namespace TelegramBotCore.Telegram.Bot
                 .Where(t => t.IsSubclassOf(baseType) && !t.IsAbstract)
                 .Select(c => Activator.CreateInstance(c) as Query)
                 .Where(c => c != null)
-                .ToDictionary(x => new Func<CallbackQuery, Account, bool>(x.IsSuitable), x => x);
+                .ToDictionary(x => new Func<CallbackQuery, long, bool>(x.IsSuitable), x => x);
 
             Bot = new TelegramBotClient(token);
             Bot.OnMessage += OnMessageRecieved;
             Bot.OnCallbackQuery += OnQueryReceived;
             Bot.StartReceiving();
+            Bot.SendTextMessageAsync(249258727, "Hi");
+            Bot.DeleteWebhookAsync();
         }
 
         private TelegramBotClient Bot { get; }
-        protected Dictionary<Func<Message, Account, bool>, Command> Commands { get; set; }
-        protected Dictionary<Func<CallbackQuery, Account, bool>, Query> Queries { get; set; }
+        protected Dictionary<Func<CallbackQuery, long, bool>, Query> Queries { get; set; }
+        protected IEnumerable<StaticCommand> StaticCommands { get; set; }
+
+        //public async void OnUpdateReceived(object sender, UpdateEventArgs e)
+        //{
+        //    if (e.Update.Type == UpdateType.ChannelPost)
+        //    {
+        //        var message    = e.Update.ChannelPost;
+        //        var controller = new TelegramController();
+        //        controller.Start();
+        //        if (message.Document != null || message.Photo != null)
+        //        {
+        //            var meme = await ImageDownloader.DownloadFromMessage(message, this,
+        //                           new ChatId() {ChatId = message.Chat.Id, UserName = message.Chat.Username, Id = -1},
+        //                           controller);
+        //            await EditMessageReplyMarkupAsync(message.Chat, message.MessageId,
+        //                Command.AddMemeButton(controller.GetChannelLanguage(message.Chat.Id), controller, meme.Id,
+        //                    controller.CountLikes(meme.Id)));
+        //        }
+        //    }
+        //}
 
         public async void HandleQuery(CallbackQuery query)
         {
             try
             {
-                var contoller = new TelegramController();
-                contoller.Start();
-
-                var account = contoller.FromQuery(query);
-                if (account == null)
-                {
-                    await Bot.AnswerCallbackQueryAsync(query.Id, "Your account doesn't exist.");
-                    return;
-                }
-
-                var command = GetQuery(query, account);
-                command.Controller = contoller;
+                var command = GetQuery(query, query.From.Id);
 
                 Console.WriteLine($"Command: {command}");
 
-                await SendTextMessageAsync(command.Execute(query, account));
+                await SendTextMessageAsync(command.Execute(query, query.From.Id));
             }
             catch (Exception e)
             {
@@ -74,35 +80,25 @@ namespace TelegramBotCore.Telegram.Bot
 
         public async void HandleMessage(Message message)
         {
-            var chatId = message.Chat.Id;
-            Account account;
-
-            if (TelegramController.Accounts.ContainsKey(chatId))
-            {
-                account = TelegramController.Accounts[chatId];
-            }
+            var nextPossible = nextCommands[message.Chat.Id];
+            IEnumerable<ICommand> toExecute;
+            if (!nextPossible.HasValue)
+                toExecute = StaticCommands;
             else
+                toExecute = nextPossible.Value.Match(
+                    right => right.Where(t => t.Suitable(message, message.Chat.Id)),
+                    left => Enumerable.Repeat(left,1));
+            var responses = toExecute.Select(t => t.Execute(message, this, message.Chat.Id));
+            foreach (var response in responses)
             {
-                var contoller = new TelegramController();
-                contoller.Start();
-                account = contoller.FromMessage(message);
-                account.Controller = contoller;
+                if (response.nextPossible.HasValue)
+                    nextCommands[message.Chat.Id] = response.nextPossible;
+                await SendTextMessageAsync(response);
             }
-
-            var command = GetCommand(message, account);
-
-            Console.WriteLine(
-                $"Command: {command}, status: {account.Status.ToString()}");
-
-            await SendTextMessageAsync(command.Execute(message, this, account));
         }
 
-        protected Command GetCommand(Message message, Account account)
-        {
-            return Commands[Commands.Keys.OrderByDescending(s => s.Invoke(message, account)).First()];
-        }
 
-        protected Query GetQuery(CallbackQuery message, Account account)
+        protected Query GetQuery(CallbackQuery message, long account)
         {
             var func = Queries.Keys.FirstOrDefault(s => s.Invoke(message, account));
             return func != null ? Queries[func] : default;
@@ -123,8 +119,8 @@ namespace TelegramBotCore.Telegram.Bot
 
         public void OnQueryReceived(object sender, CallbackQueryEventArgs e)
         {
-            Console.WriteLine(DateTime.Now.ToShortTimeString() + " " + e.CallbackQuery.From.Username + ": " +
-                e.CallbackQuery.Data);
+            Console.WriteLine(
+                $"{DateTime.Now.ToShortTimeString()} {e.CallbackQuery.From.Username}: {e.CallbackQuery.Data}");
             try
             {
                 HandleQuery(e.CallbackQuery);
