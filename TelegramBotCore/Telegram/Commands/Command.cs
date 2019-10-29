@@ -34,7 +34,7 @@ namespace BotFramework.Commands
         public Response Execute(Message message, Client.Client client, long accId)
         {
             if(!Suitable(message, accId))
-                throw new BadInputException("Invalid input");
+                return new Response().TextMessage(accId, "BadInput");
             return Run(message, client, accId);
         }
 
@@ -51,17 +51,4 @@ namespace BotFramework.Commands
         public abstract Response Execute(Message message, Client.Client client, long accUd);
     }
 
-    //todo this
-    public class BadInputException : Exception
-    {
-        public Response ErrResponse;
-        public BadInputException(string name)
-        {
-            
-        }
-        public BadInputException(Response errResponse)
-        {
-            ErrResponse = errResponse;
-        }
-    }
 }
