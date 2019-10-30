@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using BotFramework.Commands;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.InputFiles;
@@ -19,7 +20,12 @@ namespace BotFramework
             Responses = new List<ResponseMessage>();
         }
 
-        public Response(params IOneOfMany[] nextPossible) => new Response(nextPossible); //а замість парамс сюди можна передавати просто массив?
+        public Response(params IOneOfMany[] nextPossible)
+        {
+            this.nextPossible = nextPossible;
+            Responses = new List<ResponseMessage>();
+        }
+
         public Response(IEnumerable<IOneOfMany> nextPossible)
         {
             this.nextPossible = EitherStrict.Right<ICommand, IEnumerable<IOneOfMany>>(nextPossible);
@@ -33,8 +39,7 @@ namespace BotFramework
         public List<ResponseMessage> Responses { get; set; }
 
         public EitherStrict<ICommand, IEnumerable<IOneOfMany>>? nextPossible { get; }
-        
-        
+
         #region Constructors
         public Response TextMessage(ChatId chat, string text, IReplyMarkup replyMarkup = null,
                                     int    replyToMessageId = 0)

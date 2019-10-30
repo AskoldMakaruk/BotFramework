@@ -17,9 +17,10 @@ namespace BotFramework.Commands
 
     public abstract class KeyboardButtonCommand : IOneOfMany
     {
-        public abstract string        Name     { get; }
+        public abstract string Name { get; }
+
         public virtual bool Suitable(Message message, long accId) =>
-            message.Text == Name;
+        message.Text == Name;
 
         public abstract Response Execute(Message message, Client.Client client, long accId);
     }
@@ -29,13 +30,13 @@ namespace BotFramework.Commands
         public abstract MessageType[] InputTypes { get; }
 
         public virtual bool Suitable(Message message, long accId) =>
-            InputTypes.Contains(message.Type);
+        InputTypes.Contains(message.Type);
 
         public Response Execute(Message message, Client.Client client, long accId)
         {
-            if(!Suitable(message, accId))
-                return new Response().TextMessage(accId, "BadInput");
-            return Run(message, client, accId);
+            return !Suitable(message, accId)
+                   ? new Response().TextMessage(accId, "BadInput")
+                   : Run(message, client, accId);
         }
 
         protected abstract Response Run(Message message, Client.Client client, long accId);
@@ -46,9 +47,8 @@ namespace BotFramework.Commands
         public abstract string Alias { get; }
 
         public virtual bool Suitable(Message message, long accId) =>
-            message.Text == Alias;
+        message.Text == Alias;
 
         public abstract Response Execute(Message message, Client.Client client, long accUd);
     }
-
 }
