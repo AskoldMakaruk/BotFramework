@@ -94,8 +94,7 @@ namespace BotFramework.Client
                 await SendTextMessageAsync(response);
             }
         }
-
-
+        
         protected Query GetQuery(CallbackQuery message, long account)
         {
             var func = Queries.Keys.FirstOrDefault(s => s.Invoke(message, account));
