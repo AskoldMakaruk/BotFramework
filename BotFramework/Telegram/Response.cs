@@ -14,31 +14,19 @@ namespace BotFramework
      */
     public class Response
     {
-        public Response(ICommand command)
-        {
-            nextPossible = EitherStrict.Left<ICommand, IEnumerable<IOneOfMany>>(command);
-            Responses = new List<ResponseMessage>();
-        }
+        public Response(ICommand command) =>
+            NextPossible = EitherStrict.Left<ICommand, IEnumerable<IOneOfMany>>(command);
 
-        public Response(params IOneOfMany[] nextPossible)
-        {
-            this.nextPossible = nextPossible;
-            Responses = new List<ResponseMessage>();
-        }
+        public Response(params IOneOfMany[] nextPossible) =>
+            this.NextPossible = nextPossible.Length == 0 ? null : nextPossible;
 
-        public Response(IEnumerable<IOneOfMany> nextPossible)
-        {
-            this.nextPossible = EitherStrict.Right<ICommand, IEnumerable<IOneOfMany>>(nextPossible);
-            Responses = new List<ResponseMessage>();
-        }
-        public Response()
-        {
-            nextPossible = null;
-            Responses = new List<ResponseMessage>();
-        }
-        public List<ResponseMessage> Responses { get; set; }
+        public Response(IEnumerable<IOneOfMany> nextPossible) =>
+            this.NextPossible = EitherStrict.Right<ICommand, IEnumerable<IOneOfMany>>(nextPossible);
+        public Response() {}
 
-        public EitherStrict<ICommand, IEnumerable<IOneOfMany>>? nextPossible { get; }
+        public List<ResponseMessage> Responses { get; set; } = new List<ResponseMessage>();
+
+        public EitherStrict<ICommand, IEnumerable<IOneOfMany>>? NextPossible { get; }
 
         #region Constructors
         public Response TextMessage(ChatId chat, string text, IReplyMarkup replyMarkup = null,

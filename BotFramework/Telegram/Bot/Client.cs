@@ -81,18 +81,16 @@ namespace BotFramework.Client
         public async void HandleMessage(Message message)
         {
             var nextPossible = nextCommands[message.Chat.Id];
-            IEnumerable<ICommand> toExecute;
-            if (!nextPossible.HasValue)
-                toExecute = StaticCommands;
-            else
-                toExecute = nextPossible.Value.Match(
+            var toExecute = nextPossible.HasValue
+                ? nextPossible.Value.Match(
                     right => right.Where(t => t.Suitable(message, message.Chat.Id)),
-                    left => Enumerable.Repeat(left,1));
+                    left => Enumerable.Repeat(left, 1))
+                : StaticCommands;
             var responses = toExecute.Select(t => t.Execute(message, this, message.Chat.Id));
             foreach (var response in responses)
             {
-                if (response.nextPossible.HasValue)
-                    nextCommands[message.Chat.Id] = response.nextPossible;
+                if (response.NextPossible.HasValue)
+                    nextCommands[message.Chat.Id] = response.NextPossible;
                 await SendTextMessageAsync(response);
             }
         }
