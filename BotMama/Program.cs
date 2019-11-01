@@ -6,6 +6,7 @@ namespace BotMama
     {
         static void Main(string[] args)
         {
+            Moma.Configure("config.json");
             Console.WriteLine("Hello World!");
         }
     }
