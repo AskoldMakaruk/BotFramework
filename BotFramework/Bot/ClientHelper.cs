@@ -4,10 +4,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using Telegram.Bot.Types.InputFiles;
 using Telegram.Bot.Types.ReplyMarkups;
 
-namespace BotFramework.Client
+namespace BotFramework.Bot
 {
     public partial class Client
     {

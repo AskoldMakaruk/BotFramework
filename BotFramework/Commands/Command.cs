@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using BotFramework.Commands;
+﻿using BotFramework.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
 
-namespace BotFramework.Telegram.Commands
+namespace BotFramework.Commands
 {
     public abstract class Command : ICommand
     {
@@ -27,7 +24,7 @@ namespace BotFramework.Telegram.Commands
         protected ChatId  chat    { get; set; }
         protected Message message { get; set; }
 
-        public Response Execute(Message mes, Client.Client client, long accId)
+        public Response Execute(Message mes, Client client, long accId)
         {
             message = mes;
             chat    = message.From.Id;

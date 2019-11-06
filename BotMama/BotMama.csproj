@@ -11,6 +11,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../../BotTypes.cs/BotFramework.csproj" />
+    <ProjectReference Include="..\BotTypes\BotTypes.csproj" />
   </ItemGroup>
 </Project>

@@ -1,7 +1,7 @@
 ﻿using System;
-using BotFramework.Client;
+using BotFramework.Bot;
 
-namespace TelegramBotCore
+namespace BotFramework
 {
     internal class Program
     {

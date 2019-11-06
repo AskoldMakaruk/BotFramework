@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using BotFramework.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
@@ -8,7 +9,7 @@ namespace BotFramework.Commands
 {
     public interface ICommand
     {
-        Response Execute(Message message, Client.Client client, long accId);
+        Response Execute(Message message, Client client, long accId);
     }
 
     
@@ -25,7 +26,7 @@ namespace BotFramework.Commands
         public virtual bool Suitable(Message message, long accId) =>
         message.Text == Name;
 
-        public abstract Response Execute(Message message, Client.Client client, long accId);
+        public abstract Response Execute(Message message, Client client, long accId);
     }
 
     public abstract class InputCommand : ICommand
@@ -35,14 +36,14 @@ namespace BotFramework.Commands
         public virtual bool Suitable(Message message, long accId) =>
         InputTypes.Contains(message.Type);
 
-        public Response Execute(Message message, Client.Client client, long accId)
+        public Response Execute(Message message, Client client, long accId)
         {
             return !Suitable(message, accId)
                    ? new Response().TextMessage(accId, "BadInput")
                    : Run(message, client, accId);
         }
 
-        protected abstract Response Run(Message message, Client.Client client, long accId);
+        protected abstract Response Run(Message message, Client client, long accId);
     }
 
     public abstract class StaticCommand : IOneOfMany
@@ -52,6 +53,6 @@ namespace BotFramework.Commands
         public virtual bool Suitable(Message message, long accId) =>
         message.Text == Alias;
 
-        public abstract Response Execute(Message message, Client.Client client, long accUd);
+        public abstract Response Execute(Message message, Client client, long accUd);
     }
 }
