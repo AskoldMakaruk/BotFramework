@@ -6,19 +6,21 @@ namespace BotFramework.Commands
 {
     public abstract class Command : ICommand
     {
-        public Response Response { get; set; }
+        public Response Answer { get; set; }
 
         public void TextMessage(string text, IReplyMarkup replyMarkup = null,
                                 int    replyToMessageId = 0)
         {
-            Response.Responses
-                    .Add(new ResponseMessage(ResponseType.TextMessage)
-                    {
-                        ChatId           = chat,
-                        Text             = text,
-                        ReplyMarkup      = replyMarkup,
-                        ReplyToMessageId = replyToMessageId
-                    });
+            //todo this shit
+            Answer = new Response();
+            Answer.
+            .Add(new ResponseMessage(ResponseType.TextMessage)
+            {
+                ChatId           = chat,
+                Text             = text,
+                ReplyMarkup      = replyMarkup,
+                ReplyToMessageId = replyToMessageId
+            });
         }
 
         protected ChatId  chat    { get; set; }
@@ -29,7 +31,7 @@ namespace BotFramework.Commands
             message = mes;
             chat    = message.From.Id;
             Run();
-            return Response;
+            return Answer;
         }
 
         protected abstract void Run();
