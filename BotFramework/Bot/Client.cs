@@ -43,6 +43,12 @@ namespace BotFramework.Bot
         protected Dictionary<Func<CallbackQuery, long, bool>, Query> Queries        { get; set; }
         protected IEnumerable<StaticCommand>                         StaticCommands { get; set; }
 
+        protected Query GetQuery(CallbackQuery message, long account)
+        {
+            var func = Queries.Keys.FirstOrDefault(s => s.Invoke(message, account));
+            return func != null ? Queries[func] : default;
+        }
+
         public async void HandleQuery(CallbackQuery query)
         {
             try
@@ -74,12 +80,6 @@ namespace BotFramework.Bot
                     nextCommands[message.Chat.Id] = response.NextPossible;
                 await SendTextMessageAsync(response);
             }
-        }
-
-        protected Query GetQuery(CallbackQuery message, long account)
-        {
-            var func = Queries.Keys.FirstOrDefault(s => s.Invoke(message, account));
-            return func != null ? Queries[func] : default;
         }
 
         public void OnMessageRecieved(object sender, MessageEventArgs e)

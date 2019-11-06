@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices.ComTypes;
 using System.Threading.Tasks;
-using BotTypes.cs;
+using BotFramework.Bot;
 using CliWrap;
 using Newtonsoft.Json;
 
@@ -22,14 +20,17 @@ namespace BotMama
         public static void Configure(string momaConfigPath)
         {
             ConfigPath = momaConfigPath;
-            if (File.Exists(ConfigPath)) Config = LoadConfig();
+            if (File.Exists(ConfigPath))
+            {
+                Config = LoadConfig();
+            }
             else
             {
                 Config = new MomaConfig
                 {
                     BotsDir         = $"data{S}Bots",
                     CertificatesDir = $"data{S}Certificates",
-                    NginxConfig     = $"data{S}nginx",
+                    NginxConfig     = $"data{S}nginx"
                 };
                 SaveConfig();
             }
@@ -71,21 +72,18 @@ namespace BotMama
                 }
 
                 var innerDirs = Directory.GetDirectories(dirname);
-                if (innerDirs.FirstOrDefault(d => d == "obj") == null)
-                {
-                    DotnetRestore(dirname).RunSynchronously();
-                }
+                if (innerDirs.FirstOrDefault(d => d == "obj") == null) DotnetRestore(dirname).RunSynchronously();
 
-                if (innerDirs.FirstOrDefault(d => d == "bin") == null)
-                {
-                    DotnetBuild(dirname).RunSynchronously();
-                }
+                if (innerDirs.FirstOrDefault(d => d == "bin") == null) DotnetBuild(dirname).RunSynchronously();
             }
 
             Clients = LoadAssemblies(Config.BotsDir).ToList();
         }
 
-        public static void Log(string message) => Console.WriteLine(message);
+        public static void Log(string message)
+        {
+            Console.WriteLine(message);
+        }
 
         private static IEnumerable<IClient> LoadAssemblies(string botsDir)
         {
@@ -93,8 +91,9 @@ namespace BotMama
             {
                 foreach (var file in Directory.GetFiles(dir, "*.dll"))
                 {
-                    var assembly = Assembly.LoadFrom("dllPath");
+                    var assembly = Assembly.LoadFrom(file);
                     AppDomain.CurrentDomain.Load(assembly.GetName());
+                    //todo load commands instead of client
                     var t = assembly.GetType("Client");
                     yield return Activator.CreateInstance<IClient>();
                 }
@@ -116,24 +115,14 @@ namespace BotMama
             await Cli.Wrap("cmd.exe").SetArguments($"/c cd {dirname} && dotnet build").ExecuteAsync();
         }
 
-        private static MomaConfig LoadConfig() =>
-        JsonConvert.DeserializeObject<MomaConfig>(File.ReadAllText(ConfigPath));
-
-        private static void SaveConfig() => File.WriteAllText(ConfigPath, JsonConvert.SerializeObject(Config));
-    }
-
-    public class MomaConfig
-    {
-        public string      BotsDir         { get; set; }
-        public BotConfig[] BotConfigs      { get; set; }
-        public string      NginxConfig     { get; set; }
-        public string      CertificatesDir { get; set; }
-
-        public struct BotConfig
+        private static MomaConfig LoadConfig()
         {
-            public string Name    { get; set; }
-            public string Token   { get; set; }
-            public string GitRepo { get; set; }
+            return JsonConvert.DeserializeObject<MomaConfig>(File.ReadAllText(ConfigPath));
+        }
+
+        private static void SaveConfig()
+        {
+            File.WriteAllText(ConfigPath, JsonConvert.SerializeObject(Config));
         }
     }
 }

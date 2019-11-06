@@ -1,4 +1,4 @@
-﻿namespace BotTypes.cs
+﻿namespace BotFramework.Bot
 {
     public delegate void Log(IClient sender, string text);
 
