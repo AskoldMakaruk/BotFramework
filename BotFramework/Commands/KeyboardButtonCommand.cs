@@ -7,11 +7,11 @@ namespace BotFramework.Commands
     {
         public abstract string Name { get; }
 
-        public virtual bool Suitable(Message message, long accId)
+        public virtual bool Suitable(Message message)
         {
             return message.Text == Name;
         }
 
-        public abstract Response Execute(Message message, Client client, long accId);
+        public abstract Response Execute(Message message, Client client);
     }
 }

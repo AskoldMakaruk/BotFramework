@@ -9,18 +9,18 @@ namespace BotFramework.Commands
     {
         public abstract MessageType[] InputTypes { get; }
 
-        public Response Execute(Message message, Client client, long accId)
+        public Response Execute(Message message, Client client)
         {
-            return !Suitable(message, accId)
-                   ? new Response().TextMessage(accId, "BadInput")
-                   : Run(message, client, accId);
+            return !Suitable(message)
+                   ? new Response().TextMessage(message.Chat.Id, "BadInput")
+                   : Run(message, client);
         }
 
-        public virtual bool Suitable(Message message, long accId)
+        public virtual bool Suitable(Message message)
         {
             return InputTypes.Contains(message.Type);
         }
 
-        protected abstract Response Run(Message message, Client client, long accId);
+        protected abstract Response Run(Message message, Client client);
     }
 }
