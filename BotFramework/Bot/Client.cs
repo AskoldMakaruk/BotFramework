@@ -70,10 +70,10 @@ namespace BotFramework.Bot
             var nextPossible = nextCommands[message.Chat.Id];
             var toExecute = nextPossible.HasValue
                             ? nextPossible.Value.Match(
-                                right => right.Where(t => t.Suitable(message, message.Chat.Id)),
+                                right => right.Where(t => t.Suitable(message)),
                                 left => Enumerable.Repeat(left, 1))
                             : StaticCommands;
-            var responses = toExecute.Select(t => t.Execute(message, this, message.Chat.Id));
+            var responses = toExecute.Select(t => t.Execute(message, this));
             foreach (var response in responses)
             {
                 if (response.NextPossible.HasValue)
