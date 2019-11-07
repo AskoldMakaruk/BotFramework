@@ -1,10 +1,9 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using BotFramework.Commands;
+using Monad;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.InputFiles;
 using Telegram.Bot.Types.ReplyMarkups;
-using Monad;
 
 namespace BotFramework
 {
@@ -14,21 +13,29 @@ namespace BotFramework
      */
     public class Response
     {
-        public Response(ICommand command) =>
+        public Response(ICommand command)
+        {
             NextPossible = EitherStrict.Left<ICommand, IEnumerable<IOneOfMany>>(command);
+        }
 
-        public Response(params IOneOfMany[] nextPossible) =>
-            this.NextPossible = nextPossible.Length == 0 ? null : nextPossible;
+        public Response(params IOneOfMany[] nextPossible)
+        {
+            NextPossible = nextPossible.Length == 0 ? null : nextPossible;
+        }
 
-        public Response(IEnumerable<IOneOfMany> nextPossible) =>
-            this.NextPossible = EitherStrict.Right<ICommand, IEnumerable<IOneOfMany>>(nextPossible);
-        public Response() {}
+        public Response(IEnumerable<IOneOfMany> nextPossible)
+        {
+            NextPossible = EitherStrict.Right<ICommand, IEnumerable<IOneOfMany>>(nextPossible);
+        }
+
+        public Response() { }
 
         public List<ResponseMessage> Responses { get; set; } = new List<ResponseMessage>();
 
         public EitherStrict<ICommand, IEnumerable<IOneOfMany>>? NextPossible { get; }
 
-        #region Constructors
+#region Constructors
+
         public Response TextMessage(ChatId chat, string text, IReplyMarkup replyMarkup = null,
                                     int    replyToMessageId = 0)
         {
@@ -65,7 +72,7 @@ namespace BotFramework
             return this;
         }
 
-        public Response SendDocument(long         account,
+        public Response SendDocument(long            account,
                                      InputOnlineFile document,
                                      string          caption          = null,
                                      int             replyToMessageId = 0,
@@ -89,7 +96,8 @@ namespace BotFramework
             {ChatId = accountChatId, MessageId = messageMessageId, ReplyMarkup = addMemeButton});
             return this;
         }
-        #endregion
+
+#endregion
     }
 
     public class ResponseMessage

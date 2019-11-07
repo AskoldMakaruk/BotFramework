@@ -8,8 +8,10 @@ namespace BotFramework.Queries
     {
         public abstract string Alias { get; }
 
-        public Response Execute(CallbackQuery message, long account) =>
-        Run(message, account, UnpackParams(message.Data));
+        public Response Execute(CallbackQuery message, long account)
+        {
+            return Run(message, account, UnpackParams(message.Data));
+        }
 
         protected abstract Response Run(CallbackQuery message, long account, Dictionary<string, string> values);
 
@@ -19,17 +21,23 @@ namespace BotFramework.Queries
             return message.Data.StartsWith(Alias);
         }
 
-        public static Dictionary<string, string> UnpackParams(string input) =>
-        input.Substring(input.IndexOf(' ') + 1)
-             .Split('&')
-             .Select(s => s.Split('='))
-             .ToDictionary(r => r[0], r => r[1]);
+        public static Dictionary<string, string> UnpackParams(string input)
+        {
+            return input.Substring(input.IndexOf(' ') + 1)
+                        .Split('&')
+                        .Select(s => s.Split('='))
+                        .ToDictionary(r => r[0], r => r[1]);
+        }
 
 
-        public static string PackParams(string Alias, string Name, string Value) =>
-        PackParams(Alias, (Name, Value));
+        public static string PackParams(string Alias, string Name, string Value)
+        {
+            return PackParams(Alias, (Name, Value));
+        }
 
-        public static string PackParams(string Alias, params (string Name, string Value)[] input) =>
-        $"{Alias} {string.Join('&'.ToString(), input.Select(i => $"{i.Name}={i.Value}"))}";
+        public static string PackParams(string Alias, params (string Name, string Value)[] input)
+        {
+            return $"{Alias} {string.Join('&'.ToString(), input.Select(i => $"{i.Name}={i.Value}"))}";
+        }
     }
 }

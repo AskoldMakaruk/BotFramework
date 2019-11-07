@@ -1,5 +1,4 @@
-﻿using System;
-using BotFramework.Bot;
+﻿using BotFramework.Bot;
 using Telegram.Bot.Types;
 
 namespace BotFramework.Commands
