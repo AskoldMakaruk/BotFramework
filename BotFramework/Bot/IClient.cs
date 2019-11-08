@@ -1,12 +1,13 @@
 ﻿namespace BotFramework.Bot
 {
-    public delegate void Log(IClient sender, stri      t);
+    public delegate void Log(IClient sender, string value);
 
     public interface IClient
     {
-        v         Configure(Config     on configuration);
-        void
-    HandleUpdate(string     json);
+        void Configure(Configuration configuration);
+
+        void HandleUpdate(string json);
+
         event Log OnLog;
     }
 

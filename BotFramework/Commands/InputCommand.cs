@@ -12,7 +12,7 @@ namespace BotFramework.Commands
         public Response Execute(Message message, Client client)
         {
             return !Suitable(message)
-                   ? new Response().TextMessage(message.Chat.Id, "BadInput")
+                   ? new Response().SendTextMessage(message.Chat.Id, "BadInput")
                    : Run(message, client);
         }
 

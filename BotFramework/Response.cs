@@ -36,7 +36,7 @@ namespace BotFramework
 
 #region Constructors
 
-        public Response TextMessage(ChatId chat, string text, IReplyMarkup replyMarkup = null,
+        public Response SendTextMessage(ChatId chat, string text, IReplyMarkup replyMarkup = null,
                                     int    replyToMessageId = 0)
         {
             Responses.Add(new ResponseMessage(ResponseType.TextMessage)
