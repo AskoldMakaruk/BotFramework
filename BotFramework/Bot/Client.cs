@@ -28,6 +28,8 @@ namespace BotFramework.Bot
 
         public void Configure(Configuration configuration)
         {
+            Name = configuration.Name;
+
             var assembly = configuration.Assembly;
             var baseType = typeof(Query);
 

@@ -75,19 +75,20 @@ namespace BotMama
                     var assembly = Assembly.LoadFrom(file);
                     AppDomain.CurrentDomain.Load(assembly.GetName());
                     var client = new Client();
+                    client.OnLog += Log;
                     client.Configure(new Configuration
                     {
                         Token    = "823973981:AAGYpq1Eyl_AAYGXLeW8s28uCH89S7fsHZA",
                         Webhook  = false,
-                        Assembly = assembly
+                        Assembly = assembly,
+                        Name     = "DebugBot"
                     });
-                    client.OnLog += Log;
                     Clients.Add(client);
                 }
             }
         }
 
-        public static void Log(IClient client, string message) => Log($"{client.Name}: {message}");
+        public static void Log(IClient client, string message) => Log($"{client?.Name}: {message}");
 
         public static void Log(string message)
         {
