@@ -48,7 +48,10 @@ namespace BotMama
         {
             StartServer();
             Moma.Configure("config.json");
-            CreateWebHostBuilder(args).Build().Run();
+            CreateWebHostBuilder(args)
+            .UseUrls("http://localhost:8444")
+            .Build()
+            .Run();
         }
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args)
