@@ -70,7 +70,7 @@ namespace BotMama
 
             foreach (var dir in Directory.GetDirectories(Config.BotsDir))
             {
-                foreach (var file in Directory.GetFiles(dir, "*.dll"))
+                foreach (var file in Directory.GetFiles(dir, "*.dll", SearchOption.AllDirectories))
                 {
                     var assembly = Assembly.LoadFrom(file);
                     AppDomain.CurrentDomain.Load(assembly.GetName());
