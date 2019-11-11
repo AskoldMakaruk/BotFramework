@@ -85,9 +85,7 @@ namespace BotMama
                 {
                     var assembly = Assembly.LoadFrom(file);
                     AppDomain.CurrentDomain.Load(assembly.GetName());
-                    //todo load commands instead of client
-                    var t = assembly.GetType("Client");
-                    yield return Activator.CreateInstance<IClient>();
+                    yield return new Client("823973981:AAGYpq1Eyl_AAYGXLeW8s28uCH89S7fsHZA", assembly);
                 }
             }
         }
