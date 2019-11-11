@@ -17,7 +17,7 @@ namespace BotMama
         public static  List<IClient> Clients    { get; set; }
         private static string        ConfigPath { get; set; }
 
-        public static void Configure(string momaConfigPath)
+        public static async void Configure(string momaConfigPath)
         {
             ConfigPath = momaConfigPath;
             if (File.Exists(ConfigPath))
@@ -28,7 +28,7 @@ namespace BotMama
             {
                 Config = new MomaConfig
                 {
-                    BotsDir         = $"data{S}Bots",
+                    BotsDir = $"data{S}Bots",
                 };
                 SaveConfig();
             }
@@ -60,13 +60,13 @@ namespace BotMama
                 if (!Directory.Exists(dirname))
                 {
                     Directory.CreateDirectory(dirname);
-                    CloneRepo(botConfig.GitRepo, dirname).RunSynchronously();
+                    await CloneRepo(botConfig.GitRepo, dirname);
                 }
 
                 var innerDirs = Directory.GetDirectories(dirname);
-                if (innerDirs.FirstOrDefault(d => d == "obj") == null) DotnetRestore(dirname).RunSynchronously();
+                if (innerDirs.FirstOrDefault(d => d == "obj") == null) await DotnetRestore(dirname);
 
-                if (innerDirs.FirstOrDefault(d => d == "bin") == null) DotnetBuild(dirname).RunSynchronously();
+                if (innerDirs.FirstOrDefault(d => d == "bin") == null) await DotnetBuild(dirname);
             }
 
             Clients = LoadAssemblies(Config.BotsDir).ToList();
@@ -94,19 +94,19 @@ namespace BotMama
 
         private static async Task CloneRepo(string giturl, string dirname)
         {
-            var result = await CliWrap.Cli.Wrap("cmd.exe")
-                                      .SetArguments($"/c git clone {giturl} {dirname}")
+            var result = await CliWrap.Cli.Wrap("git")
+                                      .SetArguments($"clone {giturl} {dirname}")
                                       .ExecuteAsync();
         }
 
         private static async Task DotnetRestore(string dirname)
         {
-            await CliWrap.Cli.Wrap("cmd.exe").SetArguments($"/c cd {dirname} && dotnet restore").ExecuteAsync();
+            await CliWrap.Cli.Wrap("dotnet").SetArguments($"restore {dirname}").ExecuteAsync();
         }
 
         private static async Task DotnetBuild(string dirname)
         {
-            await CliWrap.Cli.Wrap("cmd.exe").SetArguments($"/c cd {dirname} && dotnet build").ExecuteAsync();
+            await CliWrap.Cli.Wrap("dotnet").SetArguments($"build {dirname}").ExecuteAsync();
         }
 
         private static MomaConfig LoadConfig()
