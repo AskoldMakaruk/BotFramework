@@ -63,10 +63,8 @@ namespace BotMama
                     await CloneRepo(botConfig.GitRepo, dirname);
                 }
 
-                var innerDirs = Directory.GetDirectories(dirname);
-                if (innerDirs.FirstOrDefault(d => d == "obj") == null) await DotnetRestore(dirname);
-
-                if (innerDirs.FirstOrDefault(d => d == "bin") == null) await DotnetBuild(dirname);
+                await DotnetRestore(dirname);
+                await DotnetBuild(dirname);
             }
 
 
@@ -77,10 +75,11 @@ namespace BotMama
                     var assembly = Assembly.LoadFrom(file);
                     AppDomain.CurrentDomain.Load(assembly.GetName());
                     var client = new Client();
-                    client.Configure(new Configuration()
+                    client.Configure(new Configuration
                     {
-                        Token   = "823973981:AAGYpq1Eyl_AAYGXLeW8s28uCH89S7fsHZA",
-                        Webhook = false
+                        Token    = "823973981:AAGYpq1Eyl_AAYGXLeW8s28uCH89S7fsHZA",
+                        Webhook  = false,
+                        Assembly = assembly
                     });
                     Clients.Add(client);
                 }
