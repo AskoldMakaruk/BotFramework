@@ -6,6 +6,8 @@ namespace BotFramework.Bot
 
     public interface IClient
     {
+        string Name { get; }
+
         ClientStatus Status { get; set; }
 
         void Configure(Configuration configuration);
@@ -27,6 +29,7 @@ namespace BotFramework.Bot
     {
         public bool     Webhook  { get; set; }
         public string   Token    { get; set; }
+        public string   Name     { get; set; }
         public Assembly Assembly { get; set; }
     }
 }

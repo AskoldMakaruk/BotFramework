@@ -81,10 +81,13 @@ namespace BotMama
                         Webhook  = false,
                         Assembly = assembly
                     });
+                    client.OnLog += Log;
                     Clients.Add(client);
                 }
             }
         }
+
+        public static void Log(IClient client, string message) => Log($"{client.Name}: {message}");
 
         public static void Log(string message)
         {
