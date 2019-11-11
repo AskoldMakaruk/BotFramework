@@ -68,14 +68,17 @@ namespace BotMama
             }
 
             Clients = new List<IClient>();
+            //todo iterate through BotsConfig not botsdir
             foreach (var dir in Directory.GetDirectories(Config.BotsDir))
             {
+                //todo replace * with Bot Name
                 foreach (var file in Directory.GetFiles(dir, "*.dll", SearchOption.AllDirectories))
                 {
                     var assembly = Assembly.LoadFrom(file);
                     AppDomain.CurrentDomain.Load(assembly.GetName());
                     var client = new Client();
                     client.OnLog += Log;
+                    //todo remove hardcode
                     client.Configure(new Configuration
                     {
                         Token    = "823973981:AAGYpq1Eyl_AAYGXLeW8s28uCH89S7fsHZA",
