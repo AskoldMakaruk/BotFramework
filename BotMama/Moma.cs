@@ -69,7 +69,22 @@ namespace BotMama
                 if (innerDirs.FirstOrDefault(d => d == "bin") == null) await DotnetBuild(dirname);
             }
 
-            Clients = LoadAssemblies(Config.BotsDir).ToList();
+
+            foreach (var dir in Directory.GetDirectories(Config.BotsDir))
+            {
+                foreach (var file in Directory.GetFiles(dir, "*.dll"))
+                {
+                    var assembly = Assembly.LoadFrom(file);
+                    AppDomain.CurrentDomain.Load(assembly.GetName());
+                    var client = new Client();
+                    client.Configure(new Configuration()
+                    {
+                        Token   = "823973981:AAGYpq1Eyl_AAYGXLeW8s28uCH89S7fsHZA",
+                        Webhook = false
+                    });
+                    Clients.Add(client);
+                }
+            }
         }
 
         public static void Log(string message)
@@ -77,18 +92,6 @@ namespace BotMama
             Console.WriteLine(message);
         }
 
-        private static IEnumerable<IClient> LoadAssemblies(string botsDir)
-        {
-            foreach (var dir in Directory.GetDirectories(botsDir))
-            {
-                foreach (var file in Directory.GetFiles(dir, "*.dll"))
-                {
-                    var assembly = Assembly.LoadFrom(file);
-                    AppDomain.CurrentDomain.Load(assembly.GetName());
-                    yield return new Client("823973981:AAGYpq1Eyl_AAYGXLeW8s28uCH89S7fsHZA", assembly);
-                }
-            }
-        }
 
         private static async Task CloneRepo(string giturl, string dirname)
         {

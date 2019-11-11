@@ -1,4 +1,6 @@
-﻿namespace BotFramework.Bot
+﻿using System.Reflection;
+
+namespace BotFramework.Bot
 {
     public delegate void Log(IClient sender, string value);
 
@@ -6,7 +8,7 @@
     {
         ClientStatus Status { get; set; }
 
-        void         Configure(Configuration configuration);
+        void Configure(Configuration configuration);
 
         void HandleUpdate(string json);
 
@@ -23,7 +25,8 @@
 
     public class Configuration
     {
-        public bool   Webhook { get; set; }
-        public string Token   { get; set; }
+        public bool     Webhook  { get; set; }
+        public string   Token    { get; set; }
+        public Assembly Assembly { get; set; }
     }
 }

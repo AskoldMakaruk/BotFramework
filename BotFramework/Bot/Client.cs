@@ -17,34 +17,10 @@ namespace BotFramework.Bot
 {
     public partial class Client : IClient
     {
-        public ClientStatus Status { get; set; }
+        public        ClientStatus                                                       Status { get; set; }
         public static Dictionary<long, EitherStrict<ICommand, IEnumerable<IOneOfMany>>?> nextCommands;
 
-        public Client(string token, Assembly assembly = null)
-        {
-            assembly = assembly ??
-                       //повертає ассебмлю з якої викликається конструктор
-                       Assembly.GetCallingAssembly();
-
-            var baseType = typeof(Query);
-            assembly = baseType.Assembly;
-
-            Queries = assembly
-                      .GetTypes()
-                      .Where(t => t.IsSubclassOf(baseType) && !t.IsAbstract)
-                      .Select(c => Activator.CreateInstance(c) as Query)
-                      .Where(c => c != null)
-                      .ToDictionary(x => new Func<CallbackQuery, long, bool>(x.IsSuitable), x => x);
-
-            Bot                 =  new TelegramBotClient(token);
-            Bot.OnMessage       += OnMessageRecieved;
-            Bot.OnCallbackQuery += OnQueryReceived;
-            Bot.StartReceiving();
-            Bot.SendTextMessageAsync(249258727, "Hi");
-            Bot.DeleteWebhookAsync();
-        }
-
-        private   TelegramBotClient                                  Bot            { get; }
+        private   TelegramBotClient                                  Bot            { get; set; }
         protected Dictionary<Func<CallbackQuery, long, bool>, Query> Queries        { get; set; }
         protected IEnumerable<StaticCommand>                         StaticCommands { get; set; }
 
@@ -114,8 +90,31 @@ namespace BotFramework.Bot
             }
         }
 
-        
-        public void Configure(Configuration configuration) { }
+
+        public void Configure(Configuration configuration)
+        {
+            var assembly = configuration.Assembly;
+            var baseType = typeof(Query);
+
+            Queries = assembly
+                      .GetTypes()
+                      .Where(t => t.IsSubclassOf(baseType) && !t.IsAbstract)
+                      .Select(c => Activator.CreateInstance(c) as Query)
+                      .Where(c => c != null)
+                      .ToDictionary(x => new Func<CallbackQuery, long, bool>(x.IsSuitable), x => x);
+
+            Bot                 =  new TelegramBotClient(configuration.Token);
+            Bot.OnMessage       += OnMessageRecieved;
+            Bot.OnCallbackQuery += OnQueryReceived;
+
+            if (!configuration.Webhook)
+            {
+                Bot.StartReceiving();
+                Bot.DeleteWebhookAsync();
+            }
+
+            Bot.SendTextMessageAsync(249258727, "Hi");
+        }
 
         public void HandleUpdate(string json)
         {
