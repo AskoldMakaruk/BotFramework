@@ -67,7 +67,7 @@ namespace BotMama
                 await DotnetBuild(dirname);
             }
 
-
+            Clients = new List<IClient>();
             foreach (var dir in Directory.GetDirectories(Config.BotsDir))
             {
                 foreach (var file in Directory.GetFiles(dir, "*.dll", SearchOption.AllDirectories))
