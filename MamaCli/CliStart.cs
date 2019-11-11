@@ -13,8 +13,7 @@ namespace MamaCli
 
         static void Main(string[] args)
         {
-            Message = string.Join(';', args);
-            Message = "status\n";
+            Message = string.Join(' ', args) + '\n';
             client  = new NamedPipeClientStream(".", "BotMamaPipe", PipeDirection.InOut, PipeOptions.Asynchronous);
             client.Connect();
 
