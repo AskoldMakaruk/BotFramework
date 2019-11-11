@@ -20,7 +20,7 @@ namespace BotFramework.Bot
         public string       Name   { get; set; }
         public ClientStatus Status { get; set; }
 
-        public static Dictionary<long, EitherStrict<ICommand, IEnumerable<IOneOfMany>>?> nextCommands;
+        private static Dictionary<long, EitherStrict<ICommand, IEnumerable<IOneOfMany>>?> nextCommands = new Dictionary<long, EitherStrict<ICommand, IEnumerable<IOneOfMany>>?>();
 
         private   TelegramBotClient                                  Bot            { get; set; }
         protected Dictionary<Func<CallbackQuery, long, bool>, Query> Queries        { get; set; }
@@ -77,6 +77,8 @@ namespace BotFramework.Bot
 
         public async void HandleMessage(Message message)
         {
+            if (!nextCommands.ContainsKey(message.Chat.Id))
+                nextCommands.Add(message.Chat.Id, null);
             var nextPossible = nextCommands[message.Chat.Id];
             var toExecute = nextPossible.HasValue
                             ? nextPossible.Value.Match(
