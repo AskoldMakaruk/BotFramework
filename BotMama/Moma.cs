@@ -96,17 +96,27 @@ namespace BotMama
         {
             var result = await CliWrap.Cli.Wrap("git")
                                       .SetArguments($"clone {giturl} {dirname}")
+                                      .EnableExitCodeValidation(false)
                                       .ExecuteAsync();
+            Log(result.StandardOutput);
         }
 
         private static async Task DotnetRestore(string dirname)
         {
-            await CliWrap.Cli.Wrap("dotnet").SetArguments($"restore {dirname}").ExecuteAsync();
+            var result = await CliWrap.Cli.Wrap("dotnet")
+                                      .SetArguments($"restore {dirname}")
+                                      .EnableExitCodeValidation(false)
+                                      .ExecuteAsync();
+            Log(result.StandardOutput);
         }
 
         private static async Task DotnetBuild(string dirname)
         {
-            await CliWrap.Cli.Wrap("dotnet").SetArguments($"build {dirname}").ExecuteAsync();
+            var result = await CliWrap.Cli.Wrap("dotnet")
+                                      .SetArguments($"build {dirname}")
+                                      .EnableExitCodeValidation(false)
+                                      .ExecuteAsync();
+            Log(result.StandardOutput);
         }
 
         private static MomaConfig LoadConfig()
