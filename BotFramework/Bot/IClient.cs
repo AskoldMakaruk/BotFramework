@@ -4,11 +4,21 @@
 
     public interface IClient
     {
-        void Configure(Configuration configuration);
+        ClientStatus Status { get; set; }
+
+        void         Configure(Configuration configuration);
 
         void HandleUpdate(string json);
 
         event Log OnLog;
+    }
+
+    public enum ClientStatus
+    {
+        BrokenConfig,
+        Broken,
+        Stoped,
+        Running,
     }
 
     public class Configuration

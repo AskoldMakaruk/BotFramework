@@ -5,8 +5,8 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using BotFramework.Bot;
-using CliWrap;
 using Newtonsoft.Json;
+
 
 namespace BotMama
 {
@@ -29,8 +29,6 @@ namespace BotMama
                 Config = new MomaConfig
                 {
                     BotsDir         = $"data{S}Bots",
-                    CertificatesDir = $"data{S}Certificates",
-                    NginxConfig     = $"data{S}nginx"
                 };
                 SaveConfig();
             }
@@ -43,12 +41,6 @@ namespace BotMama
 
             if (!Directory.Exists(Config.BotsDir))
                 Directory.CreateDirectory(Config.BotsDir);
-
-            if (!Directory.Exists(Config.CertificatesDir))
-                Directory.CreateDirectory(Config.CertificatesDir);
-
-            if (!Directory.Exists(Config.NginxConfig))
-                Directory.CreateDirectory(Config.NginxConfig);
 
             foreach (var botConfig in Config.BotConfigs)
             {
@@ -102,17 +94,19 @@ namespace BotMama
 
         private static async Task CloneRepo(string giturl, string dirname)
         {
-            var result = await Cli.Wrap("cmd.exe").SetArguments($"/c git clone {giturl} {dirname}").ExecuteAsync();
+            var result = await CliWrap.Cli.Wrap("cmd.exe")
+                                      .SetArguments($"/c git clone {giturl} {dirname}")
+                                      .ExecuteAsync();
         }
 
         private static async Task DotnetRestore(string dirname)
         {
-            await Cli.Wrap("cmd.exe").SetArguments($"/c cd {dirname} && dotnet restore").ExecuteAsync();
+            await CliWrap.Cli.Wrap("cmd.exe").SetArguments($"/c cd {dirname} && dotnet restore").ExecuteAsync();
         }
 
         private static async Task DotnetBuild(string dirname)
         {
-            await Cli.Wrap("cmd.exe").SetArguments($"/c cd {dirname} && dotnet build").ExecuteAsync();
+            await CliWrap.Cli.Wrap("cmd.exe").SetArguments($"/c cd {dirname} && dotnet build").ExecuteAsync();
         }
 
         private static MomaConfig LoadConfig()

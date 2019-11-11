@@ -1,18 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Reflection;
 using BotFramework.Commands;
 using BotFramework.Queries;
 using Monad;
+using Newtonsoft.Json;
 using Telegram.Bot;
 using Telegram.Bot.Args;
 using Telegram.Bot.Types;
+using Newtonsoft;
+using Telegram.Bot.Types.Enums;
 
 namespace BotFramework.Bot
 {
-    public partial class Client
+    public partial class Client : IClient
     {
+        public ClientStatus Status { get; set; }
         public static Dictionary<long, EitherStrict<ICommand, IEnumerable<IOneOfMany>>?> nextCommands;
 
         public Client(string token, Assembly assembly = null)
@@ -108,5 +113,24 @@ namespace BotFramework.Bot
                 Console.WriteLine(ex);
             }
         }
+
+        
+        public void Configure(Configuration configuration) { }
+
+        public void HandleUpdate(string json)
+        {
+            var update = JsonConvert.DeserializeObject<Update>(json);
+            switch (update.Type)
+            {
+                case UpdateType.CallbackQuery:
+                    HandleQuery(update.CallbackQuery);
+                    break;
+                case UpdateType.Message:
+                    HandleMessage(update.Message);
+                    break;
+            }
+        }
+
+        public event Log OnLog;
     }
 }
