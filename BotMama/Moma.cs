@@ -67,10 +67,15 @@ namespace BotMama
                 {
                     var csprojFile = Directory.EnumerateFiles(botdir).FirstOrDefault(f => f.EndsWith(".csproj"));
                     var csprojDoc = new XmlDocument();
-                    var botFrameworkNode = csprojDoc.DocumentElement.SelectSingleNode("/Project/ItemGroup/Reference[@Include'BotFramework']");
-                    csprojDoc.RemoveChild(botFrameworkNode);
-                    csprojDoc.Save(csprojFile);
-                    await DotnetAddReference(csprojFile, Config.FrameworkPath);
+
+                    var botFrameworkNode = csprojDoc.DocumentElement.SelectSingleNode("/Project/ItemGroup/Reference[@Include='BotFramework']");
+                    if (botFrameworkNode != null)
+                    {
+                        csprojDoc.RemoveChild(botFrameworkNode);
+                        csprojDoc.Save(csprojFile);
+                    }
+                    if (csprojDoc.DocumentElement.SelectSingleNode("/Project/ItemGroup/ProjectReference[contains(@Include,'BotFramework')]") == null)
+                        await DotnetAddReference(csprojFile, Config.FrameworkPath);
                 }
 
                 await DotnetRestore(botdir);
