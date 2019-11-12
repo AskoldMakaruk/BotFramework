@@ -71,13 +71,13 @@ namespace BotFramework.Bot
             {
                 var command = GetQuery(query, query.From.Id);
 
-                InvokeLog($"Command: {command}");
+                Write($"Command: {command}");
 
                 await SendTextMessageAsync(command.Execute(query, query.From.Id));
             }
             catch (Exception e)
             {
-                InvokeLog(e.ToString());
+                Write(e.ToString());
             }
         }
 
@@ -102,20 +102,20 @@ namespace BotFramework.Bot
 
         public void OnMessageRecieved(object sender, MessageEventArgs e)
         {
-            InvokeLog(DateTime.Now.ToShortTimeString() + " " + e.Message.From.Username + ": " + e.Message.Text);
+            Write(DateTime.Now.ToShortTimeString() + " " + e.Message.From.Username + ": " + e.Message.Text);
             try
             {
                 HandleMessage(e.Message);
             }
             catch (Exception ex)
             {
-                InvokeLog(ex.ToString());
+                Write(ex.ToString());
             }
         }
 
         public void OnQueryReceived(object sender, CallbackQueryEventArgs e)
         {
-            InvokeLog(
+            Write(
                 $"{DateTime.Now.ToShortTimeString()} {e.CallbackQuery.From.Username}: {e.CallbackQuery.Data}");
             try
             {
@@ -123,7 +123,7 @@ namespace BotFramework.Bot
             }
             catch (Exception ex)
             {
-                InvokeLog(ex.ToString());
+                Write(ex.ToString());
             }
         }
 
@@ -141,7 +141,7 @@ namespace BotFramework.Bot
             }
         }
 
-        private void InvokeLog(string message) => OnLog?.Invoke(this, message);
+        private void Write(string message) => OnLog?.Invoke(this, message);
 
         public event Log OnLog;
     }

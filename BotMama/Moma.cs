@@ -4,18 +4,18 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using System.Xml;
 using BotFramework.Bot;
 using Newtonsoft.Json;
-
 
 namespace BotMama
 {
     public static class Moma
     {
-        public static  char          S = Path.DirectorySeparatorChar;
-        public static  MomaConfig    Config     { get; set; }
-        public static  List<IClient> Clients    { get; set; }
-        private static string        ConfigPath { get; set; }
+        public static char S = Path.DirectorySeparatorChar;
+        public static MomaConfig Config { get; set; }
+        public static List<IClient> Clients { get; set; }
+        private static string ConfigPath { get; set; }
 
         public static async void Configure(string momaConfigPath)
         {
@@ -35,13 +35,14 @@ namespace BotMama
 
             if (Config.BotConfigs == null)
             {
-                Config.BotConfigs = new MomaConfig.BotConfig[] {default};
+                Config.BotConfigs = new MomaConfig.BotConfig[] { default };
                 SaveConfig();
             }
 
             if (!Directory.Exists(Config.BotsDir))
                 Directory.CreateDirectory(Config.BotsDir);
 
+            Clients = new List<IClient>();
             foreach (var botConfig in Config.BotConfigs)
             {
                 if (botConfig.Name == null)
@@ -56,41 +57,38 @@ namespace BotMama
                     continue;
                 }
 
-                var dirname = Config.BotsDir + S + botConfig.Name;
-                if (!Directory.Exists(dirname))
+                var botdir = Config.BotsDir + S + botConfig.Name;
+                if (!Directory.Exists(botdir))
                 {
-                    Directory.CreateDirectory(dirname);
-                    await CloneRepo(botConfig.GitRepo, dirname);
+                    Directory.CreateDirectory(botdir);
+                    await CloneRepo(botConfig.GitRepo, botdir);
                 }
 
-                await DotnetRestore(dirname);
-                await DotnetBuild(dirname);
-            }
-
-            Clients = new List<IClient>();
-            //todo add reference to BotFramework to each project
-            //todo iterate through BotsConfig not botsdir
-            foreach (var dir in Directory.GetDirectories(Config.BotsDir))
-            {
-                //todo replace * with Bot Name
-                foreach (var file in Directory.GetFiles(dir, $"{dir.Split('/').Last()}.dll", SearchOption.AllDirectories))
                 {
-                    Console.WriteLine("file is " + file);
-                    var assembly = Assembly.LoadFrom(file);
-                    AppDomain.CurrentDomain.Load(assembly.GetName());
-                    var client = new Client();
-                    client.OnLog += Log;
-                    //todo remove hardcode
-                    client.Configure(new Configuration
-                    {
-                        Token    = "823973981:AAGYpq1Eyl_AAYGXLeW8s28uCH89S7fsHZA",
-                        Webhook  = false,
+                    var csprojFile = Directory.EnumerateFiles(botdir).FirstOrDefault(f => f.EndsWith(".csproj"));
+                    var csprojDoc = new XmlDocument();
+                    var botFrameworkNode = csprojDoc.DocumentElement.SelectSingleNode("/Project/ItemGroup/Reference[@Include'BotFramework']");
+                    csprojDoc.RemoveChild(botFrameworkNode);
+                    csprojDoc.Save(csprojFile);
+                    await DotnetAddReference(csprojFile, Config.FrameworkPath);
+                }
+
+                await DotnetRestore(botdir);
+                await DotnetBuild(botdir);
+                var dllfile = Directory.EnumerateFiles(botdir, botConfig.Name + ".dll").FirstOrDefault();
+
+                var assembly = Assembly.LoadFrom(dllfile);
+                AppDomain.CurrentDomain.Load(assembly.GetName());
+                var client = new Client();
+                client.OnLog += Log;
+                client.Configure(new Configuration
+                {
+                    Token = botConfig.Token,
+                        Webhook = botConfig.UseWebHook??false,
                         Assembly = assembly,
-                        Name     = "DebugBot"
-                    });
-                    Clients.Add(client);
-                    break;
-                }
+                        Name = botConfig.Name
+                });
+                Clients.Add(client);
             }
         }
 
@@ -101,31 +99,39 @@ namespace BotMama
             Console.WriteLine(message);
         }
 
-
         private static async Task CloneRepo(string giturl, string dirname)
         {
             var result = await CliWrap.Cli.Wrap("git")
-                                      .SetArguments($"clone {giturl} {dirname}")
-                                      .EnableExitCodeValidation(false)
-                                      .ExecuteAsync();
+                .SetArguments($"clone {giturl} {dirname}")
+                .EnableExitCodeValidation(false)
+                .ExecuteAsync();
+            Log(result.StandardOutput);
+        }
+
+        private static async Task DotnetAddReference(string project, string reference)
+        {
+            var result = await CliWrap.Cli.Wrap("dotnet")
+                .SetArguments($"add reference {project} {reference}")
+                .EnableExitCodeValidation(false)
+                .ExecuteAsync();
             Log(result.StandardOutput);
         }
 
         private static async Task DotnetRestore(string dirname)
         {
             var result = await CliWrap.Cli.Wrap("dotnet")
-                                      .SetArguments($"restore {dirname}")
-                                      .EnableExitCodeValidation(false)
-                                      .ExecuteAsync();
+                .SetArguments($"restore {dirname}")
+                .EnableExitCodeValidation(false)
+                .ExecuteAsync();
             Log(result.StandardOutput);
         }
 
         private static async Task DotnetBuild(string dirname)
         {
             var result = await CliWrap.Cli.Wrap("dotnet")
-                                      .SetArguments($"build {dirname}")
-                                      .EnableExitCodeValidation(false)
-                                      .ExecuteAsync();
+                .SetArguments($"build {dirname}")
+                .EnableExitCodeValidation(false)
+                .ExecuteAsync();
             Log(result.StandardOutput);
         }
 
