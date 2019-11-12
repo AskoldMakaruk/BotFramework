@@ -67,6 +67,7 @@ namespace BotMama
                 {
                     var csprojFile = Directory.EnumerateFiles(botdir).FirstOrDefault(f => f.EndsWith(".csproj"));
                     var csprojDoc = new XmlDocument();
+                    csprojDoc.Load(csprojFile);
 
                     var botFrameworkNode = csprojDoc.DocumentElement.SelectSingleNode("/Project/ItemGroup/Reference[@Include='BotFramework']");
                     if (botFrameworkNode != null)
