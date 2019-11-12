@@ -6,25 +6,25 @@ using System.Reflection;
 using BotFramework.Commands;
 using BotFramework.Queries;
 using Monad;
+using Newtonsoft;
 using Newtonsoft.Json;
 using Telegram.Bot;
 using Telegram.Bot.Args;
 using Telegram.Bot.Types;
-using Newtonsoft;
 using Telegram.Bot.Types.Enums;
 
 namespace BotFramework.Bot
 {
     public partial class Client : IClient
     {
-        public string       Name   { get; set; }
+        public string Name { get; set; }
         public ClientStatus Status { get; set; }
 
-        private static Dictionary<long, EitherStrict<ICommand, IEnumerable<IOneOfMany>>?> nextCommands = new Dictionary<long, EitherStrict<ICommand, IEnumerable<IOneOfMany>>?>();
+        private static Dictionary<long, EitherStrict<ICommand, IEnumerable<IOneOfMany>> ? > nextCommands = new Dictionary<long, EitherStrict<ICommand, IEnumerable<IOneOfMany>> ? > ();
 
-        private   TelegramBotClient                                  Bot            { get; set; }
-        protected Dictionary<Func<CallbackQuery, long, bool>, Query> Queries        { get; set; }
-        protected IEnumerable<StaticCommand>                         StaticCommands { get; set; }
+        private TelegramBotClient Bot { get; set; }
+        protected Dictionary<Func<CallbackQuery, long, bool>, Query> Queries { get; set; }
+        protected IEnumerable<StaticCommand> StaticCommands { get; set; }
 
         public void Configure(Configuration configuration)
         {
@@ -37,17 +37,17 @@ namespace BotFramework.Bot
                 .Where(t => t.IsSubclassOf(baseType) && !t.IsAbstract)
                 .Select(c => Activator.CreateInstance(c) as StaticCommand)
                 .Where(c => c != null).ToList();
-            
+
             baseType = typeof(Query);
             Queries = assembly
-                      .GetTypes()
-                      .Where(t => t.IsSubclassOf(baseType) && !t.IsAbstract)
-                      .Select(c => Activator.CreateInstance(c) as Query)
-                      .Where(c => c != null)
-                      .ToDictionary(x => new Func<CallbackQuery, long, bool>(x.IsSuitable), x => x);
+                .GetTypes()
+                .Where(t => t.IsSubclassOf(baseType) && !t.IsAbstract)
+                .Select(c => Activator.CreateInstance(c) as Query)
+                .Where(c => c != null)
+                .ToDictionary(x => new Func<CallbackQuery, long, bool>(x.IsSuitable), x => x);
 
-            Bot                 =  new TelegramBotClient(configuration.Token);
-            Bot.OnMessage       += OnMessageRecieved;
+            Bot = new TelegramBotClient(configuration.Token);
+            Bot.OnMessage += OnMessageRecieved;
             Bot.OnCallbackQuery += OnQueryReceived;
 
             if (!configuration.Webhook)
@@ -86,11 +86,11 @@ namespace BotFramework.Bot
             if (!nextCommands.ContainsKey(message.Chat.Id))
                 nextCommands.Add(message.Chat.Id, null);
             var nextPossible = nextCommands[message.Chat.Id];
-            var toExecute = nextPossible.HasValue
-                            ? nextPossible.Value.Match(
-                                right => right.Where(t => t.Suitable(message)),
-                                left => Enumerable.Repeat(left, 1))
-                            : StaticCommands;
+            var toExecute = nextPossible.HasValue ?
+                nextPossible.Value.Match(
+                    right => right.Where(t => t.Suitable(message)),
+                    left => Enumerable.Repeat(left, 1)) :
+                StaticCommands;
             var responses = toExecute.Select(t => t.Execute(message, this));
             foreach (var response in responses)
             {
@@ -141,7 +141,7 @@ namespace BotFramework.Bot
             }
         }
 
-        private void Write(string message) => OnLog?.Invoke(this, message);
+        public void Write(string message) => OnLog?.Invoke(this, message);
 
         public event Log OnLog;
     }

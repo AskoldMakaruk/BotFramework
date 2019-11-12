@@ -8,9 +8,9 @@ namespace BotMama
     public static partial class Moma
     {
 
-        private static async Task CloneRepo(string giturl, string dirname)
+        private static async Task CloneRepo(string giturl, string dirname, string branch)
         {
-            var result = await RunCommand("git", $"clone {giturl} {dirname}");
+            var result = await RunCommand("git", $"clone {giturl} -b {branch} --single-branch {dirname}");
             Log(result.StandardOutput);
         }
 

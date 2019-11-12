@@ -66,7 +66,7 @@ namespace BotMama
                 if (!Directory.Exists(botdir) || Directory.EnumerateFiles(botdir).Count() == 0)
                 {
                     Directory.CreateDirectory(botdir);
-                    await CloneRepo(botConfig.GitRepo, botdir);
+                    await CloneRepo(botConfig.GitRepo, botdir, botConfig.Branch);
                 }
 
                 var csprojFile = Directory.EnumerateFiles(botdir).FirstOrDefault(f => f.EndsWith(".csproj"));
@@ -76,7 +76,7 @@ namespace BotMama
                 var botFrameworkNode = csprojDoc.DocumentElement.SelectSingleNode("/Project/ItemGroup/Reference[@Include='BotFramework']");
                 if (botFrameworkNode != null)
                 {
-                    csprojDoc.RemoveChild(botFrameworkNode);
+                    botFrameworkNode.ParentNode.RemoveChild(botFrameworkNode);
                     csprojDoc.Save(csprojFile);
                 }
                 if (csprojDoc.DocumentElement.SelectSingleNode("/Project/ItemGroup/ProjectReference[contains(@Include,'BotFramework')]") == null)
@@ -96,7 +96,9 @@ namespace BotMama
 
                 var dllfile = Directory.EnumerateFiles(botdir, botConfig.Name + ".dll", SearchOption.AllDirectories).FirstOrDefault();
 
+                //var assembly = Assembly.Load(Directory.GetCurrentDirectory() + S + dllfile);
                 var assembly = Assembly.LoadFrom(dllfile);
+                var assemnlies = assembly.GetReferencedAssemblies();
                 AppDomain.CurrentDomain.Load(assembly.GetName());
                 var client = new Client();
                 client.OnLog += Log;

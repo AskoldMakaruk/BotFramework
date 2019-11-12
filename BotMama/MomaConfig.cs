@@ -11,6 +11,7 @@
             public string Name { get; set; }
             public string Token { get; set; }
             public string GitRepo { get; set; }
+            public string Branch { get; set; }
             public bool? UseWebHook { get; set; }
         }
     }

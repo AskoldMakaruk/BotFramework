@@ -49,10 +49,11 @@ namespace BotMama
             Moma.LoadConfiguration("config.json");
             Moma.ValidateBots();
             Moma.StartBots();
-            CreateWebHostBuilder(args)
-                .UseUrls("http://localhost:8444")
-                .Build()
-                .Run();
+            // CreateWebHostBuilder(args)
+            //     .UseUrls("http://localhost:8444")
+            //     .Build()
+            //     .Run();
+            Console.Read();
         }
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args)
