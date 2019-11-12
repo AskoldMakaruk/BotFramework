@@ -14,7 +14,7 @@ namespace BotMama
     public class Program
     {
         public static readonly NamedPipeServerStream Server =
-        new NamedPipeServerStream("BotMamaPipe", PipeDirection.InOut);
+            new NamedPipeServerStream("BotMamaPipe", PipeDirection.InOut);
 
         private static void StartServer()
         {
@@ -30,7 +30,7 @@ namespace BotMama
                         var st = streamReader.ReadLine();
                         if (!string.IsNullOrEmpty(st))
                         {
-                            Parser.Default.ParseArguments<StatusCli>(new[] {st}).WithParsed<StatusCli>(s => s.Run());
+                            Parser.Default.ParseArguments<StatusCli>(new [] { st }).WithParsed<StatusCli>(s => s.Run());
 
                             Console.WriteLine(st);
                         }
@@ -43,21 +43,22 @@ namespace BotMama
             });
         }
 
-
         public static void Main(string[] args)
         {
             StartServer();
-            Moma.Configure("config.json");
+            Moma.LoadConfiguration("config.json");
+            Moma.ValidateBots();
+            Moma.StartBots();
             CreateWebHostBuilder(args)
-            .UseUrls("http://localhost:8444")
-            .Build()
-            .Run();
+                .UseUrls("http://localhost:8444")
+                .Build()
+                .Run();
         }
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args)
         {
             return WebHost.CreateDefaultBuilder(args)
-                          .UseStartup<Startup>();
+                .UseStartup<Startup>();
         }
     }
 }
