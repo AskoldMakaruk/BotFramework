@@ -68,6 +68,7 @@ namespace BotMama
             }
 
             Clients = new List<IClient>();
+            //todo add reference to BotFramework to each project
             //todo iterate through BotsConfig not botsdir
             foreach (var dir in Directory.GetDirectories(Config.BotsDir))
             {
