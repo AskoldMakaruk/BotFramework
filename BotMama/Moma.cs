@@ -73,8 +73,9 @@ namespace BotMama
             foreach (var dir in Directory.GetDirectories(Config.BotsDir))
             {
                 //todo replace * with Bot Name
-                foreach (var file in Directory.GetFiles(dir, "*.dll", SearchOption.AllDirectories))
+                foreach (var file in Directory.GetFiles(dir, $"{dir.Split('/').Last()}.dll", SearchOption.AllDirectories))
                 {
+                    Console.WriteLine("file is " + file);
                     var assembly = Assembly.LoadFrom(file);
                     AppDomain.CurrentDomain.Load(assembly.GetName());
                     var client = new Client();
@@ -88,6 +89,7 @@ namespace BotMama
                         Name     = "DebugBot"
                     });
                     Clients.Add(client);
+                    break;
                 }
             }
         }

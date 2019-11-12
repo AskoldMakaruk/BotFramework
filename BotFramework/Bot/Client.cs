@@ -31,8 +31,14 @@ namespace BotFramework.Bot
             Name = configuration.Name;
 
             var assembly = configuration.Assembly;
-            var baseType = typeof(Query);
-
+            var baseType = typeof(StaticCommand);
+            StaticCommands = assembly
+                .GetTypes()
+                .Where(t => t.IsSubclassOf(baseType) && !t.IsAbstract)
+                .Select(c => Activator.CreateInstance(c) as StaticCommand)
+                .Where(c => c != null).ToList();
+            
+            baseType = typeof(Query);
             Queries = assembly
                       .GetTypes()
                       .Where(t => t.IsSubclassOf(baseType) && !t.IsAbstract)
@@ -50,7 +56,7 @@ namespace BotFramework.Bot
                 Bot.DeleteWebhookAsync();
             }
 
-            Bot.SendTextMessageAsync(249258727, "Hi");
+            //Bot.SendTextMessageAsync(249258727, "Hi");
         }
 
         protected Query GetQuery(CallbackQuery message, long account)
