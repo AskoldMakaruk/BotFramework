@@ -14,10 +14,10 @@ namespace BotMama
 {
     public static partial class Moma
     {
-        public static char S = Path.DirectorySeparatorChar;
-        public static MomaConfig Config { get; set; }
-        public static List<IClient> Clients { get; set; }
-        private static string ConfigPath { get; set; }
+        public static  char          S = Path.DirectorySeparatorChar;
+        public static  MomaConfig    Config     { get; set; }
+        public static  List<IClient> Clients    { get; set; }
+        private static string        ConfigPath { get; set; }
 
         public static void LoadConfiguration(string momaConfigPath)
         {
@@ -37,13 +37,12 @@ namespace BotMama
 
             if (Config.BotConfigs == null)
             {
-                Config.BotConfigs = new MomaConfig.BotConfig[] { default };
+                Config.BotConfigs = new MomaConfig.BotConfig[] {default};
                 SaveConfig();
             }
 
             if (!Directory.Exists(Config.BotsDir))
                 Directory.CreateDirectory(Config.BotsDir);
-
         }
 
         public static async void ValidateBots()
@@ -63,24 +62,28 @@ namespace BotMama
                 }
 
                 var botdir = Config.BotsDir + S + botConfig.Name;
-                if (!Directory.Exists(botdir) || Directory.EnumerateFiles(botdir).Count() == 0)
+                if (!Directory.Exists(botdir) || !Directory.EnumerateFiles(botdir).Any())
                 {
                     Directory.CreateDirectory(botdir);
                     await CloneRepo(botConfig.GitRepo, botdir, botConfig.Branch);
                 }
 
                 var csprojFile = Directory.EnumerateFiles(botdir).FirstOrDefault(f => f.EndsWith(".csproj"));
-                var csprojDoc = new XmlDocument();
+                var csprojDoc  = new XmlDocument();
                 csprojDoc.Load(csprojFile);
 
-                var botFrameworkNode = csprojDoc.DocumentElement.SelectSingleNode("/Project/ItemGroup/Reference[@Include='BotFramework']");
+                var botFrameworkNode =
+                csprojDoc.DocumentElement.SelectSingleNode("/Project/ItemGroup/Reference[@Include='BotFramework']");
                 if (botFrameworkNode != null)
                 {
                     botFrameworkNode.ParentNode.RemoveChild(botFrameworkNode);
                     csprojDoc.Save(csprojFile);
                 }
-                if (csprojDoc.DocumentElement.SelectSingleNode("/Project/ItemGroup/ProjectReference[contains(@Include,'BotFramework')]") == null)
-                    //todo this
+
+                if (csprojDoc.DocumentElement.SelectSingleNode(
+                        "/Project/ItemGroup/ProjectReference[contains(@Include,'BotFramework')]") ==
+                    null)
+                //todo this
                     await DotnetAddReference(csprojFile, Config.FrameworkPath);
             }
         }
@@ -94,20 +97,21 @@ namespace BotMama
                 await DotnetRestore(botdir);
                 await DotnetBuild(botdir);
 
-                var dllfile = Directory.EnumerateFiles(botdir, botConfig.Name + ".dll", SearchOption.AllDirectories).FirstOrDefault();
+                var dllfile = Directory.EnumerateFiles(botdir, botConfig.Name + ".dll", SearchOption.AllDirectories)
+                                       .FirstOrDefault();
 
                 //var assembly = Assembly.Load(Directory.GetCurrentDirectory() + S + dllfile);
-                var assembly = Assembly.LoadFrom(dllfile);
+                var assembly   = Assembly.LoadFrom(dllfile);
                 var assemnlies = assembly.GetReferencedAssemblies();
                 AppDomain.CurrentDomain.Load(assembly.GetName());
                 var client = new Client();
                 client.OnLog += Log;
                 client.Configure(new Configuration
                 {
-                    Token = botConfig.Token,
-                        Webhook = botConfig.UseWebHook??false,
-                        Assembly = assembly,
-                        Name = botConfig.Name
+                    Token    = botConfig.Token,
+                    Webhook  = botConfig.UseWebHook ?? false,
+                    Assembly = assembly,
+                    Name     = botConfig.Name
                 });
                 Clients.Add(client);
             }

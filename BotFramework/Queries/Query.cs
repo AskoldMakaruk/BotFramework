@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using BotFramework.Commands;
 using Telegram.Bot.Types;
 
 namespace BotFramework.Queries
@@ -8,12 +9,12 @@ namespace BotFramework.Queries
     {
         public abstract string Alias { get; }
 
-        public Response Execute(CallbackQuery message, long account)
+        public Response Execute(CallbackQuery message)
         {
-            return Run(message, account, UnpackParams(message.Data));
+            return Run(message, UnpackParams(message.Data));
         }
 
-        protected abstract Response Run(CallbackQuery message, long account, Dictionary<string, string> values);
+        protected abstract Response Run(CallbackQuery message, Dictionary<string, string> values);
 
 
         public virtual bool IsSuitable(CallbackQuery message, long account)

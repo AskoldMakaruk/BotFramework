@@ -7,9 +7,4 @@ namespace BotFramework.Commands
     {
         Response Execute(Message message, Client client);
     }
-
-    public interface IOneOfMany : ICommand
-    {
-        bool Suitable(Message message);
-    }
 }
