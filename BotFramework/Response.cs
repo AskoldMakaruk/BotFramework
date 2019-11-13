@@ -29,8 +29,6 @@ namespace BotFramework
             NextPossible = EitherStrict.Right<ICommand, IEnumerable<IOneOfMany>>(nextPossible);
         }
 
-        public Response() { }
-
         public List<ResponseMessage> Responses { get; set; } = new List<ResponseMessage>();
 
         public EitherStrict<ICommand, IEnumerable<IOneOfMany>>? NextPossible { get; }

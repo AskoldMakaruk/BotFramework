@@ -34,8 +34,7 @@ namespace BotFramework.Bot
                              .GetTypes()
                              .Where(t => t.GetInterfaces().Contains(typeof(IStaticCommand)) && !t.IsAbstract)
                              .Select(c => Activator.CreateInstance(c) as IStaticCommand)
-                             .Where(c => c != null)
-                             .ToList();
+                             .Where(c => c != null);
 
             baseType = typeof(Query);
             Queries = assembly
