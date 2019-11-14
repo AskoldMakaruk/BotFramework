@@ -12,6 +12,7 @@ using Telegram.Bot.Types.Enums;
 
 namespace BotFramework.Bot
 {
+    //todo
     public partial class Client : IClient
     {
         public string       Name   { get; set; }

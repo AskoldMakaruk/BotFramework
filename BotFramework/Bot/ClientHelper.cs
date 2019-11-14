@@ -10,7 +10,7 @@ namespace BotFramework.Bot
 {
     public partial class Client
     {
-        private async Task SendTextMessageAsync(Response m)
+        private async Task SendResponse(Response m)
         {
             try
             {
