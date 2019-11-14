@@ -10,7 +10,7 @@ namespace BotFramework.Bot
 {
     public partial class Client
     {
-        private async Task SendTextMessageAsync(Response m)
+        private async Task SendResponse(Response m)
         {
             try
             {
@@ -51,7 +51,7 @@ namespace BotFramework.Bot
             }
         }
 
-        private async Task<Message> SendTextMessageAsync(long              account, string text,
+        private async Task<Message> SendTextMessage(long              account, string text,
                                                          ParseMode         parseMode             = ParseMode.Default,
                                                          bool              disableWebPagePreview = false,
                                                          bool              disableNotification   = false,

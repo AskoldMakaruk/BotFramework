@@ -25,9 +25,9 @@ namespace BotMama
             Log(result.StandardOutput);
         }
 
-        private static async Task DotnetBuild(string dirname, string outputDir)
+        private static async Task DotnetPublish(string dirname, string outputDir)
         {
-            var result = await RunCommand("dotnet", $"build {dirname}  -o {outputDir}");
+            var result = await RunCommand("dotnet", $"publish {dirname}  -o {outputDir} -r win10-x64");
             Log(result.StandardOutput);
         }
 

@@ -18,7 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="data\Bots\TestBot\" />
+    <Folder Include="data\" />
   </ItemGroup>
 
 </Project>

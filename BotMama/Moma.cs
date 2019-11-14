@@ -3,11 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 using System.Xml;
 using BotFramework.Bot;
-using CliWrap.Models;
 using Newtonsoft.Json;
 
 
@@ -58,7 +55,8 @@ namespace BotMama
 
                 if (botConfig.ProjectFolder != null)
                 {
-                    botConfig.BinDir = botConfig.ProjectFolder + S + "bin";
+                    botConfig.BinDir = Config.BotsDir + S + botConfig.Name + S + "bin";
+                    Directory.CreateDirectory(botConfig.BinDir);
                 }
                 else if (botConfig.GitRepo != null)
                 {
@@ -99,10 +97,11 @@ namespace BotMama
             foreach (var botConfig in Config.BotConfigs)
             {
                 await DotnetRestore(botConfig.ProjectFolder);
-                await DotnetBuild(botConfig.ProjectFolder, botConfig.BinDir);
+                await DotnetPublish(botConfig.ProjectFolder, botConfig.BinDir);
 
                 var dllfile = Directory.EnumerateFiles(botConfig.BinDir, botConfig.Name + ".dll", SearchOption.AllDirectories)
                                        .FirstOrDefault();
+                if (dllfile == null) continue;
 
                 var assembly = Assembly.LoadFrom(dllfile);
                 AppDomain.CurrentDomain.Load(assembly.GetName());
