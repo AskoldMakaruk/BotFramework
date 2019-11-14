@@ -2,6 +2,7 @@
 using System.Globalization;
 using System.IO;
 using System.IO.Pipes;
+using System.Threading;
 using System.Threading.Tasks;
 using BotMama.Cli;
 using CommandLine;
@@ -14,7 +15,7 @@ namespace BotMama
     public class Program
     {
         public static readonly NamedPipeServerStream Server =
-            new NamedPipeServerStream("BotMamaPipe", PipeDirection.InOut);
+        new NamedPipeServerStream("BotMamaPipe", PipeDirection.InOut);
 
         private static void StartServer()
         {
@@ -30,7 +31,7 @@ namespace BotMama
                         var st = streamReader.ReadLine();
                         if (!string.IsNullOrEmpty(st))
                         {
-                            Parser.Default.ParseArguments<StatusCli>(new [] { st }).WithParsed<StatusCli>(s => s.Run());
+                            Parser.Default.ParseArguments<StatusCli>(new[] {st}).WithParsed<StatusCli>(s => s.Run());
 
                             Console.WriteLine(st);
                         }
@@ -53,13 +54,19 @@ namespace BotMama
             //     .UseUrls("http://localhost:8444")
             //     .Build()
             //     .Run();
-            Console.Read();
+            Task.Run(() =>
+            {
+                while (true)
+                {
+                    Thread.Sleep(10000);
+                }
+            });
         }
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args)
         {
             return WebHost.CreateDefaultBuilder(args)
-                .UseStartup<Startup>();
+                          .UseStartup<Startup>();
         }
     }
 }
