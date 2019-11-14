@@ -9,10 +9,6 @@ using System.Collections.Immutable;
 
 namespace BotFramework
 {
-    /*
-      todo add command to all constructors
-      todo set dafalt next commands as prev commands
-     */
     public class Response
     {
         public Response(ICommand command)
@@ -36,9 +32,9 @@ namespace BotFramework
             NextPossible = old.NextPossible;
         }
 
-        public readonly ImmutableList<ResponseMessage> Responses; 
+        public readonly ImmutableList<ResponseMessage> Responses;
 
-        public EitherStrict<ICommand, IEnumerable<IOneOfMany>>? NextPossible { get; }
+        public readonly EitherStrict<ICommand, IEnumerable<IOneOfMany>>? NextPossible; 
 
 #region Constructors
 
