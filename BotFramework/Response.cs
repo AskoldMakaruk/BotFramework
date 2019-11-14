@@ -5,13 +5,10 @@ using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.InputFiles;
 using Telegram.Bot.Types.ReplyMarkups;
+using System.Collections.Immutable;
 
 namespace BotFramework
 {
-    /*
-      todo add command to all constructors
-      todo set dafalt next commands as prev commands
-     */
     public class Response
     {
         public Response(ICommand command)
@@ -29,16 +26,22 @@ namespace BotFramework
             NextPossible = EitherStrict.Right<ICommand, IEnumerable<IOneOfMany>>(nextPossible);
         }
 
-        public List<ResponseMessage> Responses { get; set; } = new List<ResponseMessage>();
+        private Response(Response old, ImmutableList<ResponseMessage> newResponses)
+        {
+            Responses = newResponses;
+            NextPossible = old.NextPossible;
+        }
 
-        public EitherStrict<ICommand, IEnumerable<IOneOfMany>>? NextPossible { get; }
+        public readonly ImmutableList<ResponseMessage> Responses;
+
+        public readonly EitherStrict<ICommand, IEnumerable<IOneOfMany>>? NextPossible; 
 
 #region Constructors
 
         public Response SendTextMessage(ChatId chat,                 string    text, IReplyMarkup replyMarkup = null,
                                         int    replyToMessageId = 0, ParseMode parseMode = default)
         {
-            Responses.Add(new ResponseMessage(ResponseType.TextMessage)
+            var newResponses = Responses.Add(new ResponseMessage(ResponseType.TextMessage)
             {
                 ChatId           = chat,
                 Text             = text,
@@ -46,13 +49,13 @@ namespace BotFramework
                 ReplyToMessageId = replyToMessageId,
                 ParseMode        = parseMode
             });
-            return this;
+            return new Response(this, newResponses);
         }
 
         public Response EditTextMessage(ChatId       chatId,             int       editMessageId, string text,
                                         IReplyMarkup replyMarkup = null, ParseMode parseMode = default)
         {
-            Responses.Add(new ResponseMessage(ResponseType.EditTextMesage)
+            var newResponses = Responses.Add(new ResponseMessage(ResponseType.EditTextMesage)
             {
                 ChatId        = chatId,
                 EditMessageId = editMessageId,
@@ -60,17 +63,17 @@ namespace BotFramework
                 ReplyMarkup   = replyMarkup,
                 ParseMode     = parseMode
             });
-            return this;
+            return new Response(this, newResponses);
         }
 
         public Response AnswerQueryMessage(string answerToMessageId, string text)
         {
-            Responses.Add(new ResponseMessage(ResponseType.AnswerQuery)
+            var newResponses = Responses.Add(new ResponseMessage(ResponseType.AnswerQuery)
             {
                 AnswerToMessageId = answerToMessageId,
                 Text              = text
             });
-            return this;
+            return new Response(this, newResponses);
         }
 
         public Response SendDocument(long            account,
@@ -79,7 +82,7 @@ namespace BotFramework
                                      int             replyToMessageId = 0,
                                      IReplyMarkup    replyMarkup      = null)
         {
-            Responses.Add(new ResponseMessage(ResponseType.SendDocument)
+            var newResponses = Responses.Add(new ResponseMessage(ResponseType.SendDocument)
             {
                 ChatId           = account,
                 Text             = caption,
@@ -87,21 +90,21 @@ namespace BotFramework
                 ReplyMarkup      = replyMarkup,
                 Document         = document
             });
-            return this;
+            return new Response(this, newResponses);
         }
 
         public Response EditMessageMarkup(ChatId               accountChatId, int messageMessageId,
                                           InlineKeyboardMarkup addMemeButton)
         {
-            Responses.Add(new ResponseMessage(ResponseType.EditMessageMarkup)
+            var newResponses = Responses.Add(new ResponseMessage(ResponseType.EditMessageMarkup)
             {ChatId = accountChatId, MessageId = messageMessageId, ReplyMarkup = addMemeButton});
-            return this;
+            return new Response(this, newResponses);
         }
 
         public Response SendPhoto(ChatId accountChatId,        InputOnlineFile document, string caption = null,
                                   int    replyToMessageId = 0, IReplyMarkup    replyMarkup = null)
         {
-            Responses.Add(new ResponseMessage(ResponseType.SendPhoto)
+            var newResponses = Responses.Add(new ResponseMessage(ResponseType.SendPhoto)
             {
                 ChatId           = accountChatId,
                 Text             = caption,
@@ -109,7 +112,7 @@ namespace BotFramework
                 ReplyMarkup      = replyMarkup,
                 Document         = document
             });
-            return this;
+            return new Response(this, newResponses);
         }
 
 #endregion
