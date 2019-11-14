@@ -2,6 +2,7 @@
 using System.Globalization;
 using System.IO;
 using System.IO.Pipes;
+using System.Net.Mime;
 using System.Threading;
 using System.Threading.Tasks;
 using BotMama.Cli;
@@ -54,13 +55,8 @@ namespace BotMama
             //     .UseUrls("http://localhost:8444")
             //     .Build()
             //     .Run();
-            Task.Run(() =>
-            {
-                while (true)
-                {
-                    Thread.Sleep(10000);
-                }
-            });
+            var mre = new ManualResetEvent(false);
+            mre.WaitOne();
         }
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args)
