@@ -15,30 +15,36 @@ namespace BotFramework.Bot
             try
             {
                 foreach (var message in m.Responses)
-                    if (message.Type == ResponseType.AnswerQuery)
-                        await Bot.AnswerCallbackQueryAsync(message.AnswerToMessageId, message.Text);
-                    else if (message.Type == ResponseType.EditTextMesage)
+                    switch (message.Type)
                     {
-                        await Bot.EditMessageTextAsync(message.ChatId, message.EditMessageId, message.Text,
-                            replyMarkup: message.ReplyMarkup as InlineKeyboardMarkup, parseMode: message.ParseMode);
+                        case ResponseType.AnswerQuery:
+                            await Bot.AnswerCallbackQueryAsync(message.AnswerToMessageId, message.Text);
+                            break;
+                        case ResponseType.EditTextMesage:
+                            await Bot.EditMessageTextAsync(message.ChatId, message.EditMessageId, message.Text,
+                                replyMarkup: message.ReplyMarkup as InlineKeyboardMarkup, parseMode: message.ParseMode);
+                            break;
+                        case ResponseType.SendDocument:
+                            await Bot.SendDocumentAsync(message.ChatId, message.Document, message.Text);
+                            break;
+                        case ResponseType.SendPhoto:
+                            await Bot.SendPhotoAsync(message.ChatId, message.Document, message.Text);
+                            break;
+                        case ResponseType.TextMessage:
+                            await Bot.SendTextMessageAsync(message.ChatId, message.Text,
+                                replyToMessageId: message.ReplyToMessageId,
+                                replyMarkup: message.ReplyMarkup, parseMode: message.ParseMode);
+                            break;
+                        case ResponseType.Album:
+                            await Bot.SendMediaGroupAsync(message.Album, message.ChatId);
+                            break;
+                        case ResponseType.EditMessageMarkup:
+                            await Bot.EditMessageReplyMarkupAsync(message.ChatId, message.MessageId,
+                                message.ReplyMarkup as InlineKeyboardMarkup);
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException();
                     }
-                    else if (message.Type == ResponseType.SendDocument)
-                        await Bot.SendDocumentAsync(message.ChatId, message.Document, message.Text);
-                    else if (message.Type == ResponseType.SendPhoto)
-                        await Bot.SendPhotoAsync(message.ChatId, message.Document, message.Text);
-                    else if (message.Type == ResponseType.TextMessage)
-                    {
-                        await Bot.SendTextMessageAsync(message.ChatId, message.Text,
-                            replyToMessageId: message.ReplyToMessageId,
-                            replyMarkup: message.ReplyMarkup, parseMode: message.ParseMode);
-                    }
-                    else if (message.Type == ResponseType.Album)
-                        await Bot.SendMediaGroupAsync(message.Album, message.ChatId);
-                    else if (message.Type == ResponseType.EditMessageMarkup)
-                        await Bot.EditMessageReplyMarkupAsync(message.ChatId, message.MessageId,
-                            message.ReplyMarkup as InlineKeyboardMarkup);
-                    else
-                        throw new ArgumentOutOfRangeException();
             }
             catch (Exception e)
             {
