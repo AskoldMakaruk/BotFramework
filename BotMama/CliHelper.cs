@@ -7,7 +7,6 @@ namespace BotMama
 {
     public static partial class Moma
     {
-
         private static async Task CloneRepo(string giturl, string dirname, string branch)
         {
             var result = await RunCommand("git", $"clone {giturl} -b {branch} --single-branch {dirname}");
@@ -26,9 +25,9 @@ namespace BotMama
             Log(result.StandardOutput);
         }
 
-        private static async Task DotnetBuild(string dirname)
+        private static async Task DotnetBuild(string dirname, string outputDir)
         {
-            var result = await RunCommand("dotnet", $"build {dirname}");
+            var result = await RunCommand("dotnet", $"build {dirname}  -o {outputDir}");
             Log(result.StandardOutput);
         }
 
@@ -37,19 +36,18 @@ namespace BotMama
             if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
                 return CliWrap.Cli.Wrap(command)
-                    .SetArguments(args)
-                    .EnableExitCodeValidation(false)
-                    .ExecuteAsync();
+                              .SetArguments(args)
+                              .EnableExitCodeValidation(false)
+                              .ExecuteAsync();
             }
             else if ((System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(OSPlatform.Windows)))
             {
                 return CliWrap.Cli.Wrap("cmd.exe")
-                    .SetArguments($"/c {command} {args}")
-                    .EnableExitCodeValidation(false)
-                    .ExecuteAsync();
+                              .SetArguments($"/c {command} {args}")
+                              .EnableExitCodeValidation(false)
+                              .ExecuteAsync();
             }
             else throw new Exception("What the actual fuck you're using");
         }
-
     }
 }

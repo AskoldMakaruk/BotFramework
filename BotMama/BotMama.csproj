@@ -17,4 +17,8 @@
     <ProjectReference Include="..\BotFramework\BotFramework.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="data\Bots\TestBot\" />
+  </ItemGroup>
+
 </Project>

@@ -10,6 +10,7 @@ using BotFramework.Bot;
 using CliWrap.Models;
 using Newtonsoft.Json;
 
+
 namespace BotMama
 {
     public static partial class Moma
@@ -55,35 +56,39 @@ namespace BotMama
                     continue;
                 }
 
-                if (botConfig.GitRepo == null)
+                if (botConfig.ProjectFolder != null)
                 {
-                    Log("Error in config: gitrepo is null");
+                    botConfig.BinDir = botConfig.ProjectFolder + S + "bin";
+                }
+                else if (botConfig.GitRepo != null)
+                {
+                    botConfig.ProjectFolder = Config.BotsDir + S + botConfig.Name;
+                    if (!Directory.Exists(botConfig.ProjectFolder) || !Directory.EnumerateFiles(botConfig.ProjectFolder).Any())
+                    {
+                        Directory.CreateDirectory(botConfig.ProjectFolder);
+                        await CloneRepo(botConfig.GitRepo, botConfig.ProjectFolder, botConfig.Branch);
+                    }
+
+                    botConfig.BinDir = botConfig.ProjectFolder + S + "bin";
+                }
+                else
+                {
+                    Log("Problem in config: can't find bot source");
                     continue;
                 }
 
-                var botdir = Config.BotsDir + S + botConfig.Name;
-                if (!Directory.Exists(botdir) || !Directory.EnumerateFiles(botdir).Any())
-                {
-                    Directory.CreateDirectory(botdir);
-                    await CloneRepo(botConfig.GitRepo, botdir, botConfig.Branch);
-                }
-
-                var csprojFile = Directory.EnumerateFiles(botdir).FirstOrDefault(f => f.EndsWith(".csproj"));
+                var csprojFile = Directory.EnumerateFiles(botConfig.ProjectFolder).FirstOrDefault(f => f.EndsWith(".csproj"));
                 var csprojDoc  = new XmlDocument();
                 csprojDoc.Load(csprojFile);
 
-                var botFrameworkNode =
-                csprojDoc.DocumentElement.SelectSingleNode("/Project/ItemGroup/Reference[@Include='BotFramework']");
+                var botFrameworkNode = csprojDoc.DocumentElement.SelectSingleNode("/Project/ItemGroup/Reference[@Include='BotFramework']");
                 if (botFrameworkNode != null)
                 {
                     botFrameworkNode.ParentNode.RemoveChild(botFrameworkNode);
                     csprojDoc.Save(csprojFile);
                 }
 
-                if (csprojDoc.DocumentElement.SelectSingleNode(
-                        "/Project/ItemGroup/ProjectReference[contains(@Include,'BotFramework')]") ==
-                    null)
-                //todo this
+                if (csprojDoc.DocumentElement.SelectSingleNode("/Project/ItemGroup/ProjectReference[contains(@Include,'BotFramework')]") == null)
                     await DotnetAddReference(csprojFile, Config.FrameworkPath);
             }
         }
@@ -93,16 +98,13 @@ namespace BotMama
             Clients = new List<IClient>();
             foreach (var botConfig in Config.BotConfigs)
             {
-                var botdir = Config.BotsDir + S + botConfig.Name;
-                await DotnetRestore(botdir);
-                await DotnetBuild(botdir);
+                await DotnetRestore(botConfig.ProjectFolder);
+                await DotnetBuild(botConfig.ProjectFolder, botConfig.BinDir);
 
-                var dllfile = Directory.EnumerateFiles(botdir, botConfig.Name + ".dll", SearchOption.AllDirectories)
+                var dllfile = Directory.EnumerateFiles(botConfig.BinDir, botConfig.Name + ".dll", SearchOption.AllDirectories)
                                        .FirstOrDefault();
 
-                //var assembly = Assembly.Load(Directory.GetCurrentDirectory() + S + dllfile);
-                var assembly   = Assembly.LoadFrom(dllfile);
-                var assemnlies = assembly.GetReferencedAssemblies();
+                var assembly = Assembly.LoadFrom(dllfile);
                 AppDomain.CurrentDomain.Load(assembly.GetName());
                 var client = new Client();
                 client.OnLog += Log;
