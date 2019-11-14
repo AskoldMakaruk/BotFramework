@@ -7,7 +7,6 @@ namespace BotMama
 {
     public static partial class Moma
     {
-
         private static async Task CloneRepo(string giturl, string dirname, string branch)
         {
             var result = await RunCommand("git", $"clone {giturl} -b {branch} --single-branch {dirname}");
@@ -26,30 +25,37 @@ namespace BotMama
             Log(result.StandardOutput);
         }
 
-        private static async Task DotnetBuild(string dirname)
+        private static async Task DotnetPublish(string dirname, string outputDir)
         {
-            var result = await RunCommand("dotnet", $"build {dirname}");
+            //todo this from configuration or better from dotnet --info command
+            var r = "win10-x64";
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                r = "ubuntu.18.04-x64";
+            }
+            var result = await RunCommand("dotnet", $"publish {dirname}  -o {outputDir} -r {r}");
             Log(result.StandardOutput);
         }
 
         public static Task<ExecutionResult> RunCommand(string command, string args)
         {
-            if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
                 return CliWrap.Cli.Wrap(command)
-                    .SetArguments(args)
-                    .EnableExitCodeValidation(false)
-                    .ExecuteAsync();
+                              .SetArguments(args)
+                              .EnableExitCodeValidation(false)
+                              .ExecuteAsync();
             }
-            else if ((System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(OSPlatform.Windows)))
+
+            if ((RuntimeInformation.IsOSPlatform(OSPlatform.Windows)))
             {
                 return CliWrap.Cli.Wrap("cmd.exe")
-                    .SetArguments($"/c {command} {args}")
-                    .EnableExitCodeValidation(false)
-                    .ExecuteAsync();
+                              .SetArguments($"/c {command} {args}")
+                              .EnableExitCodeValidation(false)
+                              .ExecuteAsync();
             }
-            else throw new Exception("What the actual fuck you're using");
-        }
 
+            throw new Exception("What the actual fuck you're using");
+        }
     }
 }

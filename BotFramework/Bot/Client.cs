@@ -54,7 +54,7 @@ namespace BotFramework.Bot
                 Bot.DeleteWebhookAsync();
             }
 
-            //Bot.SendTextMessageAsync(249258727, "Hi");
+            //Bot.SendTextMessage(249258727, "Hi");
         }
 
         protected Query GetQuery(CallbackQuery message, long account)
@@ -71,7 +71,7 @@ namespace BotFramework.Bot
 
                 Write($"Command: {command}");
 
-                await SendTextMessageAsync(command.Execute(query));
+                await SendResponse(command.Execute(query));
             }
             catch (Exception e)
             {
@@ -84,18 +84,32 @@ namespace BotFramework.Bot
             if (!nextCommands.ContainsKey(message.Chat.Id))
                 nextCommands.Add(message.Chat.Id, null);
             var nextPossible = nextCommands[message.Chat.Id];
-            var toExecute = nextPossible.HasValue
-                            ? nextPossible.Value.Match(
-                                right => right.Where(t => t.Suitable(message)),
-                                left => Enumerable.Repeat(left, 1))
-                            : StaticCommands.Where(i => i.Suitable(message));
-            var responses = toExecute.Select(t => t.Execute(message, this));
-            foreach (var response in responses)
+
+            ICommand command = null;
+            if (nextPossible.HasValue)
             {
-                if (response.NextPossible.HasValue)
-                    nextCommands[message.Chat.Id] = response.NextPossible;
-                await SendTextMessageAsync(response);
+                command = nextPossible.Value.Match(
+                                          right => right.Where(t => t.Suitable(message)),
+                                          left => Enumerable.Repeat(left, 1))
+                                      .FirstOrDefault();
             }
+
+            if (command == null)
+            {
+                command = StaticCommands.FirstOrDefault(i => i.Suitable(message));
+            }
+
+            if (command == null)
+            {
+                await SendTextMessage(message.From.Id, "Internal server error: 504");
+                return;
+            }
+
+            var response = command.Execute(message, this);
+
+            if (response.NextPossible.HasValue)
+                nextCommands[message.Chat.Id] = response.NextPossible;
+            await SendResponse(response);
         }
 
         public void OnMessageRecieved(object sender, MessageEventArgs e)

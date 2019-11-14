@@ -42,8 +42,7 @@ namespace BotFramework.Bot
                             await Bot.EditMessageReplyMarkupAsync(message.ChatId, message.MessageId,
                                 message.ReplyMarkup as InlineKeyboardMarkup);
                             break;
-                        default:
-                            throw new ArgumentOutOfRangeException();
+                        default: throw new ArgumentOutOfRangeException();
                     }
             }
             catch (Exception e)
@@ -52,7 +51,7 @@ namespace BotFramework.Bot
             }
         }
 
-        private async Task<Message> SendTextMessageAsync(long              account, string text,
+        private async Task<Message> SendTextMessage(long              account, string text,
                                                          ParseMode         parseMode             = ParseMode.Default,
                                                          bool              disableWebPagePreview = false,
                                                          bool              disableNotification   = false,
