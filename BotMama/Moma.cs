@@ -63,6 +63,12 @@ namespace BotMama
 
                 if (botConfig.SrcDir == null)
                 {
+                    botConfig.SrcDir = ToPath(botDir, "src");
+                    Directory.CreateDirectory(botConfig.SrcDir);
+                }
+
+                if (botConfig.BinDir == null)
+                {
                     botConfig.BinDir = ToPath(botDir, "bin");
                     Directory.CreateDirectory(botConfig.BinDir);
                 }
