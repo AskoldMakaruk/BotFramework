@@ -61,12 +61,13 @@ namespace BotMama
                     Directory.CreateDirectory(botConfig.DataDir);
                 }
 
-                if (botConfig.SrcDir != null)
+                if (botConfig.SrcDir == null)
                 {
                     botConfig.BinDir = ToPath(botDir, "bin");
                     Directory.CreateDirectory(botConfig.BinDir);
                 }
-                else if (botConfig.GitRepo != null)
+
+                if (botConfig.GitRepo != null)
                 {
                     botConfig.SrcDir = ToPath(Config.BotsDir, botConfig.Name);
                     if (!Directory.Exists(botConfig.SrcDir) || !Directory.EnumerateFiles(botConfig.SrcDir).Any())
