@@ -101,9 +101,24 @@ namespace BotMama
                 }
 
                 if (csprojDoc.DocumentElement.SelectSingleNode("/Project/ItemGroup/ProjectReference[contains(@Include,'BotFramework')]") == null)
+                {
+                    if (Config.FrameworkPath == null || !File.Exists(Config.FrameworkPath) || !Config.FrameworkPath.EndsWith(".csproj"))
+                    {
+                        Config.FrameworkPath = Directory.GetParent(Directory.GetCurrentDirectory()).EnumerateDirectories("BotFramework").FirstOrDefault()?.EnumerateFiles(".csproj").FirstOrDefault()?.Name;
+                    }
+
+                    if (Config.FrameworkPath == null)
+                    {
+                        Log("Error: invalid BotFramework path.");
+                        return;
+                    }
+
                     await DotnetAddReference(csprojFile, Config.FrameworkPath);
+                }
+
                 botConfig.IsValid = true;
             }
+            SaveConfig();
         }
 
         public static async void StartBots()
