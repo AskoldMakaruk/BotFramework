@@ -35,7 +35,7 @@ namespace BotMama
 
             if (Config.BotConfigs == null)
             {
-                Config.BotConfigs = new MomaConfig.BotConfig[] {default};
+                Config.BotConfigs = new[] {new MomaConfig.BotConfig()};
                 SaveConfig();
             }
 
