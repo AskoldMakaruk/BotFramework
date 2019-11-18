@@ -14,27 +14,30 @@ namespace BotFramework
         public Response(ICommand command)
         {
             NextPossible = EitherStrict.Left<ICommand, IEnumerable<IOneOfMany>>(command);
+            Responses    = ImmutableList<ResponseMessage>.Empty;
         }
 
         public Response(params IOneOfMany[] nextPossible)
         {
             NextPossible = nextPossible.Length == 0 ? null : nextPossible;
+            Responses    = ImmutableList<ResponseMessage>.Empty;
         }
 
         public Response(IEnumerable<IOneOfMany> nextPossible)
         {
             NextPossible = EitherStrict.Right<ICommand, IEnumerable<IOneOfMany>>(nextPossible);
+            Responses    = ImmutableList<ResponseMessage>.Empty;
         }
 
         private Response(Response old, ImmutableList<ResponseMessage> newResponses)
         {
-            Responses = newResponses;
+            Responses    = newResponses;
             NextPossible = old.NextPossible;
         }
 
-        public readonly ImmutableList<ResponseMessage> Responses;
+        public ImmutableList<ResponseMessage> Responses { get; }
 
-        public readonly EitherStrict<ICommand, IEnumerable<IOneOfMany>>? NextPossible; 
+        public readonly EitherStrict<ICommand, IEnumerable<IOneOfMany>>? NextPossible;
 
 #region Constructors
 

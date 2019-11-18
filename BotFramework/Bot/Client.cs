@@ -112,11 +112,14 @@ namespace BotFramework.Bot
                 return;
             }
 
-            var response = command.Execute(message, this);
-
-            if (response.NextPossible.HasValue)
-                nextCommands[message.Chat.Id] = response.NextPossible;
-            await SendResponse(response);
+            try
+            {
+                var response = command.Execute(message, this);
+                if (response.NextPossible.HasValue)
+                    nextCommands[message.Chat.Id] = response.NextPossible;
+                await SendResponse(response);
+            }
+            catch { }
         }
 
         public void OnMessageRecieved(object sender, MessageEventArgs e)
