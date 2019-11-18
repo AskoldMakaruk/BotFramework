@@ -75,7 +75,6 @@ namespace BotMama
 
                 if (botConfig.GitRepo != null)
                 {
-                    botConfig.SrcDir = ToPath(Config.BotsDir, botConfig.Name);
                     if (!Directory.Exists(botConfig.SrcDir) || !Directory.EnumerateFiles(botConfig.SrcDir).Any())
                     {
                         Directory.CreateDirectory(botConfig.SrcDir);
