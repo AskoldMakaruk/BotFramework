@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using CliWrap.Models;
@@ -27,13 +28,29 @@ namespace BotMama
 
         private static async Task DotnetPublish(string dirname, string outputDir)
         {
-            //todo this from configuration or better from dotnet --info command
-            var r = "win10-x64";
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            var    dotnetInfo = await RunCommand("dotnet", "--info");
+            string systemRID  = null;
+
+            if (dotnetInfo.ExitCode == 0)
             {
-                r = "ubuntu.18.04-x64";
+                var strings = dotnetInfo.StandardOutput.Split('\n');
+                var rid     = strings.FirstOrDefault(s => s.StartsWith("RID:"));
+                if (rid != null)
+                {
+                    systemRID = rid.Substring(5).Trim();
+                }
             }
-            var result = await RunCommand("dotnet", $"publish {dirname}  -o {outputDir} -r {r}");
+
+            if (systemRID == null)
+            {
+                systemRID = "win10-x64";
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                {
+                    systemRID = "ubuntu.18.04-x64";
+                }
+            }
+
+            var result = await RunCommand("dotnet", $"publish {dirname}  -o {outputDir} -r {systemRID}");
             Log(result.StandardOutput);
         }
 

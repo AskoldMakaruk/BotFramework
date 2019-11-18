@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using BotFramework.Commands;
 using BotFramework.Queries;
@@ -12,9 +13,14 @@ using Telegram.Bot.Types.Enums;
 
 namespace BotFramework.Bot
 {
-    //todo
-    public partial class Client : IClient
+    public delegate void Log(Client sender, string value);
+
+    public partial class Client
     {
+        private string _workingdir;
+
+        public string WorkingDir { get => _workingdir; private set => _workingdir = value ?? Directory.GetCurrentDirectory(); }
+
         public string       Name   { get; set; }
         public ClientStatus Status { get; set; }
 
@@ -27,17 +33,17 @@ namespace BotFramework.Bot
 
         public void Configure(Configuration configuration)
         {
-            Name = configuration.Name;
+            Name       = configuration.Name;
+            WorkingDir = configuration.DataDir;
 
             var assembly = configuration.Assembly;
-            var baseType = typeof(IStaticCommand);
             StaticCommands = assembly
                              .GetTypes()
                              .Where(t => t.GetInterfaces().Contains(typeof(IStaticCommand)) && !t.IsAbstract)
                              .Select(c => Activator.CreateInstance(c) as IStaticCommand)
                              .Where(c => c != null);
 
-            baseType = typeof(Query);
+            var baseType = typeof(Query);
             Queries = assembly
                       .GetTypes()
                       .Where(t => t.IsSubclassOf(baseType) && !t.IsAbstract)

@@ -12,10 +12,10 @@ namespace BotMama
 {
     public static partial class Moma
     {
-        public static  char          S = Path.DirectorySeparatorChar;
-        public static  MomaConfig    Config     { get; set; }
-        public static  List<IClient> Clients    { get; set; }
-        private static string        ConfigPath { get; set; }
+        public static  MomaConfig   Config                       { get; set; }
+        public static  List<Client> Clients                      { get; set; }
+        private static string       ConfigPath                   { get; set; }
+        private static string       ToPath(params string[] args) => Path.Combine(args);
 
         public static void LoadConfiguration(string momaConfigPath)
         {
@@ -28,7 +28,7 @@ namespace BotMama
             {
                 Config = new MomaConfig
                 {
-                    BotsDir = $"data{S}Bots",
+                    BotsDir = ToPath("data", "Bots")
                 };
                 SaveConfig();
             }
@@ -53,21 +53,29 @@ namespace BotMama
                     continue;
                 }
 
-                if (botConfig.ProjectFolder != null)
+                var botDir = ToPath(Config.BotsDir, botConfig.Name);
+
+                if (botConfig.DataDir == null)
                 {
-                    botConfig.BinDir = Config.BotsDir + S + botConfig.Name + S + "bin";
+                    botConfig.DataDir = ToPath(botDir, "data");
+                    Directory.CreateDirectory(botConfig.DataDir);
+                }
+
+                if (botConfig.SrcDir != null)
+                {
+                    botConfig.BinDir = ToPath(botDir, "bin");
                     Directory.CreateDirectory(botConfig.BinDir);
                 }
                 else if (botConfig.GitRepo != null)
                 {
-                    botConfig.ProjectFolder = Config.BotsDir + S + botConfig.Name;
-                    if (!Directory.Exists(botConfig.ProjectFolder) || !Directory.EnumerateFiles(botConfig.ProjectFolder).Any())
+                    botConfig.SrcDir = ToPath(Config.BotsDir, botConfig.Name);
+                    if (!Directory.Exists(botConfig.SrcDir) || !Directory.EnumerateFiles(botConfig.SrcDir).Any())
                     {
-                        Directory.CreateDirectory(botConfig.ProjectFolder);
-                        await CloneRepo(botConfig.GitRepo, botConfig.ProjectFolder, botConfig.Branch);
+                        Directory.CreateDirectory(botConfig.SrcDir);
+                        await CloneRepo(botConfig.GitRepo, botConfig.SrcDir, botConfig.Branch);
                     }
 
-                    botConfig.BinDir = botConfig.ProjectFolder + S + "bin";
+                    botConfig.BinDir = ToPath(botConfig.SrcDir, "bin");
                 }
                 else
                 {
@@ -75,7 +83,7 @@ namespace BotMama
                     continue;
                 }
 
-                var csprojFile = Directory.EnumerateFiles(botConfig.ProjectFolder).FirstOrDefault(f => f.EndsWith(".csproj"));
+                var csprojFile = Directory.EnumerateFiles(botConfig.SrcDir).FirstOrDefault(f => f.EndsWith(".csproj"));
                 var csprojDoc  = new XmlDocument();
                 csprojDoc.Load(csprojFile);
 
@@ -88,16 +96,17 @@ namespace BotMama
 
                 if (csprojDoc.DocumentElement.SelectSingleNode("/Project/ItemGroup/ProjectReference[contains(@Include,'BotFramework')]") == null)
                     await DotnetAddReference(csprojFile, Config.FrameworkPath);
+                botConfig.IsValid = true;
             }
         }
 
         public static async void StartBots()
         {
-            Clients = new List<IClient>();
-            foreach (var botConfig in Config.BotConfigs)
+            Clients = new List<Client>();
+            foreach (var botConfig in Config.BotConfigs.Where(b => b.IsValid))
             {
-                await DotnetRestore(botConfig.ProjectFolder);
-                await DotnetPublish(botConfig.ProjectFolder, botConfig.BinDir);
+                await DotnetRestore(botConfig.SrcDir);
+                await DotnetPublish(botConfig.SrcDir, botConfig.BinDir);
 
                 var dllfile = Directory.EnumerateFiles(botConfig.BinDir, botConfig.Name + ".dll", SearchOption.AllDirectories)
                                        .FirstOrDefault();
@@ -112,13 +121,14 @@ namespace BotMama
                     Token    = botConfig.Token,
                     Webhook  = botConfig.UseWebHook ?? false,
                     Assembly = assembly,
-                    Name     = botConfig.Name
+                    Name     = botConfig.Name,
+                    DataDir  = botConfig.DataDir
                 });
                 Clients.Add(client);
             }
         }
 
-        public static void Log(IClient client, string message) => Log($"{client?.Name}: {message}");
+        public static void Log(Client client, string message) => Log($"{client?.Name}: {message}");
 
         public static void Log(string message)
         {
