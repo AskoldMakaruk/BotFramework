@@ -45,6 +45,17 @@ namespace BotMama
 
         public static async void ValidateBots()
         {
+            if (Config.FrameworkPath == null || !File.Exists(Config.FrameworkPath) || !Config.FrameworkPath.EndsWith(".csproj"))
+            {
+                Config.FrameworkPath = Directory.GetParent(Directory.GetCurrentDirectory()).EnumerateDirectories().FirstOrDefault(d => d.Name.Contains("BotFramework"))?.EnumerateFiles().FirstOrDefault(f =>f.Name.Contains(".csproj"))?.FullName;
+            }
+
+            if (Config.FrameworkPath == null)
+            {
+                Log("Error: invalid BotFramework path.");
+                return;
+            }
+
             foreach (var botConfig in Config.BotConfigs)
             {
                 if (botConfig.Name == null)
@@ -102,22 +113,12 @@ namespace BotMama
 
                 if (csprojDoc.DocumentElement.SelectSingleNode("/Project/ItemGroup/ProjectReference[contains(@Include,'BotFramework')]") == null)
                 {
-                    if (Config.FrameworkPath == null || !File.Exists(Config.FrameworkPath) || !Config.FrameworkPath.EndsWith(".csproj"))
-                    {
-                        Config.FrameworkPath = Directory.GetParent(Directory.GetCurrentDirectory()).EnumerateDirectories("BotFramework").FirstOrDefault()?.EnumerateFiles(".csproj").FirstOrDefault()?.Name;
-                    }
-
-                    if (Config.FrameworkPath == null)
-                    {
-                        Log("Error: invalid BotFramework path.");
-                        return;
-                    }
-
                     await DotnetAddReference(csprojFile, Config.FrameworkPath);
                 }
 
                 botConfig.IsValid = true;
             }
+
             SaveConfig();
         }
 
