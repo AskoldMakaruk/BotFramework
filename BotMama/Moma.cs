@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using System.Xml;
 using BotFramework.Bot;
 using Newtonsoft.Json;
@@ -43,11 +44,12 @@ namespace BotMama
                 Directory.CreateDirectory(Config.BotsDir);
         }
 
-        public static async void ValidateBots()
+        public static async Task ValidateBots()
         {
             if (Config.FrameworkPath == null || !File.Exists(Config.FrameworkPath) || !Config.FrameworkPath.EndsWith(".csproj"))
             {
-                Config.FrameworkPath = Directory.GetParent(Directory.GetCurrentDirectory()).EnumerateDirectories().FirstOrDefault(d => d.Name.Contains("BotFramework"))?.EnumerateFiles().FirstOrDefault(f =>f.Name.Contains(".csproj"))?.FullName;
+                Config.FrameworkPath = Directory.GetParent(Directory.GetCurrentDirectory()).EnumerateDirectories().FirstOrDefault(d => d.Name.Contains("BotFramework"))?.EnumerateFiles().FirstOrDefault(f => f.Name.Contains(".csproj"))?.FullName;
+                Console.WriteLine($"Full path: {Config.FrameworkPath}");
             }
 
             if (Config.FrameworkPath == null)
@@ -91,8 +93,6 @@ namespace BotMama
                         Directory.CreateDirectory(botConfig.SrcDir);
                         await CloneRepo(botConfig.GitRepo, botConfig.SrcDir, botConfig.Branch);
                     }
-
-                    botConfig.BinDir = ToPath(botConfig.SrcDir, "bin");
                 }
                 else
                 {
@@ -111,10 +111,10 @@ namespace BotMama
                     csprojDoc.Save(csprojFile);
                 }
 
-                if (csprojDoc.DocumentElement.SelectSingleNode("/Project/ItemGroup/ProjectReference[contains(@Include,'BotFramework')]") == null)
-                {
-                    await DotnetAddReference(csprojFile, Config.FrameworkPath);
-                }
+                /*if (csprojDoc.DocumentElement.SelectSingleNode("/Project/ItemGroup/ProjectReference[contains(@Include,'BotFramework')]") == null)*/
+
+                await DotnetAddReference(csprojFile, Config.FrameworkPath);
+
 
                 botConfig.IsValid = true;
             }
@@ -122,7 +122,7 @@ namespace BotMama
             SaveConfig();
         }
 
-        public static async void StartBots()
+        public static async Task StartBots()
         {
             Clients = new List<Client>();
             foreach (var botConfig in Config.BotConfigs.Where(b => b.IsValid))

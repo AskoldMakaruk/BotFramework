@@ -49,8 +49,8 @@ namespace BotMama
         {
             StartServer();
             Moma.LoadConfiguration("config.json");
-            Moma.ValidateBots();
-            Moma.StartBots();
+            Moma.ValidateBots().Wait();
+            Moma.StartBots().Wait();
             // CreateWebHostBuilder(args)
             //     .UseUrls("http://localhost:8444")
             //     .Build()
