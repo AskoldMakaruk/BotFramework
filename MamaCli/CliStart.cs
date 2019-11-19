@@ -31,7 +31,7 @@ namespace MamaCli
             ForegroundColor = ConsoleColor.White;
             CursorLeft      = 0;
             CursorTop       = HeaderHeight + 1;
-            for (var i = CursorTop; i < WindowHeight-1; i++)
+            for (var i = CursorTop; i < WindowHeight - 1; i++)
             {
                 for (var j = 0; j < WindowWidth; j++)
                 {
@@ -74,6 +74,7 @@ namespace MamaCli
                 var st = streamReader.ReadLine();
                 if (st == "end")
                 {
+                    client.Dispose();
                     return builder.ToString();
                 }
 

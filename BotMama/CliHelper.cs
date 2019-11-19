@@ -14,6 +14,12 @@ namespace BotMama
             Log(result.StandardOutput);
         }
 
+        private static async Task GitPull(string dirname)
+        {
+            var result = await RunCommand("git", $"-C {dirname} pull");
+            Log(result.StandardOutput);
+        }
+
         private static async Task DotnetAddReference(string project, string reference)
         {
             var result = await RunCommand("dotnet", $"add {project} reference  {reference}");

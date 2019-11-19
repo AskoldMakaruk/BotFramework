@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using BotFramework.Commands;
 using BotFramework.Queries;
 using Monad;
@@ -21,8 +22,9 @@ namespace BotFramework.Bot
 
         public string WorkingDir { get => _workingdir; private set => _workingdir = value ?? Directory.GetCurrentDirectory(); }
 
-        public string       Name   { get; set; }
-        public ClientStatus Status { get; set; }
+        public string       Name     { get; set; }
+        public ClientStatus Status   { get; set; }
+        public Assembly     Assembly { get; set; }
 
         private static readonly Dictionary<long, EitherStrict<ICommand, IEnumerable<IOneOfMany>>?> nextCommands =
         new Dictionary<long, EitherStrict<ICommand, IEnumerable<IOneOfMany>>?>();
@@ -35,6 +37,7 @@ namespace BotFramework.Bot
         {
             Name       = configuration.Name;
             WorkingDir = configuration.DataDir;
+            Assembly   = configuration.Assembly;
 
             var assembly = configuration.Assembly;
             StaticCommands = assembly
@@ -62,6 +65,18 @@ namespace BotFramework.Bot
             }
 
             //Bot.SendTextMessage(249258727, "Hi");
+        }
+
+        public void StartReceiving()
+        {
+            Status = ClientStatus.Running;
+            Bot.StartReceiving();
+        }
+
+        public void StopReceiving()
+        {
+            Status = ClientStatus.Stoped;
+            Bot.StopReceiving();
         }
 
         protected Query GetQuery(CallbackQuery message, long account)

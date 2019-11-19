@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Loader;
 using System.Threading.Tasks;
 using System.Xml;
 using BotFramework.Bot;
@@ -20,6 +21,7 @@ namespace BotMama
 
         public static void LoadConfiguration(string momaConfigPath)
         {
+            Clients    = new List<Client>();
             ConfigPath = momaConfigPath;
             if (File.Exists(ConfigPath))
             {
@@ -71,34 +73,40 @@ namespace BotMama
                 if (botConfig.DataDir == null)
                 {
                     botConfig.DataDir = ToPath(botDir, "data");
-                    Directory.CreateDirectory(botConfig.DataDir);
                 }
+
+                Directory.CreateDirectory(botConfig.DataDir);
 
                 if (botConfig.SrcDir == null)
                 {
                     botConfig.SrcDir = ToPath(botDir, "src");
-                    Directory.CreateDirectory(botConfig.SrcDir);
                 }
+
+                Directory.CreateDirectory(botConfig.SrcDir);
 
                 if (botConfig.BinDir == null)
                 {
                     botConfig.BinDir = ToPath(botDir, "bin");
-                    Directory.CreateDirectory(botConfig.BinDir);
                 }
 
-                if (botConfig.GitRepo != null)
-                {
-                    if (!Directory.Exists(botConfig.SrcDir) || !Directory.EnumerateFiles(botConfig.SrcDir).Any())
-                    {
-                        Directory.CreateDirectory(botConfig.SrcDir);
-                        await CloneRepo(botConfig.GitRepo, botConfig.SrcDir, botConfig.Branch);
-                    }
-                }
-                else
+                Directory.CreateDirectory(botConfig.BinDir);
+
+                if (botConfig.GitRepo == null)
                 {
                     Log("Problem in config: can't find bot source");
                     continue;
                 }
+
+                if (!Directory.Exists(botConfig.SrcDir) || !Directory.EnumerateFiles(botConfig.SrcDir).Any())
+                {
+                    Directory.CreateDirectory(botConfig.SrcDir);
+                    await CloneRepo(botConfig.GitRepo, botConfig.SrcDir, botConfig.Branch);
+                }
+                else
+                {
+                    await GitPull(botConfig.SrcDir);
+                }
+
 
                 var csprojFile = Directory.EnumerateFiles(botConfig.SrcDir).FirstOrDefault(f => f.EndsWith(".csproj"));
                 var csprojDoc  = new XmlDocument();
@@ -122,11 +130,22 @@ namespace BotMama
             SaveConfig();
         }
 
-        public static async Task StartBots()
+        // public static Dictionary<string, AppDomain> Domains = new Dictionary<string, AppDomain>();
+
+        public static async Task StartBots(params MomaConfig.BotConfig[] configs)
         {
-            Clients = new List<Client>();
-            foreach (var botConfig in Config.BotConfigs.Where(b => b.IsValid))
+            foreach (var botConfig in configs)
             {
+                if (!botConfig.IsValid)
+                {
+                    Clients.Add(new Client
+                    {
+                        Name   = botConfig.Name,
+                        Status = ClientStatus.BrokenConfig
+                    });
+                    continue;
+                }
+
                 await DotnetRestore(botConfig.SrcDir);
                 await DotnetPublish(botConfig.SrcDir, botConfig.BinDir);
 
@@ -135,7 +154,11 @@ namespace BotMama
                 if (dllfile == null) continue;
 
                 var assembly = Assembly.LoadFrom(dllfile);
+
+                //var domain   = AppDomain.CreateDomain(botConfig.Name);
                 AppDomain.CurrentDomain.Load(assembly.GetName());
+                //                Domains.Add(botConfig.Name, domain);
+
                 var client = new Client();
                 client.OnLog += Log;
                 client.Configure(new Configuration
@@ -146,8 +169,53 @@ namespace BotMama
                     Name     = botConfig.Name,
                     DataDir  = botConfig.DataDir
                 });
+                client.Status = ClientStatus.Running;
                 Clients.Add(client);
             }
+        }
+
+        //todo copy-pasting is bad practice
+        public static bool StopBot(string name)
+        {
+            var bot = Clients.FirstOrDefault(b => b.Name == name);
+            if (bot == null)
+            {
+                return false;
+            }
+
+            bot.StopReceiving();
+            return true;
+        }
+
+        public static bool StartBot(string name)
+        {
+            var bot = Clients.FirstOrDefault(b => b.Name == name);
+            if (bot == null)
+            {
+                return false;
+            }
+
+            bot.StartReceiving();
+            return true;
+        }
+
+        public static bool UpdateBot(string name)
+        {
+            var bot = Clients.FirstOrDefault(b => b.Name == name);
+            if (bot == null) return false;
+            bot.StopReceiving();
+
+            //if (!Domains.ContainsKey(name)) return false;
+            //AppDomain.Unload(Domains[name]);
+            //Domains.Remove(name);
+            AssemblyLoadContext.GetLoadContext(bot.Assembly).Unload();
+
+            var configuration = Config.BotConfigs.FirstOrDefault(c => c.Name == name);
+            if (configuration == null) return false;
+
+            GitPull(configuration.SrcDir).Wait();
+            StartBots(configuration).Wait();
+            return true;
         }
 
         public static void Log(Client client, string message) => Log($"{client?.Name}: {message}");
