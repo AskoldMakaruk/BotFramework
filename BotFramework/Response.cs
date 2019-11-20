@@ -69,11 +69,11 @@ namespace BotFramework
             return new Response(this, newResponses);
         }
 
-        public Response AnswerQueryMessage(string answerToMessageId, string text)
+        public Response AnswerQueryMessage(string callbackQueryId, string text)
         {
             var newResponses = Responses.Add(new ResponseMessage(ResponseType.AnswerQuery)
             {
-                AnswerToMessageId = answerToMessageId,
+                AnswerToMessageId = callbackQueryId,
                 Text              = text
             });
             return new Response(this, newResponses);
