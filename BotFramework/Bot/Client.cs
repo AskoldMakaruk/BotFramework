@@ -108,10 +108,10 @@ namespace BotFramework.Bot
             var nextPossible = nextCommands[message.Chat.Id];
 
             ICommand command = null;
-            if (nextPossible.HasValue)
+            if (nextPossible?.Right != null && nextPossible.Value.Left != null)
             {
                 command = nextPossible.Value.Match(
-                                          //right is null plis fix
+                                          //todo right is null plis fix
                                           right => right.Where(t => t.Suitable(message)),
                                           left => Enumerable.Repeat(left, 1))
                                       .FirstOrDefault();
