@@ -22,40 +22,40 @@ namespace BotFramework.Bot
 
         public string WorkingDir { get => _workingdir; private set => _workingdir = value ?? Directory.GetCurrentDirectory(); }
 
-        public string Name { get; set; }
-        public ClientStatus Status { get; set; }
-        public Assembly Assembly { get; set; }
+        public string       Name     { get; set; }
+        public ClientStatus Status   { get; set; }
+        public Assembly     Assembly { get; set; }
 
-        private static readonly Dictionary<long, EitherStrict<ICommand, IEnumerable<IOneOfMany>> ? > nextCommands =
-            new Dictionary<long, EitherStrict<ICommand, IEnumerable<IOneOfMany>> ? > ();
+        private static readonly Dictionary<long, EitherStrict<ICommand, IEnumerable<IOneOfMany>>?> nextCommands =
+        new Dictionary<long, EitherStrict<ICommand, IEnumerable<IOneOfMany>>?>();
 
-        private TelegramBotClient Bot { get; set; }
-        protected Dictionary<Func<CallbackQuery, long, bool>, Query> Queries { get; set; }
-        protected IEnumerable<IStaticCommand> StaticCommands { get; set; }
+        private   TelegramBotClient                                  Bot            { get; set; }
+        protected Dictionary<Func<CallbackQuery, long, bool>, Query> Queries        { get; set; }
+        protected IEnumerable<IStaticCommand>                        StaticCommands { get; set; }
 
         public void Configure(Configuration configuration)
         {
-            Name = configuration.Name;
+            Name       = configuration.Name;
             WorkingDir = configuration.DataDir;
-            Assembly = configuration.Assembly;
+            Assembly   = configuration.Assembly;
 
             var assembly = configuration.Assembly;
             StaticCommands = assembly
-                .GetTypes()
-                .Where(t => t.GetInterfaces().Contains(typeof(IStaticCommand)) && !t.IsAbstract)
-                .Select(c => Activator.CreateInstance(c) as IStaticCommand)
-                .Where(c => c != null);
+                             .GetTypes()
+                             .Where(t => t.GetInterfaces().Contains(typeof(IStaticCommand)) && !t.IsAbstract)
+                             .Select(c => Activator.CreateInstance(c) as IStaticCommand)
+                             .Where(c => c != null);
 
             var baseType = typeof(Query);
             Queries = assembly
-                .GetTypes()
-                .Where(t => t.IsSubclassOf(baseType) && !t.IsAbstract)
-                .Select(c => Activator.CreateInstance(c) as Query)
-                .Where(c => c != null)
-                .ToDictionary(x => new Func<CallbackQuery, long, bool>(x.IsSuitable), x => x);
+                      .GetTypes()
+                      .Where(t => t.IsSubclassOf(baseType) && !t.IsAbstract)
+                      .Select(c => Activator.CreateInstance(c) as Query)
+                      .Where(c => c != null)
+                      .ToDictionary(x => new Func<CallbackQuery, long, bool>(x.IsSuitable), x => x);
 
-            Bot = new TelegramBotClient(configuration.Token);
-            Bot.OnMessage += OnMessageRecieved;
+            Bot                 =  new TelegramBotClient(configuration.Token);
+            Bot.OnMessage       += OnMessageRecieved;
             Bot.OnCallbackQuery += OnQueryReceived;
 
             if (!configuration.Webhook)
@@ -111,9 +111,10 @@ namespace BotFramework.Bot
             if (nextPossible.HasValue)
             {
                 command = nextPossible.Value.Match(
-                        right => right.Where(t => t.Suitable(message)),
-                        left => Enumerable.Repeat(left, 1))
-                    .FirstOrDefault();
+                                          //right is null plis fix
+                                          right => right.Where(t => t.Suitable(message)),
+                                          left => Enumerable.Repeat(left, 1))
+                                      .FirstOrDefault();
             }
 
             if (command == null)
