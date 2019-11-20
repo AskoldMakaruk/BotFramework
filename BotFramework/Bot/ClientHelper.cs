@@ -14,6 +14,7 @@ namespace BotFramework.Bot
         {
             try
             {
+                //todo response count is 0
                 foreach (var message in m.Responses)
                     switch (message.Type)
                     {
@@ -22,7 +23,7 @@ namespace BotFramework.Bot
                             break;
                         case ResponseType.EditTextMesage:
                             await Bot.EditMessageTextAsync(message.ChatId, message.EditMessageId, message.Text,
-                                replyMarkup: message.ReplyMarkup as InlineKeyboardMarkup, parseMode: message.ParseMode);
+                                replyMarkup : message.ReplyMarkup as InlineKeyboardMarkup, parseMode : message.ParseMode);
                             break;
                         case ResponseType.SendDocument:
                             await Bot.SendDocumentAsync(message.ChatId, message.Document, message.Text);
@@ -32,8 +33,8 @@ namespace BotFramework.Bot
                             break;
                         case ResponseType.TextMessage:
                             await Bot.SendTextMessageAsync(message.ChatId, message.Text,
-                                replyToMessageId: message.ReplyToMessageId,
-                                replyMarkup: message.ReplyMarkup, parseMode: message.ParseMode);
+                                replyToMessageId : message.ReplyToMessageId,
+                                replyMarkup : message.ReplyMarkup, parseMode : message.ParseMode);
                             break;
                         case ResponseType.Album:
                             await Bot.SendMediaGroupAsync(message.Album, message.ChatId);
@@ -42,7 +43,8 @@ namespace BotFramework.Bot
                             await Bot.EditMessageReplyMarkupAsync(message.ChatId, message.MessageId,
                                 message.ReplyMarkup as InlineKeyboardMarkup);
                             break;
-                        default: throw new ArgumentOutOfRangeException();
+                        default:
+                            throw new ArgumentOutOfRangeException();
                     }
             }
             catch (Exception e)
@@ -51,16 +53,16 @@ namespace BotFramework.Bot
             }
         }
 
-        private async Task<Message> SendTextMessage(long              account, string text,
-                                                         ParseMode         parseMode             = ParseMode.Default,
-                                                         bool              disableWebPagePreview = false,
-                                                         bool              disableNotification   = false,
-                                                         int               replyToMessageId      = 0,
-                                                         IReplyMarkup      replyMarkup           = null,
-                                                         CancellationToken cancellationToken     = default)
+        private async Task<Message> SendTextMessage(long account, string text,
+            ParseMode parseMode = ParseMode.Default,
+            bool disableWebPagePreview = false,
+            bool disableNotification = false,
+            int replyToMessageId = 0,
+            IReplyMarkup replyMarkup = null,
+            CancellationToken cancellationToken = default)
         {
             var message = await Bot.SendTextMessageAsync(account, text, parseMode, disableWebPagePreview,
-                              disableNotification, replyToMessageId, replyMarkup, cancellationToken);
+                disableNotification, replyToMessageId, replyMarkup, cancellationToken);
             return message;
         }
 
