@@ -89,18 +89,18 @@ namespace MamaCli
 
         private static void Main(string[] args)
         {
-            var familyList              = new StringBuilder();
-            var installedFontCollection = new InstalledFontCollection();
-            var fontFamilies            = installedFontCollection.Families;
+            //var familyList              = new StringBuilder();
+            //var installedFontCollection = new InstalledFontCollection();
+            //var fontFamilies            = installedFontCollection.Families;
 
-            var count = fontFamilies.Length;
-            for (int j = 0; j < count; ++j)
-            {
-                familyList.Append(fontFamilies[j].Name + "\n");
-            }
+            //var count = fontFamilies.Length;
+            //for (int j = 0; j < count; ++j)
+            //{
+            //    familyList.Append(fontFamilies[j].Name + "\n");
+            //}
 
-            WriteLine(familyList);
-            return;
+            //WriteLine(familyList);
+            //return;
             Methods = typeof(ConsoleCommands).GetMethods(BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Where(m => m.IsDefined(typeof(ConsoleCommandAttribute))).ToList();
 
             WriteHeader();
