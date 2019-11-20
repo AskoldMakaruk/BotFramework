@@ -130,8 +130,6 @@ namespace BotMama
             SaveConfig();
         }
 
-        // public static Dictionary<string, AppDomain> Domains = new Dictionary<string, AppDomain>();
-
         public static async Task StartBots(params MomaConfig.BotConfig[] configs)
         {
             foreach (var botConfig in configs)
@@ -143,6 +141,7 @@ namespace BotMama
                         Name   = botConfig.Name,
                         Status = ClientStatus.BrokenConfig
                     });
+                    Log($"{botConfig.Name} broken config.");
                     continue;
                 }
 
@@ -151,13 +150,15 @@ namespace BotMama
 
                 var dllfile = Directory.EnumerateFiles(botConfig.BinDir, botConfig.Name + ".dll", SearchOption.AllDirectories)
                                        .FirstOrDefault();
-                if (dllfile == null) continue;
+                if (dllfile == null)
+                {
+                    Log($"{botConfig.Name} can't find dll.");
+                    continue;
+                }
 
                 var assembly = Assembly.LoadFrom(dllfile);
 
-                //var domain   = AppDomain.CreateDomain(botConfig.Name);
                 AppDomain.CurrentDomain.Load(assembly.GetName());
-                //                Domains.Add(botConfig.Name, domain);
 
                 var client = new Client();
                 client.OnLog += Log;
@@ -171,6 +172,7 @@ namespace BotMama
                 });
                 client.Status = ClientStatus.Running;
                 Clients.Add(client);
+                Log($"{botConfig.Name} started.");
             }
         }
 

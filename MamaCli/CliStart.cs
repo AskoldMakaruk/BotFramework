@@ -3,19 +3,25 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Pipes;
 using System.Linq;
-using System.Net.Mime;
 using System.Reflection;
 using System.Text;
-using System.Threading.Tasks;
 using static System.Console;
 
 namespace MamaCli
 {
     internal static class CliStart
     {
+        public enum TextColor
+        {
+            WhiteOnBlack,
+            BlackOnGray
+        }
+
         public static NamedPipeClientStream client;
 
         private static int HeaderHeight { get; set; }
+
+        public static List<MethodInfo> Methods { get; set; }
 
         public static void WriteHeader()
         {
@@ -33,10 +39,7 @@ namespace MamaCli
             CursorTop       = HeaderHeight + 1;
             for (var i = CursorTop; i < WindowHeight - 1; i++)
             {
-                for (var j = 0; j < WindowWidth; j++)
-                {
-                    Write(' ');
-                }
+                for (var j = 0; j < WindowWidth; j++) Write(' ');
             }
 
             CursorLeft = 0;
@@ -82,9 +85,7 @@ namespace MamaCli
             }
         }
 
-        public static List<MethodInfo> Methods { get; set; }
-
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             Methods = typeof(ConsoleCommands).GetMethods(BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Where(m => m.IsDefined(typeof(ConsoleCommandAttribute))).ToList();
 
@@ -98,17 +99,13 @@ namespace MamaCli
             }
         }
 
-        public static (ConsoleColor back, ConsoleColor text) GetColors(TextColor input) =>
-        input switch
+        public static (ConsoleColor back, ConsoleColor text) GetColors(TextColor input)
         {
-        TextColor.WhiteOnBlack => (ConsoleColor.Black, ConsoleColor.White),
-        TextColor.BlackOnGray => (ConsoleColor.Gray, ConsoleColor.Black),
-        };
-
-        public enum TextColor
-        {
-            WhiteOnBlack,
-            BlackOnGray
+            return input switch
+                   {
+                   TextColor.WhiteOnBlack => (ConsoleColor.Black, ConsoleColor.White),
+                   TextColor.BlackOnGray => (ConsoleColor.Gray, ConsoleColor.Black),
+                   };
         }
     }
 }
