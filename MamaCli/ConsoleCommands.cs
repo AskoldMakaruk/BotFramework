@@ -15,7 +15,7 @@ namespace MamaCli
             {
                 var attr = method.GetCustomAttributes<ConsoleCommandAttribute>().FirstOrDefault();
                 if (attr == null) continue;
-               
+
                 DisplayText($"{attr.Key} — {attr.HelpText}\n");
             }
         }
@@ -30,7 +30,13 @@ namespace MamaCli
         static void Status()
         {
             ClearAllButHeader();
-            DisplayText(SendMessage("status"));
+            DisplayText(SendMessage("status -w " + Console.WindowWidth));
+        }
+        [ConsoleCommand(ConsoleKey.M, "get moma help")]
+        static void MomaHelp()
+        {
+            ClearAllButHeader();
+            DisplayText(SendMessage("--help"));
         }
     }
 }

@@ -1,6 +1,5 @@
-﻿using System.Linq;
-using System.Text;
-using System.Text.Json.Serialization;
+﻿using System;
+using System.Linq;
 using BotFramework.Bot;
 using CommandLine;
 using Newtonsoft.Json;
@@ -10,10 +9,14 @@ namespace BotMama.Cli
     [Verb("status")]
     internal class StatusCli : CliAnswer
     {
+        [Option('w', Required = true, Default = 0, Separator = ' ', HelpText = "ConsoleWidth")]
+        public int ConsoleWidth { get; set; }
+
         protected override string Answer(string[] args)
         {
             var clients = Moma.Clients;
-            return $"Total clients: {clients.Count}\n\nActive: {clients.Count(c => c.Status == ClientStatus.Running)}";
+            Console.WriteLine(ConsoleWidth);
+            return $"Total clients: {clients.Count}     Active: {clients.Count(c => c.Status == ClientStatus.Running)}";
         }
     }
 

@@ -7,6 +7,8 @@ using System.IO.Pipes;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using static System.Console;
 
 namespace MamaCli
@@ -18,8 +20,6 @@ namespace MamaCli
             WhiteOnBlack,
             BlackOnGray
         }
-
-        public static NamedPipeClientStream client;
 
         private static int HeaderHeight { get; set; }
 
@@ -39,9 +39,10 @@ namespace MamaCli
             ForegroundColor = ConsoleColor.White;
             CursorLeft      = 0;
             CursorTop       = HeaderHeight + 1;
+            var line = new string(' ', WindowWidth);
             for (var i = CursorTop; i < WindowHeight - 1; i++)
             {
-                for (var j = 0; j < WindowWidth; j++) Write(' ');
+                WriteLine(line);
             }
 
             CursorLeft = 0;
@@ -58,17 +59,17 @@ namespace MamaCli
 
         public static string SendMessage(string message)
         {
-            client = new NamedPipeClientStream(".", "BotMamaPipe", PipeDirection.InOut, PipeOptions.Asynchronous);
+            using var client = new NamedPipeClientStream(".", "BotMamaPipe", PipeDirection.InOut, PipeOptions.Asynchronous);
             try
             {
                 client.Connect(2000);
             }
-            catch
+            catch (Exception e)
             {
                 return "Can't connect to moma";
             }
 
-            var buffer = Encoding.UTF8.GetBytes(message);
+            var buffer = Encoding.UTF8.GetBytes(message + "\n");
             client.WriteAsync(buffer, 0, buffer.Length);
             client.Flush();
 
@@ -89,18 +90,6 @@ namespace MamaCli
 
         private static void Main(string[] args)
         {
-            //var familyList              = new StringBuilder();
-            //var installedFontCollection = new InstalledFontCollection();
-            //var fontFamilies            = installedFontCollection.Families;
-
-            //var count = fontFamilies.Length;
-            //for (int j = 0; j < count; ++j)
-            //{
-            //    familyList.Append(fontFamilies[j].Name + "\n");
-            //}
-
-            //WriteLine(familyList);
-            //return;
             Methods = typeof(ConsoleCommands).GetMethods(BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Where(m => m.IsDefined(typeof(ConsoleCommandAttribute))).ToList();
 
             WriteHeader();
@@ -109,10 +98,15 @@ namespace MamaCli
                 var key = ReadKey(true);
                 Title = key.KeyChar.ToString();
                 var method = Methods.FirstOrDefault(m => m.GetCustomAttribute<ConsoleCommandAttribute>().Key == key.Key);
-                method?.Invoke(null, null);
+
+
+                using var invokeTask   = Task.Run(() => method?.Invoke(null, null));
+                using var resetCliTask = Task.Run(() => key = ReadKey(true));
+                var       tasks        = new Task[] {invokeTask, resetCliTask};
+
+                Task.WhenAny(tasks);
             }
         }
-
         public static (ConsoleColor back, ConsoleColor text) GetColors(TextColor input)
         {
             return input switch
