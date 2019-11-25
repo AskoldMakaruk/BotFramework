@@ -28,7 +28,6 @@ namespace BotFramework
             Responses    = new List<ResponseMessage>();
         }
 
-
         public List<ResponseMessage> Responses { get; }
 
         public readonly EitherStrict<ICommand, IEnumerable<IOneOfMany>>? NextPossible;
@@ -93,8 +92,7 @@ namespace BotFramework
         public Response EditMessageMarkup(ChatId               accountChatId, int messageMessageId,
                                           InlineKeyboardMarkup addMemeButton)
         {
-            Responses.Add(new ResponseMessage(ResponseType.EditMessageMarkup)
-            {ChatId = accountChatId, MessageId = messageMessageId, ReplyMarkup = addMemeButton});
+            Responses.Add(new ResponseMessage(ResponseType.EditMessageMarkup) {ChatId = accountChatId, MessageId = messageMessageId, ReplyMarkup = addMemeButton});
             return this;
         }
 
@@ -108,6 +106,16 @@ namespace BotFramework
                 ReplyToMessageId = replyToMessageId,
                 ReplyMarkup      = replyMarkup,
                 Document         = document
+            });
+            return this;
+        }
+
+        public Response SendSticker(ChatId accountChatId, InputOnlineFile sticker)
+        {
+            Responses.Add(new ResponseMessage(ResponseType.SendPhoto)
+            {
+                ChatId   = accountChatId,
+                Document = sticker
             });
             return this;
         }
@@ -145,6 +153,7 @@ namespace BotFramework
         SendDocument,
         SendPhoto,
         Album,
-        EditMessageMarkup
+        EditMessageMarkup,
+        Sticker
     }
 }
