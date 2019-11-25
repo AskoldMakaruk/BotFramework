@@ -111,7 +111,7 @@ namespace BotFramework.Bot
             try
             {
                 if (nextPossible.HasValue)
-                    if ((nextPossible?.IsRight ?? false) && (nextPossible?.IsLeft ?? false))
+                    if ((nextPossible?.IsRight ?? false) || (nextPossible?.IsLeft ?? false))
                     {
                         command = nextPossible.Value.Match(
                                 //todo right is null plis fix
