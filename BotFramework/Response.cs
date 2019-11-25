@@ -112,7 +112,7 @@ namespace BotFramework
 
         public Response SendSticker(ChatId accountChatId, InputOnlineFile sticker)
         {
-            Responses.Add(new ResponseMessage(ResponseType.SendPhoto)
+            Responses.Add(new ResponseMessage(ResponseType.Sticker)
             {
                 ChatId   = accountChatId,
                 Document = sticker
