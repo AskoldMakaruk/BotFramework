@@ -34,7 +34,7 @@ namespace BotFramework.Bot
             return assembly
                 .GetTypes()
                 .Where(t => (t.IsSubclassOf(typeof(T)) || t.GetInterfaces().Contains(typeof(T))) && !t.IsAbstract)
-                .Select(c => Activator.CreateInstance(c))
+                .Select(Activator.CreateInstance)
                 .Cast<T>()
                 .Where(c => c != null);
         }
