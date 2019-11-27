@@ -136,11 +136,11 @@ namespace BotMama
             {
                 if (!botConfig.IsValid)
                 {
-                    Clients.Add(new Client
-                    {
-                        Name   = botConfig.Name,
-                        Status = ClientStatus.BrokenConfig
-                    });
+                    //Clients.Add(new Client
+                    //{
+                    //    Name   = botConfig.Name,
+                    //    Status = ClientStatus.BrokenConfig
+                    //});
                     Log($"{botConfig.Name} broken config.");
                     continue;
                 }
@@ -160,19 +160,15 @@ namespace BotMama
 
                 AppDomain.CurrentDomain.Load(assembly.GetName());
 
-                var client = new Client();
-                client.OnLog += Log;
-                client.Configure(new Configuration
+                var clients = assembly.GetTypes().Where(t => !t.IsAbstract && t.IsSubclassOf(typeof(Client))).Select(Activator.CreateInstance).Cast<Client>().Where(c => c != null);
+                foreach (var client in clients)
                 {
-                    Token    = botConfig.Token,
-                    Webhook  = botConfig.UseWebHook ?? false,
-                    Assembly = assembly,
-                    Name     = botConfig.Name,
-                    DataDir  = botConfig.DataDir
-                });
-                client.Status = ClientStatus.Running;
-                Clients.Add(client);
-                Log($"{botConfig.Name} started.");
+                    client.OnLog      += Log;
+                    client.WorkingDir =  botConfig.DataDir;
+                    client.Status     =  ClientStatus.Running;
+                    Clients.Add(client);
+                    Log($"{botConfig.Name} started.");
+                }
             }
         }
 
@@ -210,7 +206,7 @@ namespace BotMama
             //if (!Domains.ContainsKey(name)) return false;
             //AppDomain.Unload(Domains[name]);
             //Domains.Remove(name);
-            AssemblyLoadContext.GetLoadContext(bot.Assembly).Unload();
+            AssemblyLoadContext.GetLoadContext(bot.GetType().Assembly).Unload();
 
             var configuration = Config.BotConfigs.FirstOrDefault(c => c.Name == name);
             if (configuration == null) return false;

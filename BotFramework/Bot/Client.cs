@@ -16,55 +16,54 @@ namespace BotFramework.Bot
 {
     public delegate void Log(Client sender, string value);
 
-    public partial class Client
+    public abstract partial class Client
     {
         private string _workingdir;
 
-        public string WorkingDir { get => _workingdir; private set => _workingdir = value ?? Directory.GetCurrentDirectory(); }
+        public string WorkingDir { get => _workingdir; set => _workingdir = value ?? Directory.GetCurrentDirectory(); }
 
         public string Name { get; set; }
         public ClientStatus Status { get; set; }
-        public Assembly Assembly { get; set; }
 
-        private static readonly Dictionary<long, EitherStrict<ICommand, IEnumerable<IOneOfMany>> ? > nextCommands =
-            new Dictionary<long, EitherStrict<ICommand, IEnumerable<IOneOfMany>> ? > ();
-
-        private TelegramBotClient Bot { get; set; }
-        protected Dictionary<Func<CallbackQuery, long, bool>, Query> Queries { get; set; }
+        protected TelegramBotClient Bot { get; set; }
+        protected Dictionary<Func<CallbackQuery, bool>, Query> Queries { get; set; }
         protected IEnumerable<IStaticCommand> StaticCommands { get; set; }
 
-        public void Configure(Configuration configuration)
+        protected IEnumerable<T> LoadTypeFromAssembly<T>(Assembly assembly)
         {
-            Name = configuration.Name;
-            WorkingDir = configuration.DataDir;
-            Assembly = configuration.Assembly;
-
-            var assembly = configuration.Assembly;
-            StaticCommands = assembly
+            return assembly
                 .GetTypes()
-                .Where(t => t.GetInterfaces().Contains(typeof(IStaticCommand)) && !t.IsAbstract)
-                .Select(c => Activator.CreateInstance(c) as IStaticCommand)
+                .Where(t => (t.IsSubclassOf(typeof(T)) || t.GetInterfaces().Contains(typeof(T))) && !t.IsAbstract)
+                .Select(c => Activator.CreateInstance(c))
+                .Cast<T>()
                 .Where(c => c != null);
+        }
 
-            var baseType = typeof(Query);
-            Queries = assembly
-                .GetTypes()
-                .Where(t => t.IsSubclassOf(baseType) && !t.IsAbstract)
-                .Select(c => Activator.CreateInstance(c) as Query)
-                .Where(c => c != null)
-                .ToDictionary(x => new Func<CallbackQuery, long, bool>(x.IsSuitable), x => x);
+        protected abstract string Token { get; }
+        protected bool UseWebhook { get; set; } = false;
 
-            Bot = new TelegramBotClient(configuration.Token);
+        //todo maybe we should load configuration from the working dir
+        protected Client()
+        {
+            Bot = new TelegramBotClient(Token);
+
+            NextCommands = new Dictionary<long, EitherStrict<ICommand, IEnumerable<IOneOfMany>> ? > ();
+        }
+
+        protected void IDontCareJustMakeItWork(Assembly assembly)
+        {
             Bot.OnMessage += OnMessageRecieved;
             Bot.OnCallbackQuery += OnQueryReceived;
 
-            if (!configuration.Webhook)
+            if (!UseWebhook)
             {
                 Bot.StartReceiving();
                 Bot.DeleteWebhookAsync();
             }
 
-            //Bot.SendTextMessage(249258727, "Hi");
+            StaticCommands = LoadTypeFromAssembly<IStaticCommand>(assembly);
+            Queries = LoadTypeFromAssembly<Query>(assembly)
+                .ToDictionary(x => new Func<CallbackQuery, bool>(x.IsSuitable), x => x);
         }
 
         public void StartReceiving()
@@ -79,33 +78,29 @@ namespace BotFramework.Bot
             Bot.StopReceiving();
         }
 
-        protected Query GetQuery(CallbackQuery message, long account)
-        {
-            var func = Queries.Keys.FirstOrDefault(s => s.Invoke(message, account));
-            return func != null ? Queries[func] : default;
-        }
-
         public async void HandleQuery(CallbackQuery query)
         {
-            try
+            var func = Queries.Keys.FirstOrDefault(s => s.Invoke(query));
+            var command = func != null ? Queries[func] : default;
+            if (command == null)
             {
-                var command = GetQuery(query, query.From.Id);
-
-                Write($"Command: {command}");
-
-                await SendResponse(command.Execute(query));
+                Write("Query is null.");
+                return;
             }
-            catch (Exception e)
-            {
-                Write(e.ToString());
-            }
+
+            Write($"Command: {command}");
+
+            await SendResponse(command.Execute(query));
         }
+
+        //it`s already private no need to make it readonly
+        private static Dictionary<long, EitherStrict<ICommand, IEnumerable<IOneOfMany>> ? > NextCommands { get; set; }
 
         public async void HandleMessage(Message message)
         {
-            if (!nextCommands.ContainsKey(message.Chat.Id))
-                nextCommands.Add(message.Chat.Id, null);
-            var nextPossible = nextCommands[message.Chat.Id];
+            if (!NextCommands.ContainsKey(message.Chat.Id))
+                NextCommands.Add(message.Chat.Id, null);
+            var nextPossible = NextCommands[message.Chat.Id];
 
             ICommand command = null;
             try
@@ -120,7 +115,11 @@ namespace BotFramework.Bot
                             .FirstOrDefault();
                     }
             }
-            catch { /*I guess someone has to fix this*/ }
+            catch
+            {
+                /*I guess someone has to fix this*/
+            }
+
             if (command == null)
             {
                 command = StaticCommands.FirstOrDefault(i => i.Suitable(message));
@@ -132,17 +131,13 @@ namespace BotFramework.Bot
                 return;
             }
 
-            try
-            {
-                var response = command.Execute(message, this);
-                if (response.NextPossible.HasValue)
-                    nextCommands[message.Chat.Id] = response.NextPossible;
-                await SendResponse(response);
-            }
-            catch (Exception exe) { }
+            var response = command.Execute(message, this);
+            if (response.NextPossible.HasValue)
+                NextCommands[message.Chat.Id] = response.NextPossible;
+            await SendResponse(response);
         }
 
-        public void OnMessageRecieved(object sender, MessageEventArgs e)
+        public virtual void OnMessageRecieved(object sender, MessageEventArgs e)
         {
             Write(DateTime.Now.ToShortTimeString() + " " + e.Message.From.Username + ": " + e.Message.Text);
             try
@@ -155,7 +150,7 @@ namespace BotFramework.Bot
             }
         }
 
-        public void OnQueryReceived(object sender, CallbackQueryEventArgs e)
+        public virtual void OnQueryReceived(object sender, CallbackQueryEventArgs e)
         {
             Write(
                 $"{DateTime.Now.ToShortTimeString()} {e.CallbackQuery.From.Username}: {e.CallbackQuery.Data}");
