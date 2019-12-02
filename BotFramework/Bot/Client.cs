@@ -20,31 +20,27 @@ namespace BotFramework.Bot
     {
         private string _workingdir;
 
-        public string WorkingDir
-        {
-            get => _workingdir;
-            set => _workingdir = value ?? Directory.GetCurrentDirectory();
-        }
+        public string WorkingDir { get => _workingdir; set => _workingdir = value ?? Directory.GetCurrentDirectory(); }
 
-        public string Name { get; set; }
+        public string       Name   { get; set; }
         public ClientStatus Status { get; set; }
 
-        protected TelegramBotClient Bot { get; set; }
-        protected Dictionary<Func<CallbackQuery, bool>, Query> Queries { get; set; }
-        protected IEnumerable<IStaticCommand> StaticCommands { get; set; }
+        protected TelegramBotClient                            Bot            { get; set; }
+        protected Dictionary<Func<CallbackQuery, bool>, Query> Queries        { get; set; }
+        protected IEnumerable<IStaticCommand>                  StaticCommands { get; set; }
 
         protected IEnumerable<T> LoadTypeFromAssembly<T>(Assembly assembly)
         {
             return assembly
-                .GetTypes()
-                .Where(t => (t.IsSubclassOf(typeof(T)) || t.GetInterfaces().Contains(typeof(T))) && !t.IsAbstract)
-                .Select(Activator.CreateInstance)
-                .Cast<T>()
-                .Where(c => c != null);
+                   .GetTypes()
+                   .Where(t => (t.IsSubclassOf(typeof(T)) || t.GetInterfaces().Contains(typeof(T))) && !t.IsAbstract)
+                   .Select(Activator.CreateInstance)
+                   .Cast<T>()
+                   .Where(c => c != null);
         }
 
-        protected abstract string Token { get; }
-        protected bool UseWebhook { get; set; } = false;
+        protected abstract string Token      { get; }
+        protected          bool   UseWebhook { get; set; } = false;
 
         //todo maybe we should load configuration from the working dir
         protected Client()
@@ -56,7 +52,7 @@ namespace BotFramework.Bot
 
         protected void IDontCareJustMakeItWork(Assembly assembly)
         {
-            Bot.OnMessage += OnMessageRecieved;
+            Bot.OnMessage       += OnMessageRecieved;
             Bot.OnCallbackQuery += OnQueryReceived;
 
             if (!UseWebhook)
@@ -67,7 +63,7 @@ namespace BotFramework.Bot
 
             StaticCommands = LoadTypeFromAssembly<IStaticCommand>(assembly);
             Queries = LoadTypeFromAssembly<Query>(assembly)
-                .ToDictionary(x => new Func<CallbackQuery, bool>(x.IsSuitable), x => x);
+            .ToDictionary(x => new Func<CallbackQuery, bool>(x.IsSuitable), x => x);
         }
 
         public void StartReceiving()
@@ -84,7 +80,7 @@ namespace BotFramework.Bot
 
         public async void HandleQuery(CallbackQuery query)
         {
-            var func = Queries.Keys.FirstOrDefault(s => s.Invoke(query));
+            var func    = Queries.Keys.FirstOrDefault(s => s.Invoke(query));
             var command = func != null ? Queries[func] : default;
             if (command == null)
             {
@@ -107,21 +103,29 @@ namespace BotFramework.Bot
             var nextPossible = NextCommands[message.Chat.Id];
 
             var command = nextPossible.HasValue
-                ? nextPossible.Value.Match(
-                        //todo right is null plis fix
-                        right => right.Where(t => t.Suitable(message)),
-                        left => Enumerable.Repeat(left, 1))
-                    .FirstOrDefault()
-                : StaticCommands.FirstOrDefault(i => i.Suitable(message));
-            if (command == null) {
-                await SendTextMessage(message.From.Id, "Internal server error: 504");
-                return;
-            }
+                          ? nextPossible.Value.Match(
+                                            //todo right is null plis fix
+                                            right => right.Where(t => t.Suitable(message)),
+                                            left => Enumerable.Repeat(left, 1))
+                                        .FirstOrDefault()
+                          : StaticCommands.FirstOrDefault(i => i.Suitable(message));
+            try
+            {
+                if (command == null)
+                {
+                    await SendTextMessage(message.From.Id, "Internal server error: 504");
+                    return;
+                }
 
-            var response = command.Execute(message, this);
-            if (response.NextPossible.HasValue)
-                NextCommands[message.Chat.Id] = response.NextPossible;
-            await SendResponse(response);
+                var response = command.Execute(message, this);
+                if (response.NextPossible.HasValue)
+                    NextCommands[message.Chat.Id] = response.NextPossible;
+                await SendResponse(response);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
         }
 
         public virtual void OnMessageRecieved(object sender, MessageEventArgs e)
