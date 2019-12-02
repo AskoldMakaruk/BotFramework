@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using BotFramework.Commands;
 using Monad;
+using Monad.Utility;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.InputFiles;
@@ -13,22 +14,28 @@ namespace BotFramework
         public Response(ICommand command)
         {
             NextPossible = EitherStrict.Left<ICommand, IEnumerable<IOneOfMany>>(command);
-            Responses    = new List<ResponseMessage>();
+            Responses = ImmutableList.Empty<ResponseMessage>();
         }
 
         public Response(params IOneOfMany[] nextPossible)
         {
             NextPossible = nextPossible.Length == 0 ? null : nextPossible;
-            Responses    = new List<ResponseMessage>();
+            Responses = ImmutableList.Empty<ResponseMessage>();
         }
 
         public Response(IEnumerable<IOneOfMany> nextPossible)
         {
             NextPossible = EitherStrict.Right<ICommand, IEnumerable<IOneOfMany>>(nextPossible);
-            Responses    = new List<ResponseMessage>();
+            Responses = ImmutableList.Empty<ResponseMessage>();
         }
 
-        public List<ResponseMessage> Responses { get; }
+        private Response(Response old, ImmutableList<ResponseMessage> newResponses)
+        {
+           Responses = newResponses;
+           NextPossible = old.NextPossible;
+        }
+
+        public readonly ImmutableList<ResponseMessage> Responses; 
 
         public readonly EitherStrict<ICommand, IEnumerable<IOneOfMany>>? NextPossible;
 
@@ -37,39 +44,39 @@ namespace BotFramework
         public Response SendTextMessage(ChatId chat,                 string    text, IReplyMarkup replyMarkup = null,
                                         int    replyToMessageId = 0, ParseMode parseMode = default)
         {
-            Responses.Add(new ResponseMessage(ResponseType.TextMessage)
+            var toAdd = new ResponseMessage(ResponseType.TextMessage)
             {
                 ChatId           = chat,
                 Text             = text,
                 ReplyMarkup      = replyMarkup,
                 ReplyToMessageId = replyToMessageId,
                 ParseMode        = parseMode
-            });
-            return this;
+            };
+            return new Response(this, this.Responses.InsertAtHead(toAdd));
         }
 
         public Response EditTextMessage(ChatId       chatId,             int       editMessageId, string text,
                                         IReplyMarkup replyMarkup = null, ParseMode parseMode = default)
         {
-            Responses.Add(new ResponseMessage(ResponseType.EditTextMesage)
+            var toAdd = new ResponseMessage(ResponseType.EditTextMesage)
             {
                 ChatId        = chatId,
                 EditMessageId = editMessageId,
                 Text          = text,
                 ReplyMarkup   = replyMarkup,
                 ParseMode     = parseMode
-            });
-            return this;
+            };
+            return new Response(this, this.Responses.InsertAtHead(toAdd));
         }
 
         public Response AnswerQueryMessage(string callbackQueryId, string text)
         {
-            Responses.Add(new ResponseMessage(ResponseType.AnswerQuery)
+            var toAdd = new ResponseMessage(ResponseType.AnswerQuery)
             {
                 AnswerToMessageId = callbackQueryId,
                 Text              = text
-            });
-            return this;
+            };
+            return new Response(this, this.Responses.InsertAtHead(toAdd));
         }
 
         public Response SendDocument(long            account,
@@ -78,46 +85,46 @@ namespace BotFramework
                                      int             replyToMessageId = 0,
                                      IReplyMarkup    replyMarkup      = null)
         {
-            Responses.Add(new ResponseMessage(ResponseType.SendDocument)
+            var toAdd = new ResponseMessage(ResponseType.SendDocument)
             {
                 ChatId           = account,
                 Text             = caption,
                 ReplyToMessageId = replyToMessageId,
                 ReplyMarkup      = replyMarkup,
                 Document         = document
-            });
-            return this;
+            };
+            return new Response(this, this.Responses.InsertAtHead(toAdd));
         }
 
         public Response EditMessageMarkup(ChatId               accountChatId, int messageMessageId,
                                           InlineKeyboardMarkup addMemeButton)
         {
-            Responses.Add(new ResponseMessage(ResponseType.EditMessageMarkup) {ChatId = accountChatId, MessageId = messageMessageId, ReplyMarkup = addMemeButton});
-            return this;
+            var toAdd = new ResponseMessage(ResponseType.EditMessageMarkup) {ChatId = accountChatId, MessageId = messageMessageId, ReplyMarkup = addMemeButton};
+            return new Response(this, this.Responses.InsertAtHead(toAdd));
         }
 
         public Response SendPhoto(ChatId accountChatId,        InputOnlineFile document, string caption = null,
                                   int    replyToMessageId = 0, IReplyMarkup    replyMarkup = null)
         {
-            Responses.Add(new ResponseMessage(ResponseType.SendPhoto)
+            var toAdd = new ResponseMessage(ResponseType.SendPhoto)
             {
                 ChatId           = accountChatId,
                 Text             = caption,
                 ReplyToMessageId = replyToMessageId,
                 ReplyMarkup      = replyMarkup,
                 Document         = document
-            });
-            return this;
+            };
+            return new Response(this, this.Responses.InsertAtHead(toAdd));
         }
 
         public Response SendSticker(ChatId accountChatId, InputOnlineFile sticker)
         {
-            Responses.Add(new ResponseMessage(ResponseType.Sticker)
+            var toAdd = new ResponseMessage(ResponseType.Sticker)
             {
                 ChatId   = accountChatId,
                 Document = sticker
-            });
-            return this;
+            };
+            return new Response(this, this.Responses.InsertAtHead(toAdd));
         }
 
 #endregion

@@ -20,7 +20,11 @@ namespace BotFramework.Bot
     {
         private string _workingdir;
 
-        public string WorkingDir { get => _workingdir; set => _workingdir = value ?? Directory.GetCurrentDirectory(); }
+        public string WorkingDir
+        {
+            get => _workingdir;
+            set => _workingdir = value ?? Directory.GetCurrentDirectory();
+        }
 
         public string Name { get; set; }
         public ClientStatus Status { get; set; }
@@ -47,7 +51,7 @@ namespace BotFramework.Bot
         {
             Bot = new TelegramBotClient(Token);
 
-            NextCommands = new Dictionary<long, EitherStrict<ICommand, IEnumerable<IOneOfMany>> ? > ();
+            NextCommands = new Dictionary<long, EitherStrict<ICommand, IEnumerable<IOneOfMany>>?>();
         }
 
         protected void IDontCareJustMakeItWork(Assembly assembly)
@@ -94,7 +98,7 @@ namespace BotFramework.Bot
         }
 
         //it`s already private no need to make it readonly
-        private static Dictionary<long, EitherStrict<ICommand, IEnumerable<IOneOfMany>> ? > NextCommands { get; set; }
+        private static Dictionary<long, EitherStrict<ICommand, IEnumerable<IOneOfMany>>?> NextCommands { get; set; }
 
         public async void HandleMessage(Message message)
         {
@@ -102,31 +106,14 @@ namespace BotFramework.Bot
                 NextCommands.Add(message.Chat.Id, null);
             var nextPossible = NextCommands[message.Chat.Id];
 
-            ICommand command = null;
-            try
-            {
-                if (nextPossible.HasValue)
-                    if ((nextPossible?.IsRight ?? false) || (nextPossible?.IsLeft ?? false))
-                    {
-                        command = nextPossible.Value.Match(
-                                //todo right is null plis fix
-                                right => right.Where(t => t.Suitable(message)),
-                                left => Enumerable.Repeat(left, 1))
-                            .FirstOrDefault();
-                    }
-            }
-            catch
-            {
-                /*I guess someone has to fix this*/
-            }
-
-            if (command == null)
-            {
-                command = StaticCommands.FirstOrDefault(i => i.Suitable(message));
-            }
-
-            if (command == null)
-            {
+            var command = nextPossible.HasValue
+                ? nextPossible.Value.Match(
+                        //todo right is null plis fix
+                        right => right.Where(t => t.Suitable(message)),
+                        left => Enumerable.Repeat(left, 1))
+                    .FirstOrDefault()
+                : StaticCommands.FirstOrDefault(i => i.Suitable(message));
+            if (command == null) {
                 await SendTextMessage(message.From.Id, "Internal server error: 504");
                 return;
             }
