@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
+using Monads;
 using static MamaCli.CliStart;
 
 namespace MamaCli
@@ -12,12 +13,8 @@ namespace MamaCli
         {
             ClearAllButHeader();
             foreach (var method in Methods)
-            {
-                var attr = method.GetCustomAttributes<ConsoleCommandAttribute>().FirstOrDefault();
-                if (attr == null) continue;
-
-                DisplayText($"{attr.Key} — {attr.HelpText}\n");
-            }
+                method.GetCustomAttributes<ConsoleCommandAttribute>().FirstAsOptional()
+                    .FromOptional(attr => DisplayText($"{attr.Key} — {attr.HelpText}\n"));
         }
 
         [ConsoleCommand(ConsoleKey.Q, "quit")]
@@ -32,6 +29,7 @@ namespace MamaCli
             ClearAllButHeader();
             DisplayText(SendMessage("status -w " + Console.WindowWidth));
         }
+
         [ConsoleCommand(ConsoleKey.M, "get moma help")]
         static void MomaHelp()
         {

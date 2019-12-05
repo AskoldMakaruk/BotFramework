@@ -5,7 +5,7 @@ using System.Linq;
 using System.Reflection;
 using BotFramework.Commands;
 using BotFramework.Queries;
-using Monad;
+using Monads;
 using Newtonsoft.Json;
 using Telegram.Bot;
 using Telegram.Bot.Args;
@@ -20,39 +20,43 @@ namespace BotFramework.Bot
     {
         private string _workingdir;
 
-        public string WorkingDir { get => _workingdir; set => _workingdir = value ?? Directory.GetCurrentDirectory(); }
+        public string WorkingDir
+        {
+            get => _workingdir;
+            set => _workingdir = value ?? Directory.GetCurrentDirectory();
+        }
 
-        public string       Name   { get; set; }
+        public string Name { get; set; }
         public ClientStatus Status { get; set; }
 
-        protected TelegramBotClient                            Bot            { get; set; }
-        protected Dictionary<Func<CallbackQuery, bool>, Query> Queries        { get; set; }
-        protected IEnumerable<IStaticCommand>                  StaticCommands { get; set; }
+        protected TelegramBotClient Bot { get; set; }
+        protected Dictionary<Func<CallbackQuery, bool>, Query> Queries { get; set; }
+        protected IEnumerable<IStaticCommand> StaticCommands { get; set; }
 
         protected IEnumerable<T> LoadTypeFromAssembly<T>(Assembly assembly)
         {
             return assembly
-                   .GetTypes()
-                   .Where(t => (t.IsSubclassOf(typeof(T)) || t.GetInterfaces().Contains(typeof(T))) && !t.IsAbstract)
-                   .Select(Activator.CreateInstance)
-                   .Cast<T>()
-                   .Where(c => c != null);
+                .GetTypes()
+                .Where(t => (t.IsSubclassOf(typeof(T)) || t.GetInterfaces().Contains(typeof(T))) && !t.IsAbstract)
+                .Select(Activator.CreateInstance)
+                .Cast<T>()
+                .Where(c => c != null);
         }
 
-        protected abstract string Token      { get; }
-        protected          bool   UseWebhook { get; set; } = false;
+        protected abstract string Token { get; }
+        protected bool UseWebhook { get; set; } = false;
 
         //todo maybe we should load configuration from the working dir
         protected Client()
         {
             Bot = new TelegramBotClient(Token);
 
-            NextCommands = new Dictionary<long, EitherStrict<ICommand, IEnumerable<IOneOfMany>>?>();
+            NextCommands = new Dictionary<long, Optional<Either<ICommand, IEnumerable<IOneOfMany>>>>();
         }
 
         protected void IDontCareJustMakeItWork(Assembly assembly)
         {
-            Bot.OnMessage       += OnMessageRecieved;
+            Bot.OnMessage += OnMessageRecieved;
             Bot.OnCallbackQuery += OnQueryReceived;
 
             if (!UseWebhook)
@@ -63,7 +67,7 @@ namespace BotFramework.Bot
 
             StaticCommands = LoadTypeFromAssembly<IStaticCommand>(assembly);
             Queries = LoadTypeFromAssembly<Query>(assembly)
-            .ToDictionary(x => new Func<CallbackQuery, bool>(x.IsSuitable), x => x);
+                .ToDictionary(x => new Func<CallbackQuery, bool>(x.IsSuitable), x => x);
         }
 
         public void StartReceiving()
@@ -80,7 +84,8 @@ namespace BotFramework.Bot
 
         public async void HandleQuery(CallbackQuery query)
         {
-            var func    = Queries.Keys.FirstOrDefault(s => s.Invoke(query));
+            //стрьомна херня хз як переписати
+            var func = Queries.Keys.FirstOrDefault(s => s.Invoke(query));
             var command = func != null ? Queries[func] : default;
             if (command == null)
             {
@@ -94,21 +99,21 @@ namespace BotFramework.Bot
         }
 
         //it`s already private no need to make it readonly
-        private static Dictionary<long, EitherStrict<ICommand, IEnumerable<IOneOfMany>>?> NextCommands { get; set; }
+        private static Dictionary<long, Optional<Either<ICommand, IEnumerable<IOneOfMany>>>> NextCommands { get; set; }
 
         public async void HandleMessage(Message message)
         {
             if (!NextCommands.ContainsKey(message.Chat.Id))
-                NextCommands.Add(message.Chat.Id, null);
+                NextCommands.Add(message.Chat.Id, new Optional<Either<ICommand, IEnumerable<IOneOfMany>>>());
             var nextPossible = NextCommands[message.Chat.Id];
 
-            var command = nextPossible.HasValue
-                          ? nextPossible.Value.Match(
-                                            //todo right is null plis fix
-                                            right => right.Where(t => t.Suitable(message)),
-                                            left => Enumerable.Repeat(left, 1))
-                                        .FirstOrDefault()
-                          : StaticCommands.FirstOrDefault(i => i.Suitable(message));
+            var command = nextPossible.Bind(t =>
+                    t.Match(
+                            //todo right is null plis fix
+                            left => Enumerable.Repeat(left, 1),
+                            right => right.Where(o => o.Suitable(message)))
+                        .FirstAsOptional())
+                .FromOptional(StaticCommands.FirstOrDefault(i => i.Suitable(message)));
             try
             {
                 if (command == null)
@@ -118,7 +123,7 @@ namespace BotFramework.Bot
                 }
 
                 var response = command.Execute(message, this);
-                if (response.NextPossible.HasValue)
+                if (!response.NextPossible.IsEmpty)
                     NextCommands[message.Chat.Id] = response.NextPossible;
                 await SendResponse(response);
             }

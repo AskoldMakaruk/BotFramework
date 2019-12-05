@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
+using System.Collections.Immutable;
 using BotFramework.Commands;
-using Monad;
-using Monad.Utility;
+using Monads;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.InputFiles;
@@ -13,21 +13,21 @@ namespace BotFramework
     {
         public Response(ICommand command)
         {
-            NextPossible = EitherStrict.Left<ICommand, IEnumerable<IOneOfMany>>(command);
-            Responses = ImmutableList.Empty<ResponseMessage>();
+            NextPossible = new Either<ICommand, IEnumerable<IOneOfMany>>(command);
+            Responses = ImmutableList<ResponseMessage>.Empty;
         }
 
         public Response(params IOneOfMany[] nextPossible)
         {
             if(nextPossible.Length > 0)
-                NextPossible = nextPossible;
-            Responses = ImmutableList.Empty<ResponseMessage>();
+                NextPossible = new Optional<Either<ICommand, IEnumerable<IOneOfMany>>>(nextPossible);
+            Responses = ImmutableList<ResponseMessage>.Empty;
         }
 
         public Response(IEnumerable<IOneOfMany> nextPossible)
         {
-            NextPossible = EitherStrict.Right<ICommand, IEnumerable<IOneOfMany>>(nextPossible);
-            Responses = ImmutableList.Empty<ResponseMessage>();
+            NextPossible = new Either<ICommand, IEnumerable<IOneOfMany>>(nextPossible);
+            Responses = ImmutableList<ResponseMessage>.Empty;
         }
 
         private Response(Response old, ImmutableList<ResponseMessage> newResponses)
@@ -38,7 +38,7 @@ namespace BotFramework
 
         public readonly ImmutableList<ResponseMessage> Responses; 
 
-        public readonly EitherStrict<ICommand, IEnumerable<IOneOfMany>>? NextPossible;
+        public readonly Optional<Either<ICommand, IEnumerable<IOneOfMany>>> NextPossible;
 
 #region Constructors
 
@@ -53,7 +53,7 @@ namespace BotFramework
                 ReplyToMessageId = replyToMessageId,
                 ParseMode        = parseMode
             };
-            return new Response(this, this.Responses.InsertAtHead(toAdd));
+            return new Response(this, this.Responses.Add(toAdd));
         }
 
         public Response EditTextMessage(ChatId       chatId,             int       editMessageId, string text,
@@ -67,7 +67,7 @@ namespace BotFramework
                 ReplyMarkup   = replyMarkup,
                 ParseMode     = parseMode
             };
-            return new Response(this, this.Responses.InsertAtHead(toAdd));
+            return new Response(this, this.Responses.Add(toAdd));
         }
 
         public Response AnswerQueryMessage(string callbackQueryId, string text)
@@ -77,7 +77,7 @@ namespace BotFramework
                 AnswerToMessageId = callbackQueryId,
                 Text              = text
             };
-            return new Response(this, this.Responses.InsertAtHead(toAdd));
+            return new Response(this, this.Responses.Add(toAdd));
         }
 
         public Response SendDocument(long            account,
@@ -94,14 +94,14 @@ namespace BotFramework
                 ReplyMarkup      = replyMarkup,
                 Document         = document
             };
-            return new Response(this, this.Responses.InsertAtHead(toAdd));
+            return new Response(this, this.Responses.Add(toAdd));
         }
 
         public Response EditMessageMarkup(ChatId               accountChatId, int messageMessageId,
                                           InlineKeyboardMarkup addMemeButton)
         {
             var toAdd = new ResponseMessage(ResponseType.EditMessageMarkup) {ChatId = accountChatId, MessageId = messageMessageId, ReplyMarkup = addMemeButton};
-            return new Response(this, this.Responses.InsertAtHead(toAdd));
+            return new Response(this, this.Responses.Add(toAdd));
         }
 
         public Response SendPhoto(ChatId accountChatId,        InputOnlineFile document, string caption = null,
@@ -115,7 +115,7 @@ namespace BotFramework
                 ReplyMarkup      = replyMarkup,
                 Document         = document
             };
-            return new Response(this, this.Responses.InsertAtHead(toAdd));
+            return new Response(this, this.Responses.Add(toAdd));
         }
 
         public Response SendSticker(ChatId accountChatId, InputOnlineFile sticker)
@@ -125,7 +125,7 @@ namespace BotFramework
                 ChatId   = accountChatId,
                 Document = sticker
             };
-            return new Response(this, this.Responses.InsertAtHead(toAdd));
+            return new Response(this, this.Responses.Add(toAdd));
         }
 
 #endregion
