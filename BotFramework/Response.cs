@@ -19,7 +19,8 @@ namespace BotFramework
 
         public Response(params IOneOfMany[] nextPossible)
         {
-            NextPossible = nextPossible.Length == 0 ? null : nextPossible;
+            if(nextPossible.Length > 0)
+                NextPossible = nextPossible;
             Responses = ImmutableList.Empty<ResponseMessage>();
         }
 
