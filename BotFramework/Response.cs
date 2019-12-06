@@ -20,7 +20,7 @@ namespace BotFramework
         public Response(params IOneOfMany[] nextPossible)
         {
             if(nextPossible.Length > 0)
-                NextPossible = new Optional<Either<ICommand, IEnumerable<IOneOfMany>>>(nextPossible);
+                NextPossible = new Either<ICommand, IEnumerable<IOneOfMany>>(nextPossible).ToOptional();
             Responses = ImmutableList<ResponseMessage>.Empty;
         }
 

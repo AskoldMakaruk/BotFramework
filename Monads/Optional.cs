@@ -18,11 +18,13 @@ namespace Monads
 
         public T2 FromOptional<T2>(Func<T, T2> func, T2 def) => IsEmpty ? def : func.Invoke(value);
         public T FromOptional(T def) => IsEmpty ? def : value;
+
         public void FromOptional(Action<T> action)
         {
             if (!IsEmpty)
                 action.Invoke(value);
         }
+
         public static implicit operator Optional<T>(T val) =>
             new Optional<T>(val);
     }
@@ -34,5 +36,8 @@ namespace Monads
 
         public static Optional<T> FirstAsOptional<T>(this IEnumerable<T> t, Func<T, bool> func) =>
             new Optional<T>(t.FirstOrDefault(func));
+
+        public static Optional<T> ToOptional<T>(this T t) =>
+            new Optional<T>(t);
     }
 }

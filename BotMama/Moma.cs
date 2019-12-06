@@ -200,7 +200,7 @@ namespace BotMama
                 {
                     GitPull(configuration.SrcDir).Wait();
                     StartBots(configuration).Wait();
-                    return new Optional<bool>(true);
+                    return true.ToOptional();
                 });
             }).FromOptional(false);
 
