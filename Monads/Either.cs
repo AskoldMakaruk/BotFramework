@@ -16,18 +16,18 @@ namespace Monads
             if(EqualityComparer<R>.Default.Equals(right, default))
                 throw new ArgumentNullException();
             this.right = right;
-            this.left = default;
-            this.isRight = true;
-            this.isLeft = false;
+            left = default;
+            isRight = true;
+            isLeft = false;
         }
         public Either(L left)
         {
             if(EqualityComparer<L>.Default.Equals(left, default))
                 throw new ArgumentNullException();
             this.left = left;
-            this.right = default;
-            this.isLeft = true;
-            this.isRight = false;
+            right = default;
+            isLeft = true;
+            isRight = false;
         }
 
         public T FromLeft<T>(Func<L, T> func, T def)
