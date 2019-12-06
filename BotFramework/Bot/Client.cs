@@ -113,24 +113,14 @@ namespace BotFramework.Bot
                             left => Enumerable.Repeat(left, 1),
                             right => right.Where(o => o.Suitable(message)))
                         .FirstAsOptional())
-                .FromOptional(StaticCommands.FirstOrDefault(i => i.Suitable(message)));
-            try
+                .FromOptional(StaticCommands.FirstOrDefault(i => i.Suitable(message))).ToOptional();
+            await command.FromOptional(async t =>
             {
-                if (command == null)
-                {
-                    await SendTextMessage(message.From.Id, "Internal server error: 504");
-                    return;
-                }
-
-                var response = command.Execute(message, this);
+                var response = t.Execute(message, this);
                 if (!response.NextPossible.IsEmpty)
                     NextCommands[message.Chat.Id] = response.NextPossible;
                 await SendResponse(response);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
-            }
+            }, SendTextMessage(message.From.Id, ""));
         }
 
         public virtual void OnMessageRecieved(object sender, MessageEventArgs e)

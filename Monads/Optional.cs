@@ -24,6 +24,12 @@ namespace Monads
             if (!IsEmpty)
                 action.Invoke(value);
         }
+        public void FromOptional(Action<T> action, Action a)
+        {
+            if (!IsEmpty)
+                action.Invoke(value);
+            else a.Invoke();
+        }
 
         public static implicit operator Optional<T>(T val) =>
             new Optional<T>(val);
