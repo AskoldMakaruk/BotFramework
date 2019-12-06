@@ -6,8 +6,12 @@
 
   <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.6.0" />
-    <PackageReference Include="csharp-monad" Version="1.0.1" />
+    <PackageReference Include="System.Collections.Immutable" Version="1.7.0" />
     <PackageReference Include="Telegram.Bot" Version="15.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Monads\Monads.csproj" />
   </ItemGroup>
 
 </Project>
