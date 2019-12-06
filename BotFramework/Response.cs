@@ -140,17 +140,17 @@ namespace BotFramework
 
         public ResponseMessage() { }
 
-        public ChatId ChatId { get; set; }
-        public string Text { get; set; }
-        public int ReplyToMessageId { get; set; }
-        public IReplyMarkup ReplyMarkup { get; set; }
-        public ParseMode ParseMode { get; set; }
-        public int EditMessageId { get; set; }
-        public string AnswerToMessageId { get; set; }
-        public InputOnlineFile Document { get; set; }
-        public ResponseType Type { get; }
-        public IEnumerable<IAlbumInputMedia> Album { get; set; }
-        public int MessageId { get; set; }
+        public ChatId                        ChatId            { get; set; }
+        public string                        Text              { get; set; }
+        public int                           ReplyToMessageId  { get; set; }
+        public IReplyMarkup                  ReplyMarkup       { get; set; }
+        public ParseMode                     ParseMode         { get; set; }
+        public int                           EditMessageId     { get; set; }
+        public string                        AnswerToMessageId { get; set; }
+        public InputOnlineFile               Document          { get; set; }
+        public ResponseType                  Type              { get; }
+        public IEnumerable<IAlbumInputMedia> Album             { get; set; }
+        public int                           MessageId         { get; set; }
     }
 
     public enum ResponseType
