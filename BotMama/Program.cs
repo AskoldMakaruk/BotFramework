@@ -7,6 +7,7 @@ using BotMama.Cli;
 using CommandLine;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
+using Monads;
 
 namespace BotMama
 {

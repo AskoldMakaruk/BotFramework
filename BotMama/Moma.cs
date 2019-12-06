@@ -7,6 +7,7 @@ using System.Runtime.Loader;
 using System.Threading.Tasks;
 using System.Xml;
 using BotFramework.Bot;
+using Monads;
 using Newtonsoft.Json;
 
 
@@ -108,20 +109,23 @@ namespace BotMama
                 }
 
 
-                var csprojFile = Directory.EnumerateFiles(botConfig.SrcDir).FirstOrDefault(f => f.EndsWith(".csproj"));
+                var csprojFile = Directory.EnumerateFiles(botConfig.SrcDir).FirstAsOptional(f => f.EndsWith(".csproj"));
                 var csprojDoc  = new XmlDocument();
-                csprojDoc.Load(csprojFile);
+                if (csprojFile.IsEmpty)
+                    throw new DirectoryNotFoundException();
+                var csprojFile1 = csprojFile.FromOptional("");
+                csprojDoc.Load(csprojFile1);
 
                 var botFrameworkNode = csprojDoc.DocumentElement.SelectSingleNode("/Project/ItemGroup/Reference[@Include='BotFramework']");
                 if (botFrameworkNode != null)
                 {
                     botFrameworkNode.ParentNode.RemoveChild(botFrameworkNode);
-                    csprojDoc.Save(csprojFile);
+                    csprojDoc.Save(csprojFile1);
                 }
 
                 /*if (csprojDoc.DocumentElement.SelectSingleNode("/Project/ItemGroup/ProjectReference[contains(@Include,'BotFramework')]") == null)*/
 
-                await DotnetAddReference(csprojFile, Config.FrameworkPath);
+                await DotnetAddReference(csprojFile1, Config.FrameworkPath);
 
 
                 botConfig.IsValid = true;
@@ -149,14 +153,15 @@ namespace BotMama
                 await DotnetPublish(botConfig.SrcDir, botConfig.BinDir);
 
                 var dllfile = Directory.EnumerateFiles(botConfig.BinDir, botConfig.Name + ".dll", SearchOption.AllDirectories)
-                                       .FirstOrDefault();
-                if (dllfile == null)
+                                       .FirstAsOptional();
+                if (dllfile.IsEmpty)
                 {
                     Log($"{botConfig.Name} can't find dll.");
                     continue;
                 }
 
-                var assembly = Assembly.LoadFrom(dllfile);
+                var dllfile1 = dllfile.FromOptional("");
+                var assembly = Assembly.LoadFrom(dllfile1);
 
                 AppDomain.CurrentDomain.Load(assembly.GetName());
 
@@ -175,46 +180,29 @@ namespace BotMama
         //todo copy-pasting is bad practice
         public static bool StopBot(string name)
         {
-            var bot = Clients.FirstOrDefault(b => b.Name == name);
-            if (bot == null)
-            {
-                return false;
-            }
-
-            bot.StopReceiving();
+            Clients.FirstAsOptional(b => b.Name == name).FromOptional(t=>t.StopReceiving());
             return true;
         }
 
         public static bool StartBot(string name)
         {
-            var bot = Clients.FirstOrDefault(b => b.Name == name);
-            if (bot == null)
+            Clients.FirstAsOptional(b => b.Name == name).FromOptional(t=>t.StartReceiving());
+            return true;
+        }
+
+        //i am not shure that it works
+        public static bool UpdateBot(string name) =>
+            Clients.FirstAsOptional(b => b.Name == name).Bind(bot =>
             {
-                return false;
-            }
-
-            bot.StartReceiving();
-            return true;
-        }
-
-        public static bool UpdateBot(string name)
-        {
-            var bot = Clients.FirstOrDefault(b => b.Name == name);
-            if (bot == null) return false;
-            bot.StopReceiving();
-
-            //if (!Domains.ContainsKey(name)) return false;
-            //AppDomain.Unload(Domains[name]);
-            //Domains.Remove(name);
-            AssemblyLoadContext.GetLoadContext(bot.GetType().Assembly).Unload();
-
-            var configuration = Config.BotConfigs.FirstOrDefault(c => c.Name == name);
-            if (configuration == null) return false;
-
-            GitPull(configuration.SrcDir).Wait();
-            StartBots(configuration).Wait();
-            return true;
-        }
+                bot.StopReceiving();
+                AssemblyLoadContext.GetLoadContext(bot.GetType().Assembly).Unload();
+                return Config.BotConfigs.FirstAsOptional(c => c.Name == name).Bind(configuration =>
+                {
+                    GitPull(configuration.SrcDir).Wait();
+                    StartBots(configuration).Wait();
+                    return true.ToOptional();
+                });
+            }).FromOptional(false);
 
         public static void Log(Client client, string message) => Log($"{client?.Name}: {message}");
 

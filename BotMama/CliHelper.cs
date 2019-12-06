@@ -3,6 +3,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using CliWrap.Models;
+using Monads;
 
 namespace BotMama
 {
@@ -40,11 +41,9 @@ namespace BotMama
             if (dotnetInfo.ExitCode == 0)
             {
                 var strings = dotnetInfo.StandardOutput.Split('\n');
-                var rid     = strings.FirstOrDefault(s => s.StartsWith("RID:"));
-                if (rid != null)
-                {
-                    systemRID = rid.Substring(5).Trim();
-                }
+                var rid = strings.FirstAsOptional(s => s.StartsWith("RID:"));
+
+                rid.FromOptional(t => systemRID = t.Substring(5).Trim());
             }
 
             if (systemRID == null)
