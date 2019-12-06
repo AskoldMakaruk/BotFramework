@@ -40,32 +40,32 @@ namespace BotFramework
 
         public readonly Optional<Either<ICommand, IEnumerable<IOneOfMany>>> NextPossible;
 
-#region Constructors
+        #region Constructors
 
-        public Response SendTextMessage(ChatId chat,                 string    text, IReplyMarkup replyMarkup = null,
-                                        int    replyToMessageId = 0, ParseMode parseMode = default)
+        public Response SendTextMessage(ChatId chat, string text, IReplyMarkup replyMarkup = null,
+            int replyToMessageId = 0, ParseMode parseMode = default)
         {
             var toAdd = new ResponseMessage(ResponseType.TextMessage)
             {
-                ChatId           = chat,
-                Text             = text,
-                ReplyMarkup      = replyMarkup,
-                ReplyToMessageId = replyToMessageId,
-                ParseMode        = parseMode
+            ChatId = chat,
+            Text = text,
+            ReplyMarkup = replyMarkup,
+            ReplyToMessageId = replyToMessageId,
+            ParseMode = parseMode
             };
             return new Response(this, this.Responses.Add(toAdd));
         }
 
-        public Response EditTextMessage(ChatId       chatId,             int       editMessageId, string text,
-                                        IReplyMarkup replyMarkup = null, ParseMode parseMode = default)
+        public Response EditTextMessage(ChatId chatId, int editMessageId, string text,
+            IReplyMarkup replyMarkup = null, ParseMode parseMode = default)
         {
             var toAdd = new ResponseMessage(ResponseType.EditTextMesage)
             {
-                ChatId        = chatId,
-                EditMessageId = editMessageId,
-                Text          = text,
-                ReplyMarkup   = replyMarkup,
-                ParseMode     = parseMode
+            ChatId = chatId,
+            EditMessageId = editMessageId,
+            Text = text,
+            ReplyMarkup = replyMarkup,
+            ParseMode = parseMode
             };
             return new Response(this, this.Responses.Add(toAdd));
         }
@@ -75,45 +75,45 @@ namespace BotFramework
             var toAdd = new ResponseMessage(ResponseType.AnswerQuery)
             {
                 AnswerToMessageId = callbackQueryId,
-                Text              = text
+                Text = text
             };
             return new Response(this, this.Responses.Add(toAdd));
         }
 
-        public Response SendDocument(long            account,
-                                     InputOnlineFile document,
-                                     string          caption          = null,
-                                     int             replyToMessageId = 0,
-                                     IReplyMarkup    replyMarkup      = null)
+        public Response SendDocument(long account,
+            InputOnlineFile document,
+            string caption = null,
+            int replyToMessageId = 0,
+            IReplyMarkup replyMarkup = null)
         {
             var toAdd = new ResponseMessage(ResponseType.SendDocument)
             {
-                ChatId           = account,
-                Text             = caption,
-                ReplyToMessageId = replyToMessageId,
-                ReplyMarkup      = replyMarkup,
-                Document         = document
+            ChatId = account,
+            Text = caption,
+            ReplyToMessageId = replyToMessageId,
+            ReplyMarkup = replyMarkup,
+            Document = document
             };
             return new Response(this, this.Responses.Add(toAdd));
         }
 
-        public Response EditMessageMarkup(ChatId               accountChatId, int messageMessageId,
-                                          InlineKeyboardMarkup addMemeButton)
+        public Response EditMessageMarkup(ChatId accountChatId, int messageMessageId,
+            InlineKeyboardMarkup addMemeButton)
         {
             var toAdd = new ResponseMessage(ResponseType.EditMessageMarkup) {ChatId = accountChatId, MessageId = messageMessageId, ReplyMarkup = addMemeButton};
             return new Response(this, this.Responses.Add(toAdd));
         }
 
-        public Response SendPhoto(ChatId accountChatId,        InputOnlineFile document, string caption = null,
-                                  int    replyToMessageId = 0, IReplyMarkup    replyMarkup = null)
+        public Response SendPhoto(ChatId accountChatId, InputOnlineFile document, string caption = null,
+            int replyToMessageId = 0, IReplyMarkup replyMarkup = null)
         {
             var toAdd = new ResponseMessage(ResponseType.SendPhoto)
             {
-                ChatId           = accountChatId,
-                Text             = caption,
-                ReplyToMessageId = replyToMessageId,
-                ReplyMarkup      = replyMarkup,
-                Document         = document
+            ChatId = accountChatId,
+            Text = caption,
+            ReplyToMessageId = replyToMessageId,
+            ReplyMarkup = replyMarkup,
+            Document = document
             };
             return new Response(this, this.Responses.Add(toAdd));
         }
@@ -122,13 +122,13 @@ namespace BotFramework
         {
             var toAdd = new ResponseMessage(ResponseType.Sticker)
             {
-                ChatId   = accountChatId,
+                ChatId = accountChatId,
                 Document = sticker
             };
             return new Response(this, this.Responses.Add(toAdd));
         }
 
-#endregion
+        #endregion
     }
 
     public class ResponseMessage
