@@ -19,12 +19,7 @@ namespace BotFramework.Bot
     public abstract partial class Client
     {
         private string _workingdir;
-
-        public string WorkingDir
-        {
-            get => _workingdir;
-            set => _workingdir = value ?? Directory.GetCurrentDirectory();
-        }
+        public string WorkingDir { get => _workingdir; set => _workingdir = value ?? Directory.GetCurrentDirectory(); }
 
         public string Name { get; set; }
         public ClientStatus Status { get; set; }
@@ -84,35 +79,38 @@ namespace BotFramework.Bot
 
         public async void HandleQuery(CallbackQuery query)
         {
-            //стрьомна херня хз як переписати
             var func = Queries.Keys.FirstOrDefault(s => s.Invoke(query));
-            var command = func != null ? Queries[func] : default;
-            if (command == null)
+
+            if (func == null)
             {
                 Write("Query is null.");
                 return;
             }
 
+            var command = Queries[func];
             Write($"Command: {command}");
-
-            await SendResponse(command.Execute(query));
+            var response = command.Execute(query);
+            if (!response.NextPossible.IsEmpty)
+                NextCommands[query.From.Id] = response.NextPossible;
+            await SendResponse(response);
         }
 
-        //it`s already private no need to make it readonly
         private static Dictionary<long, Optional<Either<ICommand, IEnumerable<IOneOfMany>>>> NextCommands { get; set; }
 
         public async void HandleMessage(Message message)
         {
-            if (!NextCommands.ContainsKey(message.Chat.Id))
-                NextCommands.Add(message.Chat.Id, new Optional<Either<ICommand, IEnumerable<IOneOfMany>>>());
-            var nextPossible = NextCommands[message.Chat.Id];
+            if (!NextCommands.ContainsKey(message.From.Id))
+            {
+                NextCommands.Add(message.From.Id, new Optional<Either<ICommand, IEnumerable<IOneOfMany>>>());
+            }
+
+            var nextPossible = NextCommands[message.From.Id];
 
             var command = nextPossible.Bind(t =>
                     t.Match(
-                            //todo right is null plis fix
-                            left => Enumerable.Repeat(left, 1),
-                            right => right.Where(o => o.Suitable(message)))
-                        .FirstAsOptional())
+                        left => left.AsEnumerable(),
+                        right => right.Where(o => o.Suitable(message)))
+                    .FirstAsOptional())
                 .FromOptional(StaticCommands.FirstOrDefault(i => i.Suitable(message)));
             try
             {
@@ -129,7 +127,7 @@ namespace BotFramework.Bot
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
+                Write(e.Message);
             }
         }
 

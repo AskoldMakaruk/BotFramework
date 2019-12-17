@@ -5,7 +5,7 @@ using Telegram.Bot.Types;
 
 namespace BotFramework.Queries
 {
-    public abstract class Query 
+    public abstract class Query
     {
         public abstract string Alias { get; }
 
@@ -23,10 +23,11 @@ namespace BotFramework.Queries
 
         public static Dictionary<string, string> UnpackParams(string input)
         {
+            if (!input.Contains(' ')) return null;
             return input.Substring(input.IndexOf(' ') + 1)
-                        .Split('&')
-                        .Select(s => s.Split('='))
-                        .ToDictionary(r => r[0], r => r[1]);
+                .Split('&')
+                .Select(s => s.Split('='))
+                .ToDictionary(r => r[0], r => r[1]);
         }
 
         public static string PackParams(string Alias, string Name, string Value)
@@ -34,7 +35,7 @@ namespace BotFramework.Queries
             return PackParams(Alias, (Name, Value));
         }
 
-        public static string PackParams(string Alias, params (string Name, string Value)[] input)
+        public static string PackParams(string Alias, params(string Name, string Value) [] input)
         {
             return $"{Alias} {string.Join('&'.ToString(), input.Select(i => $"{i.Name}={i.Value}"))}";
         }
