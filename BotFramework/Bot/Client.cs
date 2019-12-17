@@ -114,13 +114,7 @@ namespace BotFramework.Bot
                 .FromOptional(StaticCommands.FirstOrDefault(i => i.Suitable(message)));
             try
             {
-                if (command == null)
-                {
-                    await SendTextMessage(message.From.Id, "Internal server error: 504");
-                    return;
-                }
-
-                var response = command.Execute(message, this);
+                var response = t.Execute(message, this);
                 if (!response.NextPossible.IsEmpty)
                     NextCommands[message.Chat.Id] = response.NextPossible;
                 await SendResponse(response);
