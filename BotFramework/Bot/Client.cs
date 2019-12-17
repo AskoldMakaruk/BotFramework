@@ -114,7 +114,7 @@ namespace BotFramework.Bot
                 .FromOptional(StaticCommands.FirstOrDefault(i => i.Suitable(message)));
             try
             {
-                var response = t.Execute(message, this);
+                var response = command.Execute(message, this);
                 if (!response.NextPossible.IsEmpty)
                     NextCommands[message.Chat.Id] = response.NextPossible;
                 await SendResponse(response);
