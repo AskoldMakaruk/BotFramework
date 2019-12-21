@@ -44,7 +44,7 @@ namespace BotFramework.Bot
         //todo maybe we should load configuration from the working dir
         protected Client()
         {
-            Bot = new TelegramBotClient(Token);
+            Bot          = new TelegramBotClient(Token);
             NextCommands = new Dictionary<long, Optional<Either<ICommand, IEnumerable<IOneOfMany>>>>();
         }
 
