@@ -7,13 +7,13 @@ namespace Monads
     {
         private readonly L left;
         private readonly R right;
-        private readonly bool isRight; 
+        private readonly bool isRight;
         private readonly bool isLeft;
 
-        private bool isDefault => !(isLeft || isRight);
+        private bool IsDefault => !(isLeft || isRight);
         public Either(R right)
         {
-            if(EqualityComparer<R>.Default.Equals(right, default))
+            if (EqualityComparer<R>.Default.Equals(right, default))
                 throw new ArgumentNullException();
             this.right = right;
             left = default;
@@ -22,7 +22,7 @@ namespace Monads
         }
         public Either(L left)
         {
-            if(EqualityComparer<L>.Default.Equals(left, default))
+            if (EqualityComparer<L>.Default.Equals(left, default))
                 throw new ArgumentNullException();
             this.left = left;
             right = default;
@@ -32,13 +32,13 @@ namespace Monads
 
         public T FromLeft<T>(Func<L, T> func, T def)
         {
-            if(isDefault)
+            if (IsDefault)
                 throw new ArgumentException("Struct not initialized.");
             return isLeft ? func.Invoke(left) : def;
         }
         public T FromRight<T>(Func<L, T> func, T def)
         {
-            if(isDefault)
+            if (IsDefault)
                 throw new ArgumentException("Struct not initialized.");
             return isLeft ? func.Invoke(left) : def;
         }
@@ -52,11 +52,11 @@ namespace Monads
 
         public static implicit operator Either<L, R>(L left)
         {
-           return new Either<L, R>(left);
+            return new Either<L, R>(left);
         }
         public static implicit operator Either<L, R>(R right)
         {
-           return new Either<L, R>(right);
+            return new Either<L, R>(right);
         }
 
     }
