@@ -11,6 +11,49 @@ namespace BotFramework
 {
     public class Response
     {
+        //if Optionsl<nextpossible> emty -> use prev next possible
+        //if Optional<nextpossible> == emptylist -> use empty next possible
+
+        public static Response OnlyOnePossible(ICommand command)
+        {
+            var nextPossible = new Either<ICommand, IEnumerable<IOneOfMany>>(command).ToOptional();
+            return new Response(nextPossible);
+        }
+
+        public static Response ManyPossible(params IOneOfMany[] nextPossible)
+        {
+            var nextPossibleMonad = new Either<ICommand, IEnumerable<IOneOfMany>>(nextPossible).ToOptional();
+            return new Response(nextPossibleMonad);
+        }
+
+        public static Response ManyPossible(IEnumerable<IOneOfMany> nextPossible)
+        {
+            var nextPossibleMonad = new Either<ICommand, IEnumerable<IOneOfMany>>(nextPossible).ToOptional();
+            return new Response(nextPossibleMonad);
+        }
+
+        public static Response OnlyStaticCommandsPossible()
+        {
+            var nextPossibleMonad = new Either<ICommand, IEnumerable<IOneOfMany>>(new IOneOfMany[0]).ToOptional();
+            return new Response(nextPossibleMonad);
+        }
+
+        public static Response DontChangePossible() =>
+            new Response(new Optional<Either<ICommand, IEnumerable<IOneOfMany>>>());
+
+        private Response(Optional<Either<ICommand, IEnumerable<IOneOfMany>>> nextPossible)
+        {
+            NextPossible = nextPossible;
+            Responses = ImmutableList<ResponseMessage>.Empty;
+        }
+
+        private Response(Response old, ImmutableList<ResponseMessage> newResponses)
+        {
+            Responses = newResponses;
+            NextPossible = old.NextPossible;
+        }
+
+        //THIS CODE IS DEPRECATED PLEASE USE STATIC METHODS INSTEAD CONSTRUCTORS
         public Response(ICommand command) : this()
         {
             NextPossible = new Either<ICommand, IEnumerable<IOneOfMany>>(command);
@@ -29,47 +72,42 @@ namespace BotFramework
 
         public Response()
         {
-            Responses = ImmutableList<ResponseMessage>.Empty;
+           Responses = ImmutableList<ResponseMessage>.Empty; 
         }
-
-        private Response(Response old, ImmutableList<ResponseMessage> newResponses)
-        {
-            Responses    = newResponses;
-            NextPossible = old.NextPossible;
-        }
+        //END OF DEPRECATED CODE
 
         public readonly ImmutableList<ResponseMessage> Responses;
 
         public readonly Optional<Either<ICommand, IEnumerable<IOneOfMany>>> NextPossible;
 
-#region Constructors
+        #region Constructors
 
-        public Response SendTextMessage(ChatId chat,                 string    text, IReplyMarkup replyMarkup = null,
-                                        int    replyToMessageId = 0, ParseMode parseMode = default)
+        public Response SendTextMessage(ChatId chat, string text, IReplyMarkup replyMarkup = null,
+            int replyToMessageId = 0, ParseMode parseMode = default)
         {
             var toAdd = new ResponseMessage(ResponseType.TextMessage)
             {
-                ChatId           = chat,
-                Text             = text,
-                ReplyMarkup      = replyMarkup,
+                ChatId = chat,
+                Text = text,
+                ReplyMarkup = replyMarkup,
                 ReplyToMessageId = replyToMessageId,
-                ParseMode        = parseMode
+                ParseMode = parseMode
             };
-            return new Response(this, Responses.Add(toAdd));
+            return new Response(this, this.Responses.Add(toAdd));
         }
 
-        public Response EditTextMessage(ChatId       chatId,             int       editMessageId, string text,
-                                        IReplyMarkup replyMarkup = null, ParseMode parseMode = default)
+        public Response EditTextMessage(ChatId chatId, int editMessageId, string text,
+            IReplyMarkup replyMarkup = null, ParseMode parseMode = default)
         {
             var toAdd = new ResponseMessage(ResponseType.EditTextMesage)
             {
-                ChatId        = chatId,
+                ChatId = chatId,
                 EditMessageId = editMessageId,
-                Text          = text,
-                ReplyMarkup   = replyMarkup,
-                ParseMode     = parseMode
+                Text = text,
+                ReplyMarkup = replyMarkup,
+                ParseMode = parseMode
             };
-            return new Response(this, Responses.Add(toAdd));
+            return new Response(this, this.Responses.Add(toAdd));
         }
 
         public Response AnswerQueryMessage(string callbackQueryId, string text)
@@ -77,60 +115,61 @@ namespace BotFramework
             var toAdd = new ResponseMessage(ResponseType.AnswerQuery)
             {
                 AnswerToMessageId = callbackQueryId,
-                Text              = text
+                Text = text
             };
-            return new Response(this, Responses.Add(toAdd));
+            return new Response(this, this.Responses.Add(toAdd));
         }
 
-        public Response SendDocument(long            account,
-                                     InputOnlineFile document,
-                                     string          caption          = null,
-                                     int             replyToMessageId = 0,
-                                     IReplyMarkup    replyMarkup      = null)
+        public Response SendDocument(long account,
+            InputOnlineFile document,
+            string caption = null,
+            int replyToMessageId = 0,
+            IReplyMarkup replyMarkup = null)
         {
             var toAdd = new ResponseMessage(ResponseType.SendDocument)
             {
-                ChatId           = account,
-                Text             = caption,
+                ChatId = account,
+                Text = caption,
                 ReplyToMessageId = replyToMessageId,
-                ReplyMarkup      = replyMarkup,
-                Document         = document
+                ReplyMarkup = replyMarkup,
+                Document = document
             };
-            return new Response(this, Responses.Add(toAdd));
+            return new Response(this, this.Responses.Add(toAdd));
         }
 
-        public Response EditMessageMarkup(ChatId               accountChatId, int messageMessageId,
-                                          InlineKeyboardMarkup addMemeButton)
+        public Response EditMessageMarkup(ChatId accountChatId, int messageMessageId,
+            InlineKeyboardMarkup addMemeButton)
         {
-            var toAdd = new ResponseMessage(ResponseType.EditMessageMarkup) {ChatId = accountChatId, MessageId = messageMessageId, ReplyMarkup = addMemeButton};
-            return new Response(this, Responses.Add(toAdd));
+            var toAdd = new ResponseMessage(ResponseType.EditMessageMarkup)
+                {ChatId = accountChatId, MessageId = messageMessageId, ReplyMarkup = addMemeButton};
+            return new Response(this, this.Responses.Add(toAdd));
         }
 
-        public Response SendPhoto(ChatId accountChatId,        InputOnlineFile document, string caption = null,
-                                  int    replyToMessageId = 0, IReplyMarkup    replyMarkup = null)
+        public Response SendPhoto(ChatId accountChatId, InputOnlineFile document, string caption = null,
+            int replyToMessageId = 0, IReplyMarkup replyMarkup = null)
         {
             var toAdd = new ResponseMessage(ResponseType.SendPhoto)
             {
-                ChatId           = accountChatId,
-                Text             = caption,
+                ChatId = accountChatId,
+                Text = caption,
                 ReplyToMessageId = replyToMessageId,
-                ReplyMarkup      = replyMarkup,
-                Document         = document
+                ReplyMarkup = replyMarkup,
+                Document = document
             };
-            return new Response(this, Responses.Add(toAdd));
+            return new Response(this, this.Responses.Add(toAdd));
         }
 
         public Response SendSticker(ChatId accountChatId, InputOnlineFile sticker)
         {
             var toAdd = new ResponseMessage(ResponseType.Sticker)
             {
-                ChatId   = accountChatId,
+                ChatId = accountChatId,
                 Document = sticker
             };
-            return new Response(this, Responses.Add(toAdd));
+            return new Response(this, this.Responses.Add(toAdd));
         }
 
-#endregion
+        #endregion
     }
 
     public class ResponseMessage
@@ -140,19 +179,21 @@ namespace BotFramework
             Type = type;
         }
 
-        public ResponseMessage() { }
+        public ResponseMessage()
+        {
+        }
 
-        public ChatId                        ChatId            { get; set; }
-        public string                        Text              { get; set; }
-        public int                           ReplyToMessageId  { get; set; }
-        public IReplyMarkup                  ReplyMarkup       { get; set; }
-        public ParseMode                     ParseMode         { get; set; }
-        public int                           EditMessageId     { get; set; }
-        public string                        AnswerToMessageId { get; set; }
-        public InputOnlineFile               Document          { get; set; }
-        public ResponseType                  Type              { get; }
-        public IEnumerable<IAlbumInputMedia> Album             { get; set; }
-        public int                           MessageId         { get; set; }
+        public ChatId ChatId { get; set; }
+        public string Text { get; set; }
+        public int ReplyToMessageId { get; set; }
+        public IReplyMarkup ReplyMarkup { get; set; }
+        public ParseMode ParseMode { get; set; }
+        public int EditMessageId { get; set; }
+        public string AnswerToMessageId { get; set; }
+        public InputOnlineFile Document { get; set; }
+        public ResponseType Type { get; }
+        public IEnumerable<IAlbumInputMedia> Album { get; set; }
+        public int MessageId { get; set; }
     }
 
     public enum ResponseType
