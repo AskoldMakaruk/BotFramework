@@ -56,12 +56,12 @@ namespace BotFramework.Bot
         }
 
         protected async Task<Message> SendTextMessage(long              account, string text,
-                                                    ParseMode         parseMode             = ParseMode.Default,
-                                                    bool              disableWebPagePreview = false,
-                                                    bool              disableNotification   = false,
-                                                    int               replyToMessageId      = 0,
-                                                    IReplyMarkup      replyMarkup           = null,
-                                                    CancellationToken cancellationToken     = default)
+                                                      ParseMode         parseMode             = ParseMode.Default,
+                                                      bool              disableWebPagePreview = false,
+                                                      bool              disableNotification   = false,
+                                                      int               replyToMessageId      = 0,
+                                                      IReplyMarkup      replyMarkup           = null,
+                                                      CancellationToken cancellationToken     = default)
         {
             var message = await Bot.SendTextMessageAsync(account, text, parseMode, disableWebPagePreview,
                               disableNotification, replyToMessageId, replyMarkup, cancellationToken);
