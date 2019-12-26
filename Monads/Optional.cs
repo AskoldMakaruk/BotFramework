@@ -7,10 +7,14 @@ namespace Monads
     public struct Optional<T>
     {
         private readonly T    value;
-        public           bool IsEmpty => EqualityComparer<T>.Default.Equals(value, default);
+        public           bool IsEmpty => !isInserted || value == null; 
+        private readonly bool isInserted;
 
-        public Optional(T value) =>
-        this.value = value;
+        public Optional(T value)
+        {
+            isInserted = true;
+            this.value = value;
+        }
 
         public Optional<T2> Bind<T2>(Func<T, Optional<T2>> func) => IsEmpty ? new Optional<T2>() : func.Invoke(value);
 
@@ -23,6 +27,7 @@ namespace Monads
             if (!IsEmpty)
                 action.Invoke(value);
         }
+
         public void FromOptional(Action<T> action, Action a)
         {
             if (!IsEmpty)
