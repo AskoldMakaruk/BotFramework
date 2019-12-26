@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -107,7 +108,7 @@ namespace BotFramework.Bot
 
             var command = nextPossible.Bind(t =>
                                       t.Match(
-                                           left => left.AsEnumerable(),
+                                           left => Enumerable.Repeat(left, 1),
                                            right => right.Where(o => o.Suitable(message)))
                                        .FirstAsOptional())
                                       .FromOptional(StaticCommands.FirstOrDefault(i => i.Suitable(message)));
