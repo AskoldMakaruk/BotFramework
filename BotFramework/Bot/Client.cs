@@ -1,9 +1,9 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using BotFramework.Commands;
 using BotFramework.Queries;
 using Monads;
@@ -17,7 +17,13 @@ namespace BotFramework.Bot
 {
     public delegate void Log(Client sender, string value);
 
-    public abstract partial class Client
+    public interface IClient
+    {
+        void      Run();
+        event Log OnLog;
+    }
+
+    public partial class Client : IClient
     {
         private string _workingdir;
         public  string WorkingDir { get => _workingdir; set => _workingdir = value ?? Directory.GetCurrentDirectory(); }
@@ -39,30 +45,36 @@ namespace BotFramework.Bot
                    .Where(c => c != null);
         }
 
-        protected abstract string Token      { get; }
-        protected          bool   UseWebhook { get; set; } = false;
+        protected string Token      { get; }
+        protected bool   UseWebhook { get; set; }
 
-        //todo maybe we should load configuration from the working dir
-        protected Client()
+        protected internal Client(BotConfiguration configuration)
         {
+            Token      =  configuration.Token;
+            UseWebhook =  configuration.Webhook;
+            OnLog      += configuration.OnLog;
+
             Bot          = new TelegramBotClient(Token);
             NextCommands = new Dictionary<long, Optional<Either<ICommand, IEnumerable<IOneOfMany>>>>();
+
+            var assembly = configuration.Assembly;
+            StaticCommands = LoadTypeFromAssembly<IStaticCommand>(assembly);
+            Queries = LoadTypeFromAssembly<Query>(assembly)
+            .ToDictionary(x => new Func<CallbackQuery, bool>(x.IsSuitable), x => x);
         }
 
-        protected void IDontCareJustMakeItWork(Assembly assembly)
+        public void Run()
         {
-            Bot.OnMessage       += OnMessageRecieved;
-            Bot.OnCallbackQuery += OnQueryReceived;
-
             if (!UseWebhook)
             {
                 Bot.StartReceiving();
                 Bot.DeleteWebhookAsync();
             }
 
-            StaticCommands = LoadTypeFromAssembly<IStaticCommand>(assembly);
-            Queries = LoadTypeFromAssembly<Query>(assembly)
-            .ToDictionary(x => new Func<CallbackQuery, bool>(x.IsSuitable), x => x);
+            Bot.OnMessage       += OnMessageRecieved;
+            Bot.OnCallbackQuery += OnQueryReceived;
+
+            new ManualResetEvent(false).WaitOne();
         }
 
         public void StartReceiving()
@@ -165,8 +177,7 @@ namespace BotFramework.Bot
             }
         }
 
-        public void Write(string message) => OnLog?.Invoke(this, message);
-
+        public void      Write(string message) => OnLog?.Invoke(this, message);
         public event Log OnLog;
     }
 }

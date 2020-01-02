@@ -8,7 +8,7 @@ using Telegram.Bot.Types.ReplyMarkups;
 
 namespace BotFramework.Bot
 {
-    public abstract partial class Client
+    public partial class Client
     {
         protected async Task SendResponse(Response m)
         {

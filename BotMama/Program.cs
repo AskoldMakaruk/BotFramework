@@ -14,7 +14,7 @@ namespace BotMama
     public class Program
     {
         public static readonly NamedPipeServerStream Server =
-            new NamedPipeServerStream("BotMamaPipe", PipeDirection.InOut);
+        new NamedPipeServerStream("BotMamaPipe", PipeDirection.InOut);
 
         private static void StartServer()
         {
@@ -30,9 +30,9 @@ namespace BotMama
                         var st = streamReader.ReadLine();
                         if (!string.IsNullOrEmpty(st))
                         {
-                            Parser.Default.ParseArguments<StatusCli, ListBots>(new [] { st })
-                                .WithParsed<StatusCli>(s => s.Run())
-                                .WithParsed<ListBots>(s => s.Run());
+                            Parser.Default.ParseArguments<StatusCli, ListBots>(new[] {st})
+                                  .WithParsed<StatusCli>(s => s.Run())
+                                  .WithParsed<ListBots>(s => s.Run());
 
                             Console.WriteLine(st);
                         }
@@ -44,24 +44,24 @@ namespace BotMama
                 }
             });
         }
+
         public static void Main(string[] args)
         {
             StartServer();
             Moma.LoadConfiguration("config.json");
             Moma.ValidateBots().Wait();
             Moma.StartBots(Moma.Config.BotConfigs).Wait();
-            // CreateWebHostBuilder(args)
-            //     .UseUrls("http://localhost:8444")
-            //     .Build()
-            //     .Run();
+            CreateWebHostBuilder(args)
+            .UseUrls("http://localhost:8444")
+            .Build()
+            .Run();
             var mre = new ManualResetEvent(false);
             mre.WaitOne();
         }
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args)
         {
-            return WebHost.CreateDefaultBuilder(args)
-                .UseStartup<Startup>();
+            return WebHost.CreateDefaultBuilder(args).UseStartup<Startup>();
         }
     }
 }

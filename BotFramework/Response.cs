@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using BotFramework.Commands;
 using Monads;
@@ -14,57 +15,47 @@ namespace BotFramework
         //if Optionsl<nextpossible> emty -> use prev next possible
         //if Optional<nextpossible> == emptylist -> use empty next possible
 
-        public static Response OnlyOnePossible(ICommand command)
+        public Response UseOne(ICommand command)
         {
             var nextPossible = new Either<ICommand, IEnumerable<IOneOfMany>>(command).ToOptional();
-            return new Response(nextPossible);
+            return new Response(nextPossible, Responses);
         }
 
-        public static Response ManyPossible(params IOneOfMany[] nextPossible)
+        public Response UseMany(params IOneOfMany[] nextPossible)
         {
             var nextPossibleMonad = new Either<ICommand, IEnumerable<IOneOfMany>>(nextPossible).ToOptional();
             return new Response(nextPossibleMonad);
         }
 
-        public static Response ManyPossible(IEnumerable<IOneOfMany> nextPossible)
+        public Response UseMany(IEnumerable<IOneOfMany> nextPossible)
         {
             var nextPossibleMonad = new Either<ICommand, IEnumerable<IOneOfMany>>(nextPossible).ToOptional();
             return new Response(nextPossibleMonad);
         }
 
-        public static Response OnlyStaticCommandsPossible()
+        public Response UseOnlyStatic()
         {
             var nextPossibleMonad = new Either<ICommand, IEnumerable<IOneOfMany>>(new IOneOfMany[0]).ToOptional();
             return new Response(nextPossibleMonad);
         }
 
-        public static Response DontChangePossible() =>
+        public Response DontChangePossible() =>
         new Response(new Optional<Either<ICommand, IEnumerable<IOneOfMany>>>());
 
-        private Response(Optional<Either<ICommand, IEnumerable<IOneOfMany>>> nextPossible)
-        {
-            NextPossible = nextPossible;
-            Responses    = ImmutableList<ResponseMessage>.Empty;
-        }
-
-        private Response(Response old, ImmutableList<ResponseMessage> newResponses)
-        {
-            Responses    = newResponses;
-            NextPossible = old.NextPossible;
-        }
-
-        //THIS CODE IS DEPRECATED PLEASE USE STATIC METHODS INSTEAD CONSTRUCTORS
+        [Obsolete]
         public Response(ICommand command) : this()
         {
             NextPossible = new Either<ICommand, IEnumerable<IOneOfMany>>(command);
         }
 
+        [Obsolete]
         public Response(params IOneOfMany[] nextPossible) : this()
         {
             if (nextPossible.Length > 0)
                 NextPossible = new Either<ICommand, IEnumerable<IOneOfMany>>(nextPossible).ToOptional();
         }
 
+        [Obsolete]
         public Response(IEnumerable<IOneOfMany> nextPossible) : this()
         {
             NextPossible = new Either<ICommand, IEnumerable<IOneOfMany>>(nextPossible);
@@ -74,7 +65,20 @@ namespace BotFramework
         {
             Responses = ImmutableList<ResponseMessage>.Empty;
         }
-        //END OF DEPRECATED CODE
+
+
+        private Response(Optional<Either<ICommand, IEnumerable<IOneOfMany>>> nextPossible)
+        {
+            NextPossible = nextPossible;
+            Responses    = ImmutableList<ResponseMessage>.Empty;
+        }
+
+        private Response(Optional<Either<ICommand, IEnumerable<IOneOfMany>>> nextPossible,
+                         ImmutableList<ResponseMessage>                      newResponses)
+        {
+            Responses    = newResponses;
+            NextPossible = nextPossible;
+        }
 
         public readonly ImmutableList<ResponseMessage> Responses;
 
@@ -93,7 +97,7 @@ namespace BotFramework
                 ReplyToMessageId = replyToMessageId,
                 ParseMode        = parseMode
             };
-            return new Response(this, this.Responses.Add(toAdd));
+            return new Response(NextPossible, Responses.Add(toAdd));
         }
 
         public Response EditTextMessage(ChatId       chatId,             int       editMessageId, string text,
@@ -107,7 +111,7 @@ namespace BotFramework
                 ReplyMarkup   = replyMarkup,
                 ParseMode     = parseMode
             };
-            return new Response(this, this.Responses.Add(toAdd));
+            return new Response(NextPossible, Responses.Add(toAdd));
         }
 
         public Response AnswerQueryMessage(string callbackQueryId, string text)
@@ -117,7 +121,7 @@ namespace BotFramework
                 AnswerToMessageId = callbackQueryId,
                 Text              = text
             };
-            return new Response(this, this.Responses.Add(toAdd));
+            return new Response(NextPossible, Responses.Add(toAdd));
         }
 
         public Response SendDocument(long            account,
@@ -134,7 +138,7 @@ namespace BotFramework
                 ReplyMarkup      = replyMarkup,
                 Document         = document
             };
-            return new Response(this, this.Responses.Add(toAdd));
+            return new Response(NextPossible, Responses.Add(toAdd));
         }
 
         public Response EditMessageMarkup(ChatId               accountChatId, int messageMessageId,
@@ -142,7 +146,7 @@ namespace BotFramework
         {
             var toAdd = new ResponseMessage(ResponseType.EditMessageMarkup)
             {ChatId = accountChatId, MessageId = messageMessageId, ReplyMarkup = addMemeButton};
-            return new Response(this, this.Responses.Add(toAdd));
+            return new Response(NextPossible, Responses.Add(toAdd));
         }
 
         public Response SendPhoto(ChatId accountChatId,        InputOnlineFile document, string caption = null,
@@ -156,7 +160,7 @@ namespace BotFramework
                 ReplyMarkup      = replyMarkup,
                 Document         = document
             };
-            return new Response(this, this.Responses.Add(toAdd));
+            return new Response(NextPossible, Responses.Add(toAdd));
         }
 
         public Response SendSticker(ChatId accountChatId, InputOnlineFile sticker)
@@ -166,7 +170,7 @@ namespace BotFramework
                 ChatId   = accountChatId,
                 Document = sticker
             };
-            return new Response(this, this.Responses.Add(toAdd));
+            return new Response(NextPossible, Responses.Add(toAdd));
         }
 
 #endregion
