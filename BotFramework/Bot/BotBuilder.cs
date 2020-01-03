@@ -1,5 +1,4 @@
-﻿using System;
-using System.Reflection;
+﻿using System.Reflection;
 
 namespace BotFramework.Bot
 {
@@ -15,7 +14,7 @@ namespace BotFramework.Bot
             };
         }
 
-        public IClient Build()
+        public Client Build()
         {
             var client = new Client(configuration);
             return client;
