@@ -9,6 +9,11 @@
     <FileVersion>0.0.1.1</FileVersion>
     <Version>0.1.1</Version>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/AskoldMakaruk/BotFramework</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/AskoldMakaruk/BotFramework</RepositoryUrl>
+    <RepositoryType>Open</RepositoryType>
+    <PackageTags>telegram bot</PackageTags>
+    <PackageReleaseNotes>Added some quality of live changes</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
