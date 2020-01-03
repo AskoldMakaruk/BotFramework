@@ -48,7 +48,7 @@ namespace BotFramework.Bot
             OnLog      += configuration.OnLog;
 
             Bot          = new TelegramBotClient(Token);
-            NextCommands = new Dictionary<long, Optional<IEnumerable<ICommand>>>();
+            NextCommands = new Dictionary<long, IEnumerable<ICommand>>();
 
             var assembly = configuration.Assembly;
             StaticCommands = LoadTypeFromAssembly<IStaticCommand>(assembly);
@@ -79,7 +79,7 @@ namespace BotFramework.Bot
             Bot.StopReceiving();
         }
 
-        private static Dictionary<long, Optional<IEnumerable<ICommand>>> NextCommands { get; set; }
+        private static Dictionary<long, IEnumerable<ICommand>> NextCommands { get; set; }
 
         public async void HandleUpdate(Update update)
         {
@@ -119,27 +119,34 @@ namespace BotFramework.Bot
 
             if (!NextCommands.ContainsKey(from))
             {
-                NextCommands.Add(from, new Optional<IEnumerable<ICommand>>());
+                NextCommands.Add(from, StaticCommands);
             }
 
             var nextPossible = NextCommands[from];
 
             try
             {
-                nextPossible.FromOptional(StaticCommands)
-                            .Select(t => t.Run(update, this))
-                            .SelectJust()
-                            .ToList()
-                            .ForEach(async response =>
-                            {
-                                if (!response.UsePreviousCommands)
-                                {
-                                    NextCommands[from] = response.NextPossible;
-                                }
+                nextPossible
+                .Select(t => t.Run(update, this))
+                .SelectJust()
+                .ToList()
+                .ForEach(async response =>
+                {
+                    if (!response.UsePreviousCommands)
+                    {
+                        NextCommands[from] = response.NextPossible;
+                    }
 
-                                foreach (var message in response.Responses)
-                                    await message.Send(Bot);
-                            });
+                    if (response.UseStaticCommands)
+                    {
+                        var newPossible = NextCommands[from].ToList();
+                        newPossible.AddRange(StaticCommands);
+                        NextCommands[from] = newPossible;
+                    }
+
+                    foreach (var message in response.Responses)
+                        await message.Send(Bot);
+                });
             }
             catch (Exception e)
             {
