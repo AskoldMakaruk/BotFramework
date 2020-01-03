@@ -5,7 +5,6 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using BotFramework.Commands;
-using BotFramework.Queries;
 using Monads;
 using Newtonsoft.Json;
 using Telegram.Bot;
@@ -31,9 +30,8 @@ namespace BotFramework.Bot
         public string       Name   { get; set; }
         public ClientStatus Status { get; set; }
 
-        protected TelegramBotClient                            Bot            { get; set; }
-        protected Dictionary<Func<CallbackQuery, bool>, Query> Queries        { get; set; }
-        protected IEnumerable<IStaticCommand>                  StaticCommands { get; set; }
+        protected TelegramBotClient           Bot            { get; set; }
+        protected IEnumerable<IStaticCommand> StaticCommands { get; set; }
 
         protected IEnumerable<T> LoadTypeFromAssembly<T>(Assembly assembly)
         {
@@ -59,8 +57,6 @@ namespace BotFramework.Bot
 
             var assembly = configuration.Assembly;
             StaticCommands = LoadTypeFromAssembly<IStaticCommand>(assembly);
-            Queries = LoadTypeFromAssembly<Query>(assembly)
-            .ToDictionary(x => new Func<CallbackQuery, bool>(x.IsSuitable), x => x);
         }
 
         public void Run()
@@ -71,8 +67,7 @@ namespace BotFramework.Bot
                 Bot.DeleteWebhookAsync();
             }
 
-            Bot.OnMessage       += OnMessageRecieved;
-            Bot.OnCallbackQuery += OnQueryReceived;
+            Bot.OnUpdate += OnUpdateReceived;
 
             new ManualResetEvent(false).WaitOne();
         }
@@ -89,46 +84,66 @@ namespace BotFramework.Bot
             Bot.StopReceiving();
         }
 
-        public async void HandleQuery(CallbackQuery query)
-        {
-            var func = Queries.Keys.FirstOrDefault(s => s.Invoke(query));
-
-            if (func == null)
-            {
-                Write("Query is null.");
-                return;
-            }
-
-            var command = Queries[func];
-            Write($"Command: {command}");
-            var response = command.Execute(query);
-            if (!response.NextPossible.IsEmpty)
-                NextCommands[query.From.Id] = response.NextPossible;
-            await SendResponse(response);
-        }
-
         private static Dictionary<long, Optional<Either<ICommand, IEnumerable<IOneOfMany>>>> NextCommands { get; set; }
 
-        public async void HandleMessage(Message message)
+        public async void HandleUpdate(Update update)
         {
-            if (!NextCommands.ContainsKey(message.From.Id))
+            long from;
+            switch (update.Type)
             {
-                NextCommands.Add(message.From.Id, new Optional<Either<ICommand, IEnumerable<IOneOfMany>>>());
+                case UpdateType.Message:
+                    from = update.Message.From.Id;
+                    break;
+                case UpdateType.InlineQuery:
+                    from = update.InlineQuery.From.Id;
+                    break;
+                case UpdateType.ChosenInlineResult:
+                    from = update.ChosenInlineResult.From.Id;
+                    break;
+                case UpdateType.CallbackQuery:
+                    from = update.CallbackQuery.From.Id;
+                    break;
+                case UpdateType.EditedMessage:
+                    from = update.EditedMessage.From.Id;
+                    break;
+                case UpdateType.ChannelPost:
+                    from = update.ChannelPost.From.Id;
+                    break;
+                case UpdateType.EditedChannelPost:
+                    from = update.EditedChannelPost.From.Id;
+                    break;
+                case UpdateType.ShippingQuery:
+                    from = update.ShippingQuery.From.Id;
+                    break;
+                case UpdateType.PreCheckoutQuery:
+                    from = update.PreCheckoutQuery.From.Id;
+                    break;
+                default:
+                    return;
             }
 
-            var nextPossible = NextCommands[message.From.Id];
+            if (!NextCommands.ContainsKey(from))
+            {
+                NextCommands.Add(from, new Optional<Either<ICommand, IEnumerable<IOneOfMany>>>());
+            }
+
+            var nextPossible = NextCommands[from];
 
             var command = nextPossible.Bind(t =>
                                       t.Match(
                                            left => Enumerable.Repeat(left, 1),
-                                           right => right.Where(o => o.Suitable(message)))
+                                           right => right.Where(o => o.Suitable(update)))
                                        .FirstAsOptional())
-                                      .FromOptional(StaticCommands.FirstOrDefault(i => i.Suitable(message)));
+                                      .FromOptional(StaticCommands.FirstOrDefault(i =>
+                                      i.UpdateType == update.Type && i.Suitable(update)));
             try
             {
-                var response = command.Execute(message, this);
-                if (!response.NextPossible.IsEmpty)
-                    NextCommands[message.Chat.Id] = response.NextPossible;
+                var response = command.Execute(update, this);
+                if (!response.UsePreviousCommands)
+                {
+                    NextCommands[from] = response.NextPossible;
+                }
+
                 await SendResponse(response);
             }
             catch (Exception e)
@@ -137,43 +152,23 @@ namespace BotFramework.Bot
             }
         }
 
-        public virtual void OnMessageRecieved(object sender, MessageEventArgs e)
-        {
-            Write($"{DateTime.Now.ToShortTimeString()} {e.Message.From.Username}: {e.Message.Text}");
-            try
-            {
-                HandleMessage(e.Message);
-            }
-            catch (Exception ex)
-            {
-                Write(ex.ToString());
-            }
-        }
-
-        public virtual void OnQueryReceived(object sender, CallbackQueryEventArgs e)
-        {
-            Write($"{DateTime.Now.ToShortTimeString()} {e.CallbackQuery.From.Username}: {e.CallbackQuery.Data}");
-            try
-            {
-                HandleQuery(e.CallbackQuery);
-            }
-            catch (Exception ex)
-            {
-                Write(ex.ToString());
-            }
-        }
-
         public void HandleUpdate(string json)
         {
             var update = JsonConvert.DeserializeObject<Update>(json);
-            switch (update.Type)
+            HandleUpdate(update);
+        }
+
+        public void OnUpdateReceived(object sender, UpdateEventArgs e)
+        {
+            var update = e.Update;
+            //Write($"{DateTime.Now.ToShortTimeString()} {update.Message.From.Username}: {update.Message.Text}");
+            try
             {
-                case UpdateType.CallbackQuery:
-                    HandleQuery(update.CallbackQuery);
-                    break;
-                case UpdateType.Message:
-                    HandleMessage(update.Message);
-                    break;
+                HandleUpdate(update);
+            }
+            catch (Exception ex)
+            {
+                Write(ex.ToString());
             }
         }
 

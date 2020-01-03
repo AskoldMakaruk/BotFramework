@@ -3,6 +3,7 @@ using System.IO;
 using System.IO.Pipes;
 using System.Threading;
 using System.Threading.Tasks;
+using BotFramework.Commands;
 using BotMama.Cli;
 using CommandLine;
 using Microsoft.AspNetCore;
