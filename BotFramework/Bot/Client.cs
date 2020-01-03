@@ -54,7 +54,7 @@ namespace BotFramework.Bot
             OnLog      += configuration.OnLog;
 
             Bot          = new TelegramBotClient(Token);
-            NextCommands = new Dictionary<long, Optional<Either<ICommand, IEnumerable<IOneOfMany>>>>();
+            NextCommands = new Dictionary<long, Optional<IEnumerable<ICommand>>>();
 
             var assembly = configuration.Assembly;
             StaticCommands = LoadTypeFromAssembly<IStaticCommand>(assembly);
@@ -85,7 +85,7 @@ namespace BotFramework.Bot
             Bot.StopReceiving();
         }
 
-        private static Dictionary<long, Optional<Either<ICommand, IEnumerable<IOneOfMany>>>> NextCommands { get; set; }
+        private static Dictionary<long, Optional<IEnumerable<ICommand>>> NextCommands { get; set; }
 
         public async void HandleUpdate(Update update)
         {
@@ -125,28 +125,27 @@ namespace BotFramework.Bot
 
             if (!NextCommands.ContainsKey(from))
             {
-                NextCommands.Add(from, new Optional<Either<ICommand, IEnumerable<IOneOfMany>>>());
+                NextCommands.Add(from, new Optional<IEnumerable<ICommand>>());
             }
 
             var nextPossible = NextCommands[from];
 
-            var command = nextPossible.Bind(t =>
-                                      t.Match(
-                                           left => Enumerable.Repeat(left, 1),
-                                           right => right.Where(o => o.Suitable(update)))
-                                       .FirstAsOptional())
-                                      .FromOptional(StaticCommands.FirstOrDefault(i =>
-                                      i.UpdateType == update.Type && i.Suitable(update)));
             try
             {
-                var response = command.Execute(update, this);
-                if (!response.UsePreviousCommands)
-                {
-                    NextCommands[from] = response.NextPossible;
-                }
+                nextPossible.FromOptional(StaticCommands)
+                            .Select(t => t.Run(update, this))
+                            .SelectJust()
+                            .ToList()
+                            .ForEach(async response =>
+                            {
+                                if (!response.UsePreviousCommands)
+                                {
+                                    NextCommands[from] = response.NextPossible;
+                                }
 
-                foreach (var message in response.Responses)
-                    await message.Send(Bot);
+                                foreach (var message in response.Responses)
+                                    await message.Send(Bot);
+                            });
             }
             catch (Exception e)
             {
@@ -178,6 +177,7 @@ namespace BotFramework.Bot
         {
             await Bot.GetInfoAndDownloadFileAsync(documentFileId, ms);
         }
+
         public void      Write(string message) => OnLog?.Invoke(this, message);
         public event Log OnLog;
     }

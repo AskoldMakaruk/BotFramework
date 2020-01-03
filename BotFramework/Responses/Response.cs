@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using BotFramework.Commands;
 using Monads;
 using Telegram.Bot.Types;
@@ -21,18 +23,18 @@ namespace BotFramework.Responses
 
         public Response(ICommand command) : this()
         {
-            NextPossible = new Either<ICommand, IEnumerable<IOneOfMany>>(command);
+            NextPossible = Enumerable.Repeat(command, 1).ToOptional();
         }
 
-        public Response(params IOneOfMany[] nextPossible) : this()
+        public Response(params ICommand[] nextPossible) : this()
         {
             if (nextPossible.Length > 0)
-                NextPossible = new Either<ICommand, IEnumerable<IOneOfMany>>(nextPossible).ToOptional();
+                NextPossible = new Optional<IEnumerable<ICommand>>(nextPossible);
         }
 
-        public Response(IEnumerable<IOneOfMany> nextPossible) : this()
+        public Response(IEnumerable<ICommand> nextPossible) : this()
         {
-            NextPossible = new Either<ICommand, IEnumerable<IOneOfMany>>(nextPossible);
+            NextPossible = new Optional<IEnumerable<ICommand>>(nextPossible);
         }
 
         public Response()
@@ -40,13 +42,13 @@ namespace BotFramework.Responses
             Responses = ImmutableList<IResponseMessage>.Empty;
         }
 
-        private Response(Optional<Either<ICommand, IEnumerable<IOneOfMany>>> nextPossible)
+        private Response(Optional<IEnumerable<ICommand>> nextPossible)
         {
             NextPossible = nextPossible;
             Responses    = ImmutableList<IResponseMessage>.Empty;
         }
 
-        private Response(Optional<Either<ICommand, IEnumerable<IOneOfMany>>> nextPossible,
+        private Response(Optional<IEnumerable<ICommand>> nextPossible,
                          ImmutableList<IResponseMessage>                     newResponses)
         {
             Responses    = newResponses;
@@ -61,7 +63,7 @@ namespace BotFramework.Responses
 
         public readonly ImmutableList<IResponseMessage> Responses;
 
-        public readonly Optional<Either<ICommand, IEnumerable<IOneOfMany>>> NextPossible;
+        public readonly Optional<IEnumerable<ICommand>> NextPossible;
 
 #region Constructors
 

@@ -2,20 +2,23 @@
 using System.Linq;
 using BotFramework.Bot;
 using BotFramework.Responses;
+using Monads;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
 namespace BotFramework.Commands
 {
-    public abstract class CallbackQueryCommand : IStaticCommand
+    public abstract class CallbackQueryCommand : ICommand, IStaticCommand
     {
         public abstract string     Alias      { get; }
         public          UpdateType UpdateType => UpdateType.CallbackQuery;
 
-        public Response Execute(Update update, Client client) =>
-        Execute(update.CallbackQuery, client, UnpackParams(update.CallbackQuery.Data));
+        public Optional<Response> Run(Update update, Client client) =>
+        update.Type == UpdateType && Suitable(update)
+        ? Execute(update.CallbackQuery, client, UnpackParams(update.CallbackQuery.Data))
+        : new Optional<Response>();
 
-        public abstract Response Execute(CallbackQuery message, Client client, Dictionary<string, string> values);
+        public abstract Optional<Response> Execute(CallbackQuery message, Client client, Dictionary<string, string> values);
 
         public bool Suitable(Update message)
         {
