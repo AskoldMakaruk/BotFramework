@@ -81,7 +81,7 @@ namespace BotFramework.Bot
 
         private static Dictionary<long, IEnumerable<ICommand>> NextCommands { get; set; }
 
-        public async void HandleUpdate(Update update)
+        public void HandleUpdate(Update update)
         {
             long from;
             switch (update.Type)

@@ -8,7 +8,7 @@ using Telegram.Bot.Types.Enums;
 
 namespace BotFramework.Commands
 {
-    public abstract class CallbackQueryCommand : ICommand, IStaticCommand
+    public abstract class CallbackQueryCommand : IStaticCommand
     {
         public abstract string     Alias      { get; }
         public          UpdateType UpdateType => UpdateType.CallbackQuery;
