@@ -1,12 +1,12 @@
-﻿using Telegram.Bot.Types.InputFiles;
+﻿using System.Threading.Tasks;
+using Telegram.Bot;
+using Telegram.Bot.Types.InputFiles;
 using Telegram.Bot.Types.ReplyMarkups;
 
 namespace BotFramework.Responses
 {
     public class SendDocument : IResponseMessage
     {
-        public ResponseType Type => ResponseType.SendDocument;
-
         public SendDocument(long            account,
                             InputOnlineFile document,
                             string          caption          = null,
@@ -25,5 +25,10 @@ namespace BotFramework.Responses
         public string          Caption          { get; }
         public int             ReplyToMessageId { get; }
         public IReplyMarkup    ReplyMarkup      { get; }
+
+        public async Task Send(TelegramBotClient botClient)
+        {
+            await botClient.SendDocumentAsync(Account, Document, Caption);
+        }
     }
 }

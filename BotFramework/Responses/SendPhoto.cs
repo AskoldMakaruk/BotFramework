@@ -1,4 +1,6 @@
-﻿using Telegram.Bot.Types;
+﻿using System.Threading.Tasks;
+using Telegram.Bot;
+using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.InputFiles;
 using Telegram.Bot.Types.ReplyMarkups;
@@ -7,8 +9,6 @@ namespace BotFramework.Responses
 {
     public class SendPhoto : IResponseMessage
     {
-        public ResponseType Type => ResponseType.SendPhoto;
-
         public SendPhoto(ChatId          chatId,
                          InputOnlineFile photo,
                          string          caption             = null,
@@ -33,5 +33,11 @@ namespace BotFramework.Responses
         public bool            DisableNotification { get; }
         public int             ReplyToMessageId    { get; }
         public IReplyMarkup    ReplyMarkup         { get; }
+
+        public async Task Send(TelegramBotClient botClient)
+        {
+            await botClient.SendPhotoAsync(ChatId, Photo, Caption, ParseMode,
+                DisableNotification, ReplyToMessageId, ReplyMarkup);
+        }
     }
 }

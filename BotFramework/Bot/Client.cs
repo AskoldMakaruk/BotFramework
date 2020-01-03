@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using System.Threading.Tasks;
 using BotFramework.Commands;
 using Monads;
 using Newtonsoft.Json;
@@ -22,7 +23,7 @@ namespace BotFramework.Bot
         event Log OnLog;
     }
 
-    public partial class Client : IClient
+    public class Client : IClient
     {
         private string _workingdir;
         public  string WorkingDir { get => _workingdir; set => _workingdir = value ?? Directory.GetCurrentDirectory(); }
@@ -144,7 +145,8 @@ namespace BotFramework.Bot
                     NextCommands[from] = response.NextPossible;
                 }
 
-                await SendResponse(response);
+                foreach (var message in response.Responses)
+                    await message.Send(Bot);
             }
             catch (Exception e)
             {
@@ -172,6 +174,10 @@ namespace BotFramework.Bot
             }
         }
 
+        public async Task GetInfoAndDownloadFileAsync(string documentFileId, MemoryStream ms)
+        {
+            await Bot.GetInfoAndDownloadFileAsync(documentFileId, ms);
+        }
         public void      Write(string message) => OnLog?.Invoke(this, message);
         public event Log OnLog;
     }

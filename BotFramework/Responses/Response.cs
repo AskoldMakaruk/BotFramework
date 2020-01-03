@@ -167,17 +167,4 @@ namespace BotFramework.Responses
 
 #endregion
     }
-
-    public enum ResponseType
-    {
-        TextMessage,
-        EditTextMesage,
-        AnswerCallbackQuery,
-        AnswerInlineQuery,
-        SendDocument,
-        SendPhoto,
-        Album,
-        EditMessageMarkup,
-        SendSticker
-    }
 }

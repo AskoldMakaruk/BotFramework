@@ -1,4 +1,6 @@
-﻿using Telegram.Bot.Types;
+﻿using System.Threading.Tasks;
+using Telegram.Bot;
+using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 
@@ -6,8 +8,6 @@ namespace BotFramework.Responses
 {
     public class TextMessage : IResponseMessage
     {
-        public ResponseType Type => ResponseType.TextMessage;
-
         public TextMessage(ChatId       chatId,
                            string       text,
                            ParseMode    parseMode             = ParseMode.Default,
@@ -32,5 +32,12 @@ namespace BotFramework.Responses
         public bool         DisableWebPagePreview { get; }
         public bool         DisableNotification   { get; }
         public IReplyMarkup ReplyMarkup           { get; set; }
+
+        public async Task Send(TelegramBotClient botClient)
+        {
+            await botClient.SendTextMessageAsync(ChatId, Text, ParseMode,
+                DisableWebPagePreview, DisableNotification, ReplyToMessageId,
+                ReplyMarkup);
+        }
     }
 }

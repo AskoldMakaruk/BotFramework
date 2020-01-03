@@ -1,4 +1,6 @@
-﻿using Telegram.Bot.Types;
+﻿using System.Threading.Tasks;
+using Telegram.Bot;
+using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 
@@ -6,8 +8,6 @@ namespace BotFramework.Responses
 {
     public class EditTextMessage : IResponseMessage
     {
-        public ResponseType Type => ResponseType.EditTextMesage;
-
         public EditTextMessage(ChatId       chatId,
                                int          editMessageId,
                                string       text,
@@ -26,5 +26,13 @@ namespace BotFramework.Responses
         public int          EditMessageId { get; set; }
         public ParseMode    ParseMode     { get; set; }
         public IReplyMarkup ReplyMarkup   { get; set; }
+
+        public async Task Send(TelegramBotClient botClient)
+        {
+            await botClient.EditMessageTextAsync(ChatId, EditMessageId,
+                Text,
+                replyMarkup: ReplyMarkup as InlineKeyboardMarkup,
+                parseMode: ParseMode);
+        }
     }
 }

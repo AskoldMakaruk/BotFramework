@@ -1,12 +1,12 @@
-﻿using Telegram.Bot.Types;
+﻿using System.Threading.Tasks;
+using Telegram.Bot;
+using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
 
 namespace BotFramework.Responses
 {
     public class EditMessageReplyMarkup : IResponseMessage
     {
-        public ResponseType Type => ResponseType.EditMessageMarkup;
-
         public EditMessageReplyMarkup(ChatId               chatId,
                                       int                  messageId,
                                       InlineKeyboardMarkup replyMarkup = null)
@@ -19,5 +19,10 @@ namespace BotFramework.Responses
         public ChatId               ChatId      { get; }
         public int                  MessageId   { get; }
         public InlineKeyboardMarkup ReplyMarkup { get; }
+
+        public async Task Send(TelegramBotClient botClient)
+        {
+            await botClient.EditMessageReplyMarkupAsync(ChatId, MessageId, ReplyMarkup);
+        }
     }
 }

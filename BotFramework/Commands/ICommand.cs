@@ -7,8 +7,8 @@ namespace BotFramework.Commands
 {
     public interface ICommand
     {
-        public Response   Execute(Update message, Client client);
-        public UpdateType UpdateType { get; }
+        Response   Execute(Update message, Client client);
+        UpdateType UpdateType { get; }
     }
 
     public interface IOneOfMany : ICommand

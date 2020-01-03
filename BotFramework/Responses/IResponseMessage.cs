@@ -1,7 +1,10 @@
-﻿namespace BotFramework.Responses
+﻿using System.Threading.Tasks;
+using Telegram.Bot;
+
+namespace BotFramework.Responses
 {
     public interface IResponseMessage
     {
-        ResponseType Type { get; }
+        Task Send(TelegramBotClient botClient);
     }
 }

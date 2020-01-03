@@ -1,9 +1,10 @@
-﻿namespace BotFramework.Responses
+﻿using System.Threading.Tasks;
+using Telegram.Bot;
+
+namespace BotFramework.Responses
 {
     public class AnswerCallbackQuery : IResponseMessage
     {
-        public ResponseType Type => ResponseType.AnswerCallbackQuery;
-
         public AnswerCallbackQuery(string callbackQueryId,
                                    string text      = null,
                                    bool   showAlert = false,
@@ -22,5 +23,10 @@
         public readonly bool   ShowAlert;
         public readonly string Url;
         public readonly int    CacheTime;
+        
+        public async Task Send(TelegramBotClient botClient)
+        {
+            await botClient.AnswerCallbackQueryAsync(CallbackQueryId, Text);
+        }
     }
 }

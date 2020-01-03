@@ -1,12 +1,12 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using Telegram.Bot;
 using Telegram.Bot.Types.InlineQueryResults;
 
 namespace BotFramework.Responses
 {
     public class AnswerInlineQuery : IResponseMessage
     {
-        public ResponseType Type => ResponseType.AnswerInlineQuery;
-
         public AnswerInlineQuery(string                             inlineQueryId,
                                  IEnumerable<InlineQueryResultBase> results,
                                  int?                               cacheTime         = null,
@@ -31,5 +31,11 @@ namespace BotFramework.Responses
         public string                             NextOffset        { get; }
         public string                             SwitchPmText      { get; }
         public string                             SwitchPmParameter { get; }
+        public async Task Send(TelegramBotClient botClient)
+        {
+            await botClient.AnswerInlineQueryAsync(InlineQueryId, Results,
+                CacheTime, IsPersonal, NextOffset,
+                SwitchPmText, SwitchPmParameter);
+        }
     }
 }

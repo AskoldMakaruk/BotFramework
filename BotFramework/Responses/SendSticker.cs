@@ -1,4 +1,6 @@
-﻿using Telegram.Bot.Types;
+﻿using System.Threading.Tasks;
+using Telegram.Bot;
+using Telegram.Bot.Types;
 using Telegram.Bot.Types.InputFiles;
 using Telegram.Bot.Types.ReplyMarkups;
 
@@ -6,8 +8,6 @@ namespace BotFramework.Responses
 {
     public class SendSticker : IResponseMessage
     {
-        public ResponseType Type => ResponseType.SendSticker;
-
         public SendSticker(ChatId          chatId,
                            InputOnlineFile sticker,
                            bool            disableNotification = false,
@@ -26,5 +26,11 @@ namespace BotFramework.Responses
         public bool            DisableNotification { get; }
         public int             ReplyToMessageId    { get; }
         public IReplyMarkup    ReplyMarkup         { get; }
+
+        public async Task Send(TelegramBotClient botClient)
+        {
+            await botClient.SendStickerAsync(ChatId, Sticker, DisableNotification,
+                ReplyToMessageId, ReplyMarkup);
+        }
     }
 }
