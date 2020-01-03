@@ -16,13 +16,7 @@ namespace BotFramework.Bot
 {
     public delegate void Log(Client sender, string value);
 
-    public interface IClient
-    {
-        void      Run();
-        event Log OnLog;
-    }
-
-    public partial class Client : IClient
+    public partial class Client
     {
         private string _workingdir;
         public  string WorkingDir { get => _workingdir; set => _workingdir = value ?? Directory.GetCurrentDirectory(); }
