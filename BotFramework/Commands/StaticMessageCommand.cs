@@ -1,5 +1,4 @@
-﻿using System;
-using BotFramework.Bot;
+﻿using BotFramework.Bot;
 using BotFramework.Responses;
 using Monads;
 using Telegram.Bot.Types;
