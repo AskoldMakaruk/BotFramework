@@ -23,10 +23,10 @@ namespace BotFramework.Responses
         public readonly bool   ShowAlert;
         public readonly string Url;
         public readonly int    CacheTime;
-        
+
         public async Task Send(TelegramBotClient botClient)
         {
-            await botClient.AnswerCallbackQueryAsync(CallbackQueryId, Text);
+            await botClient.AnswerCallbackQueryAsync(CallbackQueryId, Text, ShowAlert, Url, CacheTime);
         }
     }
 }

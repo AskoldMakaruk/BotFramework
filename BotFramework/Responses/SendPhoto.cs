@@ -36,8 +36,7 @@ namespace BotFramework.Responses
 
         public async Task Send(TelegramBotClient botClient)
         {
-            await botClient.SendPhotoAsync(ChatId, Photo, Caption, ParseMode,
-                DisableNotification, ReplyToMessageId, ReplyMarkup);
+            await botClient.SendPhotoAsync(ChatId, Photo, Caption, ParseMode, DisableNotification, ReplyToMessageId, ReplyMarkup);
         }
     }
 }

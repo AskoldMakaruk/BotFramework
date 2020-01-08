@@ -13,14 +13,14 @@
     <RepositoryUrl>https://github.com/AskoldMakaruk/BotFramework</RepositoryUrl>
     <RepositoryType>Open</RepositoryType>
     <PackageTags>telegram bot</PackageTags>
-    <PackageReleaseNotes>Oh I see what you did! You refactor it!</PackageReleaseNotes>
+    <PackageReleaseNotes>Oh I see what you did! You refactor it! And TelegramBotApi v4.5</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CommandLineParser" Version="2.6.0" />
+    <PackageReference Include="CommandLineParser" Version="2.7.82" />
     <PackageReference Include="OptionalMonad" Version="1.0.1" />
     <PackageReference Include="System.Collections.Immutable" Version="1.7.0" />
-    <PackageReference Include="Telegram.Bot" Version="15.1.0" />
+    <PackageReference Include="Telegram.Bot" Version="15.2.0" />
   </ItemGroup>
 
 </Project>

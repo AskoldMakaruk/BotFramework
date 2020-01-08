@@ -25,8 +25,7 @@ namespace BotFramework.Responses
 
         public async Task Send(TelegramBotClient botClient)
         {
-            await botClient.SendMediaGroupAsync(InputMedia, ChatId, DisableNotification,
-                ReplyToMessageId);
+            await botClient.SendMediaGroupAsync(InputMedia, ChatId, DisableNotification, ReplyToMessageId);
         }
     }
 }

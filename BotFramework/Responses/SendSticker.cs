@@ -29,8 +29,7 @@ namespace BotFramework.Responses
 
         public async Task Send(TelegramBotClient botClient)
         {
-            await botClient.SendStickerAsync(ChatId, Sticker, DisableNotification,
-                ReplyToMessageId, ReplyMarkup);
+            await botClient.SendStickerAsync(ChatId, Sticker, DisableNotification, ReplyToMessageId, ReplyMarkup);
         }
     }
 }

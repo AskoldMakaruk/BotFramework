@@ -35,9 +35,8 @@ namespace BotFramework.Responses
 
         public async Task Send(TelegramBotClient botClient)
         {
-            await botClient.SendTextMessageAsync(ChatId, Text, ParseMode,
-                DisableWebPagePreview, DisableNotification, ReplyToMessageId,
-                ReplyMarkup);
+            await botClient.SendTextMessageAsync(ChatId, Text, ParseMode, DisableWebPagePreview, DisableNotification,
+                ReplyToMessageId, ReplyMarkup);
         }
     }
 }
