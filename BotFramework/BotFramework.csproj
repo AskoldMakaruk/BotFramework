@@ -5,15 +5,15 @@
     <Authors />
     <Company>BotFramework</Company>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <AssemblyVersion>0.0.1.1</AssemblyVersion>
-    <FileVersion>0.0.1.1</FileVersion>
-    <Version>0.1.1</Version>
+    <AssemblyVersion>0.0.2.0</AssemblyVersion>
+    <FileVersion>0.0.2.0</FileVersion>
+    <Version>0.2.0</Version>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/AskoldMakaruk/BotFramework</PackageProjectUrl>
     <RepositoryUrl>https://github.com/AskoldMakaruk/BotFramework</RepositoryUrl>
     <RepositoryType>Open</RepositoryType>
     <PackageTags>telegram bot</PackageTags>
-    <PackageReleaseNotes>Added some quality of live changes</PackageReleaseNotes>
+    <PackageReleaseNotes>Oh I see what you did! You refactor it!</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
