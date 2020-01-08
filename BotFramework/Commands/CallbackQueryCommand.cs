@@ -13,16 +13,14 @@ namespace BotFramework.Commands
         public abstract string     Alias      { get; }
         public          UpdateType UpdateType => UpdateType.CallbackQuery;
 
-        public Optional<Response> Run(Update update, Client client) =>
-        update.Type == UpdateType && Suitable(update)
-        ? Execute(update.CallbackQuery, client, UnpackParams(update.CallbackQuery.Data))
-        : new Optional<Response>();
+        public Response Run(Update update, Client client) =>
+        Execute(update.CallbackQuery, client, UnpackParams(update.CallbackQuery.Data));
 
-        public abstract Optional<Response> Execute(CallbackQuery message, Client client, Dictionary<string, string> values);
+        public abstract Response Execute(CallbackQuery message, Client client, Dictionary<string, string> values);
 
         public bool Suitable(Update message)
         {
-            return message.CallbackQuery?.Data?.StartsWith(Alias) ?? false;
+            return message.Type == UpdateType && (message.CallbackQuery?.Data?.StartsWith(Alias) ?? false);
         }
 
         public static Dictionary<string, string> UnpackParams(string input)

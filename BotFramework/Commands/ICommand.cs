@@ -7,7 +7,8 @@ namespace BotFramework.Commands
 {
     public interface ICommand
     {
-        Optional<Response> Run(Update message, Client client);
+        Response Run(Update message, Client client);
+        bool Suitable(Update message);
     }
 
     public interface IStaticCommand : ICommand { }

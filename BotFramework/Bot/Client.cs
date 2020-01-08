@@ -127,8 +127,8 @@ namespace BotFramework.Bot
             try
             {
                 nextPossible
+                .Where(t => t.Suitable(update))
                 .Select(t => t.Run(update, this))
-                .SelectJust()
                 .ToList()
                 .ForEach(async response =>
                 {

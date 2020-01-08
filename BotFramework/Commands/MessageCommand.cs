@@ -8,12 +8,15 @@ namespace BotFramework.Commands
 {
     public abstract class MessageCommand : ICommand
     {
-        public Optional<Response> Run(Update update, Client client) =>
-        update.Type == UpdateType
-        ? Execute(update.Message, client)
-        : new Optional<Response>();
+        public Response Run(Update update, Client client) =>
+        Execute(update.Message, client);
 
-        public abstract Optional<Response> Execute(Message message, Client client);
+        public bool Suitable(Update message) =>
+            message.Type == UpdateType && Suitable(message.Message);
+
+        public abstract bool Suitable(Message message);
+
+        public abstract Response Execute(Message message, Client client);
         public abstract UpdateType         UpdateType { get; }
     }
 }
