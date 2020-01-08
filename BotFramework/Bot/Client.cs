@@ -17,13 +17,7 @@ namespace BotFramework.Bot
 {
     public delegate void Log(Client sender, string value);
 
-    public interface IClient
-    {
-        void      Run();
-        event Log OnLog;
-    }
-
-    public class Client : IClient
+    public class Client
     {
         private string _workingdir;
         public  string WorkingDir { get => _workingdir; set => _workingdir = value ?? Directory.GetCurrentDirectory(); }
@@ -54,7 +48,7 @@ namespace BotFramework.Bot
             OnLog      += configuration.OnLog;
 
             Bot          = new TelegramBotClient(Token);
-            NextCommands = new Dictionary<long, Optional<Either<ICommand, IEnumerable<IOneOfMany>>>>();
+            NextCommands = new Dictionary<long, IEnumerable<ICommand>>();
 
             var assembly = configuration.Assembly;
             StaticCommands = LoadTypeFromAssembly<IStaticCommand>(assembly);
@@ -85,9 +79,9 @@ namespace BotFramework.Bot
             Bot.StopReceiving();
         }
 
-        private static Dictionary<long, Optional<Either<ICommand, IEnumerable<IOneOfMany>>>> NextCommands { get; set; }
+        private static Dictionary<long, IEnumerable<ICommand>> NextCommands { get; set; }
 
-        public async void HandleUpdate(Update update)
+        public void HandleUpdate(Update update)
         {
             long from;
             switch (update.Type)
@@ -125,28 +119,34 @@ namespace BotFramework.Bot
 
             if (!NextCommands.ContainsKey(from))
             {
-                NextCommands.Add(from, new Optional<Either<ICommand, IEnumerable<IOneOfMany>>>());
+                NextCommands.Add(from, StaticCommands);
             }
 
             var nextPossible = NextCommands[from];
 
-            var command = nextPossible.Bind(t =>
-                                      t.Match(
-                                           left => Enumerable.Repeat(left, 1),
-                                           right => right.Where(o => o.Suitable(update)))
-                                       .FirstAsOptional())
-                                      .FromOptional(StaticCommands.FirstOrDefault(i =>
-                                      i.UpdateType == update.Type && i.Suitable(update)));
             try
             {
-                var response = command.Execute(update, this);
-                if (!response.UsePreviousCommands)
+                nextPossible
+                .Where(t => t.Suitable(update))
+                .Select(t => t.Run(update, this))
+                .ToList()
+                .ForEach(async response =>
                 {
-                    NextCommands[from] = response.NextPossible;
-                }
+                    if (!response.UsePreviousCommands)
+                    {
+                        NextCommands[from] = response.NextPossible;
+                    }
 
-                foreach (var message in response.Responses)
-                    await message.Send(Bot);
+                    if (response.UseStaticCommands)
+                    {
+                        var newPossible = NextCommands[from].ToList();
+                        newPossible.AddRange(StaticCommands);
+                        NextCommands[from] = newPossible;
+                    }
+
+                    foreach (var message in response.Responses)
+                        await message.Send(Bot);
+                });
             }
             catch (Exception e)
             {
@@ -178,6 +178,7 @@ namespace BotFramework.Bot
         {
             await Bot.GetInfoAndDownloadFileAsync(documentFileId, ms);
         }
+
         public void      Write(string message) => OnLog?.Invoke(this, message);
         public event Log OnLog;
     }

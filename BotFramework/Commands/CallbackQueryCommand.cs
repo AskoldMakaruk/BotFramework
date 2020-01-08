@@ -2,6 +2,7 @@
 using System.Linq;
 using BotFramework.Bot;
 using BotFramework.Responses;
+using Monads;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
@@ -12,14 +13,14 @@ namespace BotFramework.Commands
         public abstract string     Alias      { get; }
         public          UpdateType UpdateType => UpdateType.CallbackQuery;
 
-        public Response Execute(Update update, Client client) =>
+        public Response Run(Update update, Client client) =>
         Execute(update.CallbackQuery, client, UnpackParams(update.CallbackQuery.Data));
 
         public abstract Response Execute(CallbackQuery message, Client client, Dictionary<string, string> values);
 
         public bool Suitable(Update message)
         {
-            return message.CallbackQuery?.Data?.StartsWith(Alias) ?? false;
+            return message.Type == UpdateType && (message.CallbackQuery?.Data?.StartsWith(Alias) ?? false);
         }
 
         public static Dictionary<string, string> UnpackParams(string input)
