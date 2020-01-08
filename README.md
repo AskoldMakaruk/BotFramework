@@ -9,25 +9,25 @@ Initializing bot:
 ```csharp
 class Program
     {
-        static void Main(string[] args)
+        static void Main()
         {
             new BotBuilder()
-                .UseAssembly(typeof(Program).Assembly)
-                .WithName("EchoBot")
-                .WithToken(Token)
-                .UseLogger((c, m) => Console.WriteLine(m))
-                .Build()
-                .Run();
+            .UseAssembly(typeof(Program).Assembly)
+            .WithName("EchoBot")
+            .WithToken("<YOUR TOKEN>")
+            .UseLogger((c, m) => Console.WriteLine(m))
+            .Build()
+            .Run();
         }
     }
 ```
 Create command to handle messages:
 ```csharp
-public class EchoCommand : StaticMessageCommand
+public class EchoCommand : MessageCommand
     {
         public override Response Execute(Message message, Client client)
         {
-            return new Response().SendTextMessage(message.Chat.Id, message.Text);
+            return new Response().AddMessage(new TextMessage(message.Chat.Id, message.Text));
         }
 
         public override bool Suitable(Message message) => true; //accept any message
