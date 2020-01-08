@@ -9,8 +9,7 @@ namespace BotFramework.Commands
 {
     public abstract class CallbackQueryCommand : IStaticCommand
     {
-        public abstract string     Alias      { get; }
-        public          UpdateType UpdateType => UpdateType.CallbackQuery;
+        public abstract string Alias { get; }
 
         public Response Run(Update update, Client client) =>
         Execute(update.CallbackQuery, client, UnpackParams(update.CallbackQuery.Data));
@@ -19,7 +18,7 @@ namespace BotFramework.Commands
 
         public bool Suitable(Update message)
         {
-            return message.Type == UpdateType && (message.CallbackQuery?.Data?.StartsWith(Alias) ?? false);
+            return message.Type == UpdateType.CallbackQuery && (message.CallbackQuery?.Data?.StartsWith(Alias) ?? false);
         }
 
         public static Dictionary<string, string> UnpackParams(string input)
