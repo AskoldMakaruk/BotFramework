@@ -5,20 +5,22 @@
     <Authors />
     <Company>BotFramework</Company>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <AssemblyVersion>0.0.2.2</AssemblyVersion>
-    <FileVersion>0.0.2.2</FileVersion>
-    <Version>0.2.2</Version>
+    <AssemblyVersion>0.0.2.3</AssemblyVersion>
+    <FileVersion>0.0.2.3</FileVersion>
+    <Version>0.2.3</Version>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/AskoldMakaruk/BotFramework</PackageProjectUrl>
     <RepositoryUrl>https://github.com/AskoldMakaruk/BotFramework</RepositoryUrl>
     <RepositoryType>Open</RepositoryType>
     <PackageTags>telegram bot</PackageTags>
-    <PackageReleaseNotes>Added some logging (just a little)</PackageReleaseNotes>
+    <PackageReleaseNotes>Added more logging</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.7.82" />
     <PackageReference Include="OptionalMonad" Version="1.0.1" />
+    <PackageReference Include="Serilog" Version="2.9.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="3.1.1" />
     <PackageReference Include="System.Collections.Immutable" Version="1.7.0" />
     <PackageReference Include="Telegram.Bot" Version="15.2.0" />
   </ItemGroup>

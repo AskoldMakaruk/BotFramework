@@ -7,6 +7,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using BotFramework.Commands;
 using Newtonsoft.Json;
+using Serilog;
+using Serilog.Core;
 using Telegram.Bot;
 using Telegram.Bot.Args;
 using Telegram.Bot.Types;
@@ -14,20 +16,17 @@ using Telegram.Bot.Types.Enums;
 
 namespace BotFramework.Bot
 {
-    public delegate void Log(Client sender, string value);
-
     public class Client
     {
-        private string _workingdir;
-        public  string WorkingDir { get => _workingdir; set => _workingdir = value ?? Directory.GetCurrentDirectory(); }
+        public    string       Name   { get; set; }
+        public    ClientStatus Status { get; set; }
+        protected ILogger       Logger { get; set; }
 
-        public string       Name   { get; set; }
-        public ClientStatus Status { get; set; }
+        protected TelegramBotClient Bot { get; set; }
 
-        protected TelegramBotClient           Bot            { get; set; }
         protected IEnumerable<IStaticCommand> StaticCommands { get; set; }
 
-        protected IEnumerable<T> LoadTypeFromAssembly<T>(Assembly assembly)
+        protected static IEnumerable<T> LoadTypeFromAssembly<T>(Assembly assembly)
         {
             return assembly
                    .GetTypes()
@@ -42,19 +41,24 @@ namespace BotFramework.Bot
 
         protected internal Client(BotConfiguration configuration)
         {
-            Token      =  configuration.Token;
-            UseWebhook =  configuration.Webhook;
-            OnLog      += configuration.OnLog;
+            Token      = configuration.Token;
+            UseWebhook = configuration.Webhook;
+            Logger     = configuration.Logger;
 
             Bot          = new TelegramBotClient(Token);
             NextCommands = new Dictionary<long, IEnumerable<ICommand>>();
 
             var assembly = configuration.Assembly;
+            Logger.Debug("Loading static commands...");
+            
             StaticCommands = LoadTypeFromAssembly<IStaticCommand>(assembly);
+
+            Logger.Debug("Loaded {StaticCommandsCount} commands.", StaticCommands.Count());
         }
 
         public void Run()
         {
+            Logger.Information("Starting bot...");
             if (!UseWebhook)
             {
                 Bot.StartReceiving();
@@ -66,56 +70,73 @@ namespace BotFramework.Bot
             new ManualResetEvent(false).WaitOne();
         }
 
-        public void StartReceiving()
-        {
-            Status = ClientStatus.Running;
-            Bot.StartReceiving();
-        }
-
-        public void StopReceiving()
-        {
-            Status = ClientStatus.Stoped;
-            Bot.StopReceiving();
-        }
-
         private static Dictionary<long, IEnumerable<ICommand>> NextCommands { get; set; }
 
-        public void HandleUpdate(Update update)
+        private long GetIdFromUpdate(Update update)
         {
-            long from;
+            long   from;
+            string fromName, contents;
             switch (update.Type)
             {
                 case UpdateType.Message:
-                    from = update.Message.From.Id;
-                    Write(update.Message.From.Username + ": " + update.Message.Text);
+                    from     = update.Message.From.Id;
+                    fromName = update.Message.From.Username;
+                    contents = update.Message.Text;
                     break;
                 case UpdateType.InlineQuery:
-                    from = update.InlineQuery.From.Id;
+                    from     = update.InlineQuery.From.Id;
+                    fromName = update.InlineQuery.From.Username;
+                    contents = update.InlineQuery.Query;
                     break;
                 case UpdateType.ChosenInlineResult:
-                    from = update.ChosenInlineResult.From.Id;
+                    from     = update.ChosenInlineResult.From.Id;
+                    fromName = update.ChosenInlineResult.From.Username;
+                    contents = update.ChosenInlineResult.Query;
                     break;
                 case UpdateType.CallbackQuery:
-                    from = update.CallbackQuery.From.Id;
+                    from     = update.CallbackQuery.From.Id;
+                    fromName = update.CallbackQuery.From.Username;
+                    contents = update.CallbackQuery.Data;
                     break;
                 case UpdateType.EditedMessage:
-                    from = update.EditedMessage.From.Id;
+                    from     = update.EditedMessage.From.Id;
+                    fromName = update.EditedMessage.From.Username;
+                    contents = update.EditedMessage.Text;
                     break;
                 case UpdateType.ChannelPost:
-                    from = update.ChannelPost.From.Id;
+                    from     = update.ChannelPost.From.Id;
+                    fromName = update.ChannelPost.From.Username;
+                    contents = update.ChannelPost.Text;
                     break;
                 case UpdateType.EditedChannelPost:
-                    from = update.EditedChannelPost.From.Id;
+                    from     = update.EditedChannelPost.From.Id;
+                    fromName = update.EditedChannelPost.From.Username;
+                    contents = update.EditedChannelPost.Text;
                     break;
                 case UpdateType.ShippingQuery:
-                    from = update.ShippingQuery.From.Id;
+                    from     = update.ShippingQuery.From.Id;
+                    fromName = update.ShippingQuery.From.Username;
+                    contents = update.ShippingQuery.InvoicePayload;
                     break;
                 case UpdateType.PreCheckoutQuery:
-                    from = update.PreCheckoutQuery.From.Id;
+                    from     = update.PreCheckoutQuery.From.Id;
+                    fromName = update.PreCheckoutQuery.From.Username;
+                    contents = "";
                     break;
                 default:
-                    return;
+                    from     = 0;
+                    fromName = "";
+                    contents = "";
+                    break;
             }
+
+            Logger.Debug("{UpdateType} | {From}: {Contents}", update.Type, fromName, contents);
+            return from;
+        }
+
+        public void HandleUpdate(Update update)
+        {
+            var from = GetIdFromUpdate(update);
 
             if (!NextCommands.ContainsKey(from))
             {
@@ -126,31 +147,31 @@ namespace BotFramework.Bot
 
             try
             {
-                nextPossible
-                .Where(t => t.Suitable(update))
-                .Select(t => t.Run(update, this))
-                .ToList()
-                .ForEach(async response =>
-                {
-                    if (!response.UsePreviousCommands)
-                    {
-                        NextCommands[from] = response.NextPossible;
-                    }
+                var suitable = nextPossible.Where(t => t.Suitable(update)).ToList();
+                Logger.Debug("Suitable commands: {SuitableCommands}", string.Join(", ", suitable.Select(s => s.GetType().Name)));
+                suitable.Select(t => t.Run(update, this))
+                        .ToList()
+                        .ForEach(async response =>
+                        {
+                            if (!response.UsePreviousCommands)
+                            {
+                                NextCommands[from] = response.NextPossible;
+                            }
 
-                    if (response.UseStaticCommands)
-                    {
-                        var newPossible = NextCommands[from].ToList();
-                        newPossible.AddRange(StaticCommands);
-                        NextCommands[from] = newPossible;
-                    }
+                            if (response.UseStaticCommands)
+                            {
+                                var newPossible = NextCommands[from].ToList();
+                                newPossible.AddRange(StaticCommands);
+                                NextCommands[from] = newPossible;
+                            }
 
-                    foreach (var message in response.Responses)
-                        await message.Send(Bot);
-                });
+                            foreach (var message in response.Responses)
+                                await message.Send(Bot);
+                        });
             }
             catch (Exception e)
             {
-                Write(e.Message);
+                Logger.Error(e, "Error handling command.");
             }
         }
 
@@ -163,14 +184,13 @@ namespace BotFramework.Bot
         public void OnUpdateReceived(object sender, UpdateEventArgs e)
         {
             var update = e.Update;
-            //Write($"{DateTime.Now.ToShortTimeString()} {update.Message.From.Username}: {update.Message.Text}");
             try
             {
                 HandleUpdate(update);
             }
             catch (Exception ex)
             {
-                Write(ex.ToString());
+                Logger.Error(ex, "Error handling command.");
             }
         }
 
@@ -178,8 +198,5 @@ namespace BotFramework.Bot
         {
             await Bot.GetInfoAndDownloadFileAsync(documentFileId, ms);
         }
-
-        public void      Write(string message) => OnLog?.Invoke(this, message);
-        public event Log OnLog;
     }
 }

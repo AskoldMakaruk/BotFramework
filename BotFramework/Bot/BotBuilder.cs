@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using Serilog.Core;
 
 namespace BotFramework.Bot
 {
@@ -16,6 +17,11 @@ namespace BotFramework.Bot
 
         public Client Build()
         {
+            if (configuration.Logger == null)
+            {
+                configuration.Logger = Logger.None;
+            }
+
             var client = new Client(configuration);
             return client;
         }
@@ -32,9 +38,9 @@ namespace BotFramework.Bot
             return this;
         }
 
-        public BotBuilder UseLogger(Log onlog)
+        public BotBuilder UseLogger(Logger logger)
         {
-            configuration.OnLog = onlog;
+            configuration.Logger = logger;
             return this;
         }
 
