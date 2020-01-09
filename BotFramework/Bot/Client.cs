@@ -87,6 +87,7 @@ namespace BotFramework.Bot
             {
                 case UpdateType.Message:
                     from = update.Message.From.Id;
+                    Write(update.Message.From.Username + ": " + update.Message.Text);
                     break;
                 case UpdateType.InlineQuery:
                     from = update.InlineQuery.From.Id;
