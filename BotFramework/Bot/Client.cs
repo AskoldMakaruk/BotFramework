@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using BotFramework.Commands;
 using Newtonsoft.Json;
 using Serilog;
-using Serilog.Core;
 using Telegram.Bot;
 using Telegram.Bot.Args;
 using Telegram.Bot.Types;
@@ -18,9 +17,9 @@ namespace BotFramework.Bot
 {
     public class Client
     {
-        public    string       Name   { get; set; }
-        public    ClientStatus Status { get; set; }
-        protected ILogger       Logger { get; set; }
+        public string       Name   { get; set; }
+        public ClientStatus Status { get; set; }
+        public ILogger      Logger { get; set; }
 
         protected TelegramBotClient Bot { get; set; }
 
@@ -50,7 +49,7 @@ namespace BotFramework.Bot
 
             var assembly = configuration.Assembly;
             Logger.Debug("Loading static commands...");
-            
+
             StaticCommands = LoadTypeFromAssembly<IStaticCommand>(assembly);
 
             Logger.Debug("Loaded {StaticCommandsCount} commands.", StaticCommands.Count());
