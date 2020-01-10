@@ -23,7 +23,7 @@ namespace BotFramework.Responses
 
         public Response(params ICommand[] nextPossible)
         {
-            NextPossible = nextPossible;
+            NextPossible = nextPossible.ToList();
         }
 
         public Response(IEnumerable<ICommand> nextPossible) : this(nextPossible.ToArray()) { }
@@ -33,7 +33,10 @@ namespace BotFramework.Responses
             Responses.AddRange(messages);
         }
 
-        public Response(params IResponseMessage[] messages) : this(null, messages) { }
+        public Response(params IResponseMessage[] messages)
+        {
+            Responses.AddRange(messages);
+        }
 
         public Response AddMessage(params IResponseMessage[] message)
         {
@@ -49,7 +52,7 @@ namespace BotFramework.Responses
             return this;
         }
 
-        public          List<IResponseMessage> Responses { get; set; } = new List<IResponseMessage>();
-        public readonly IEnumerable<ICommand>  NextPossible;
+        public List<IResponseMessage> Responses    { get; set; } = new List<IResponseMessage>();
+        public List<ICommand>         NextPossible { get; set; } = new List<ICommand>();
     }
 }
