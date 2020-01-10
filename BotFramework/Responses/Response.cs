@@ -30,14 +30,14 @@ namespace BotFramework.Responses
 
         public Response(IEnumerable<ICommand> nextPossible, params IResponseMessage[] messages) : this(nextPossible)
         {
-            responseMessages.AddRange(messages);
+            Responses.AddRange(messages);
         }
 
         public Response(params IResponseMessage[] messages) : this(null, messages) { }
 
         public Response AddMessage(params IResponseMessage[] message)
         {
-            responseMessages.AddRange(message);
+            Responses.AddRange(message);
             return this;
         }
 
@@ -45,11 +45,11 @@ namespace BotFramework.Responses
         {
             var array = new IResponseMessage[messages.Count];
             messages.CopyTo(array);
-            responseMessages = array.ToList();
+            Responses = array.ToList();
             return this;
         }
 
-        public          List<IResponseMessage> responseMessages { get; set; } = new List<IResponseMessage>();
+        public          List<IResponseMessage> Responses { get; set; } = new List<IResponseMessage>();
         public readonly IEnumerable<ICommand>  NextPossible;
     }
 }
