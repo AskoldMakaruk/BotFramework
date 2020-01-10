@@ -6,41 +6,35 @@ namespace BotFramework.Responses
 {
     public class Response
     {
-        internal readonly bool UsePreviousCommands;
-        internal readonly bool UseStaticCommands = true;
+        public bool UsePreviousCommands;
+        public bool UseStaticCommands = true;
+        
+        public readonly List<IResponseMessage> Responses;
 
-        public Response UsePrevious(bool usePrevious) =>
-            new Response(NextPossible, Responses, usePrevious, UseStaticCommands);
-
-        public Response UseStatic(bool useStatic) =>
-            new Response(NextPossible, Responses, UsePreviousCommands, useStatic);
+        public readonly ICommand[] NextPossible;
 
         public Response(params ICommand[] nextPossible)
         {
             NextPossible = nextPossible;
-            Responses    = ImmutableList<IResponseMessage>.Empty;
+            Responses    = new List<IResponseMessage>();
         }
-
-        public Response(IEnumerable<ICommand> nextPossible)
+        
+        public Response UsePrevious(bool usePrevious)
         {
-            NextPossible = nextPossible;
-            Responses    = ImmutableList<IResponseMessage>.Empty;
-        }
-
-        public Response AddMessage(IResponseMessage message) => new Response(NextPossible, Responses.Add(message), UsePreviousCommands, UseStaticCommands);
-        public Response SetMessages(ImmutableList<IResponseMessage> messages) => new Response(NextPossible, messages, UsePreviousCommands, UseStaticCommands);
-            
-        private Response(IEnumerable<ICommand> nextPossible, ImmutableList<IResponseMessage> responses, bool usePrevious,
-                         bool                  useStaticCommands)
-        {
-            NextPossible        = nextPossible;
-            Responses           = responses;
             UsePreviousCommands = usePrevious;
-            UseStaticCommands   = useStaticCommands;
+            return this;
         }
 
-        public readonly ImmutableList<IResponseMessage> Responses;
+        public Response UseStatic(bool useStatic)
+        {
+            UseStaticCommands = useStatic;
+            return this;
+        }
 
-        public readonly IEnumerable<ICommand> NextPossible;
+        public Response AddMessage(IResponseMessage message)
+        {
+            Responses.Add(message);
+            return this;
+        }
     }
 }
