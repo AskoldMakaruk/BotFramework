@@ -1,46 +1,55 @@
 ﻿using System.Collections.Generic;
-using System.Collections.Immutable;
+using System.Linq;
 using BotFramework.Commands;
 
 namespace BotFramework.Responses
 {
     public class Response
     {
-        internal readonly bool UsePreviousCommands;
-        internal readonly bool UseStaticCommands = true;
+        internal bool UsePreviousCommands { get; private set; }
+        internal bool UseStaticCommands   { get; private set; } = true;
 
-        public Response UsePrevious(bool usePrevious) =>
-            new Response(NextPossible, Responses, usePrevious, UseStaticCommands);
+        public Response UsePrevious(bool usePrevious)
+        {
+            UsePreviousCommands = usePrevious;
+            return this;
+        }
 
-        public Response UseStatic(bool useStatic) =>
-            new Response(NextPossible, Responses, UsePreviousCommands, useStatic);
+        public Response UseStatic(bool useStatic)
+        {
+            UseStaticCommands = useStatic;
+            return this;
+        }
 
         public Response(params ICommand[] nextPossible)
         {
             NextPossible = nextPossible;
-            Responses    = ImmutableList<IResponseMessage>.Empty;
         }
 
-        public Response(IEnumerable<ICommand> nextPossible)
+        public Response(IEnumerable<ICommand> nextPossible) : this(nextPossible.ToArray()) { }
+
+        public Response(IEnumerable<ICommand> nextPossible, params IResponseMessage[] messages) : this(nextPossible)
         {
-            NextPossible = nextPossible;
-            Responses    = ImmutableList<IResponseMessage>.Empty;
+            responseMessages.AddRange(messages);
         }
 
-        public Response AddMessage(IResponseMessage message) => new Response(NextPossible, Responses.Add(message), UsePreviousCommands, UseStaticCommands);
-        public Response SetMessages(ImmutableList<IResponseMessage> messages) => new Response(NextPossible, messages, UsePreviousCommands, UseStaticCommands);
-            
-        private Response(IEnumerable<ICommand> nextPossible, ImmutableList<IResponseMessage> responses, bool usePrevious,
-                         bool                  useStaticCommands)
+        public Response(params IResponseMessage[] messages) : this(null, messages) { }
+
+        public Response AddMessage(params IResponseMessage[] message)
         {
-            NextPossible        = nextPossible;
-            Responses           = responses;
-            UsePreviousCommands = usePrevious;
-            UseStaticCommands   = useStaticCommands;
+            responseMessages.AddRange(message);
+            return this;
         }
 
-        public readonly ImmutableList<IResponseMessage> Responses;
+        public Response SetMessages(List<IResponseMessage> messages)
+        {
+            var array = new IResponseMessage[messages.Count];
+            messages.CopyTo(array);
+            responseMessages = array.ToList();
+            return this;
+        }
 
-        public readonly IEnumerable<ICommand> NextPossible;
+        public          List<IResponseMessage> responseMessages { get; set; } = new List<IResponseMessage>();
+        public readonly IEnumerable<ICommand>  NextPossible;
     }
 }
