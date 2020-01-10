@@ -10,11 +10,11 @@ namespace BotFramework.Responses
         
         public readonly List<IResponseMessage> Responses;
 
-        public readonly ICommand[] NextPossible;
+        public readonly HashSet<ICommand> NextPossible;
 
         public Response(params ICommand[] nextPossible)
         {
-            NextPossible = nextPossible;
+            NextPossible = new HashSet<ICommand>(nextPossible);
             Responses    = new List<IResponseMessage>();
         }
         

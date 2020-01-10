@@ -23,16 +23,17 @@ namespace BotFramework.Bot
 
         protected TelegramBotClient Bot { get; set; }
 
-        protected IEnumerable<IStaticCommand> StaticCommands { get; set; }
+        protected HashSet<ICommand> StaticCommands { get; set; }
 
-        protected static IEnumerable<T> LoadTypeFromAssembly<T>(Assembly assembly)
+        protected static HashSet<T> LoadTypeFromAssembly<T>(Assembly assembly, bool getStatic = false)
         {
             return assembly
                    .GetTypes()
                    .Where(t => (t.IsSubclassOf(typeof(T)) || t.GetInterfaces().Contains(typeof(T))) && !t.IsAbstract)
+                   .Where(c => !getStatic || (c.GetInterfaces().Contains(typeof(IStaticCommand)) || c.GetCustomAttributes(true).Contains(typeof(StaticCommand)))) //TODO check only by attribute, i don't knkow how to do it'
                    .Select(Activator.CreateInstance)
                    .Cast<T>()
-                   .Where(c => c != null);
+                   .ToHashSet();
         }
 
         protected string Token      { get; }
@@ -45,12 +46,12 @@ namespace BotFramework.Bot
             Logger     = configuration.Logger;
 
             Bot          = new TelegramBotClient(Token);
-            NextCommands = new Dictionary<long, IEnumerable<ICommand>>();
+            NextCommands = new Dictionary<long, HashSet<ICommand>>();
 
             var assembly = configuration.Assembly;
             Logger.Debug("Loading static commands...");
 
-            StaticCommands = LoadTypeFromAssembly<IStaticCommand>(assembly);
+            StaticCommands = LoadTypeFromAssembly<ICommand>(assembly, true);
 
             Logger.Debug("Loaded {StaticCommandsCount} commands.", StaticCommands.Count());
         }
@@ -69,7 +70,7 @@ namespace BotFramework.Bot
             new ManualResetEvent(false).WaitOne();
         }
 
-        private static Dictionary<long, IEnumerable<ICommand>> NextCommands { get; set; }
+        private static Dictionary<long, HashSet<ICommand>> NextCommands { get; set; }
 
         private long GetIdFromUpdate(Update update)
         {
@@ -147,23 +148,21 @@ namespace BotFramework.Bot
             {
                 var suitable = nextPossible.Where(t => t.Suitable(update)).ToList();
                 Logger.Debug("Suitable commands: {SuitableCommands}", string.Join(", ", suitable.Select(s => s.GetType().Name)));
+                var newPossible = new HashSet<ICommand>();
                 foreach (var response in suitable.Select(t => t.Execute(update, this)))
                 {
-                    if (!response.UsePreviousCommands)
-                    {
-                        NextCommands[from] = response.NextPossible;
-                    }
+                    if (response.UsePreviousCommands)
+                        newPossible.UnionWith(nextPossible);
 
                     if (response.UseStaticCommands)
-                    {
-                        var newPossible = NextCommands[from].ToList();
-                        newPossible.AddRange(StaticCommands);
-                        NextCommands[from] = newPossible;
-                    }
+                        newPossible.UnionWith(StaticCommands);
 
+                    newPossible.UnionWith(response.NextPossible);
                     foreach (var message in response.Responses)
                         await message.Send(Bot);
                 }
+
+                NextCommands[from] = newPossible;
             }
             catch (Exception e)
             {
