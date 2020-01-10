@@ -6,7 +6,7 @@ using Telegram.Bot.Types.ReplyMarkups;
 
 namespace BotFramework.Responses
 {
-    public class SendSticker : IResponseMessage
+    public class SendSticker : ResponseMessage<Message>
     {
         public SendSticker(ChatId          chatId,
                            InputOnlineFile sticker,
@@ -27,9 +27,7 @@ namespace BotFramework.Responses
         public int             ReplyToMessageId    { get; }
         public IReplyMarkup    ReplyMarkup         { get; }
 
-        public async Task Send(TelegramBotClient botClient)
-        {
-            await botClient.SendStickerAsync(ChatId, Sticker, DisableNotification, ReplyToMessageId, ReplyMarkup);
-        }
+        protected override Task<Message> Send(TelegramBotClient botClient) =>
+        botClient.SendStickerAsync(ChatId, Sticker, DisableNotification, ReplyToMessageId, ReplyMarkup);
     }
 }

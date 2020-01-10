@@ -6,14 +6,14 @@ using Telegram.Bot.Types.ReplyMarkups;
 
 namespace BotFramework.Responses
 {
-    public class EditTextMessage : IResponseMessage
+    public class EditTextMessage : ResponseMessage<Message>
     {
         public EditTextMessage(ChatId               chatId,
-                               int                  messageId,
-                               string               text,
-                               ParseMode            parseMode             = ParseMode.Default,
-                               bool                 disableWebPagePreview = false,
-                               InlineKeyboardMarkup replyMarkup           = null)
+                              int                  messageId,
+                              string               text,
+                              ParseMode            parseMode             = ParseMode.Default,
+                              bool                 disableWebPagePreview = false,
+                              InlineKeyboardMarkup replyMarkup           = null)
         {
             ChatId                = chatId;
             MessageId             = messageId;
@@ -30,9 +30,7 @@ namespace BotFramework.Responses
         public bool                 DisableWebPagePreview { get; }
         public InlineKeyboardMarkup ReplyMarkup           { get; }
 
-        public async Task Send(TelegramBotClient botClient)
-        {
-            await botClient.EditMessageTextAsync(ChatId, MessageId, Text, ParseMode, DisableWebPagePreview, ReplyMarkup);
-        }
+        protected override Task<Message> Send(TelegramBotClient botClient) =>
+        botClient.EditMessageTextAsync(ChatId, MessageId, Text, ParseMode, DisableWebPagePreview, ReplyMarkup);
     }
 }

@@ -7,7 +7,7 @@ using Telegram.Bot.Types.ReplyMarkups;
 
 namespace BotFramework.Responses
 {
-    public class SendPhoto : IResponseMessage
+    public class SendPhoto : ResponseMessage<Message>
     {
         public SendPhoto(ChatId          chatId,
                          InputOnlineFile photo,
@@ -34,9 +34,7 @@ namespace BotFramework.Responses
         public int             ReplyToMessageId    { get; }
         public IReplyMarkup    ReplyMarkup         { get; }
 
-        public async Task Send(TelegramBotClient botClient)
-        {
-            await botClient.SendPhotoAsync(ChatId, Photo, Caption, ParseMode, DisableNotification, ReplyToMessageId, ReplyMarkup);
-        }
+        protected override Task<Message> Send(TelegramBotClient botClient) =>
+        botClient.SendPhotoAsync(ChatId, Photo, Caption, ParseMode, DisableNotification, ReplyToMessageId, ReplyMarkup);
     }
 }

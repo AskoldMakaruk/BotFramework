@@ -5,7 +5,7 @@ using Telegram.Bot.Types.ReplyMarkups;
 
 namespace BotFramework.Responses
 {
-    public class EditMessageReplyMarkup : IResponseMessage
+    public class EditMessageReplyMarkup : ResponseMessage<Message>
     {
         public EditMessageReplyMarkup(ChatId               chatId,
                                       int                  messageId,
@@ -20,9 +20,7 @@ namespace BotFramework.Responses
         public int                  MessageId   { get; }
         public InlineKeyboardMarkup ReplyMarkup { get; }
 
-        public async Task Send(TelegramBotClient botClient)
-        {
-            await botClient.EditMessageReplyMarkupAsync(ChatId, MessageId, ReplyMarkup);
-        }
+        protected override Task<Message> Send(TelegramBotClient botClient) =>
+        botClient.EditMessageReplyMarkupAsync(ChatId, MessageId, ReplyMarkup);
     }
 }
