@@ -149,7 +149,7 @@ namespace BotFramework.Bot
             {
                 var suitable = nextPossible.Where(t => t.Suitable(update)).ToList();
                 Logger.Debug("Suitable commands: {SuitableCommands}", string.Join(", ", suitable.Select(s => s.GetType().Name)));
-                suitable.Select(t => t.Run(update, this))
+                suitable.Select(t => t.Execute(update, this))
                         .ToList()
                         .ForEach(async response =>
                         {

@@ -11,7 +11,7 @@ namespace BotFramework.Commands
     {
         public abstract string Alias { get; }
 
-        public Response Run(Update update, Client client) =>
+        public Response Execute(Update update, Client client) =>
         Execute(update.CallbackQuery, client, UnpackParams(update.CallbackQuery.Data));
 
         public abstract Response Execute(CallbackQuery message, Client client, Dictionary<string, string> values);

@@ -6,7 +6,7 @@ namespace BotFramework.Commands
 {
     public interface ICommand
     {
-        Response Run(Update message, Client client);
+        Response Execute(Update message, Client client);
 
         bool Suitable(Update message);
     }
