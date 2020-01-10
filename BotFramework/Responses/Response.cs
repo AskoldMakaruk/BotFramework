@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Collections.Immutable;
 using BotFramework.Commands;
 
 namespace BotFramework.Responses
