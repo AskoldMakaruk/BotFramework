@@ -30,7 +30,10 @@ namespace BotFramework.Bot
             return assembly
                    .GetTypes()
                    .Where(t => (t.IsSubclassOf(typeof(T)) || t.GetInterfaces().Contains(typeof(T))) && !t.IsAbstract)
-                   .Where(c => !getStatic || (c.GetInterfaces().Contains(typeof(IStaticCommand)) || c.GetCustomAttributes(true).Contains(typeof(StaticCommand)))) //TODO check only by attribute, i don't knkow how to do it'
+                   .Where(c => !getStatic ||
+                               (c.GetInterfaces().Contains(typeof(IStaticCommand)) ||
+                                c.GetCustomAttributes(true)
+                                 .Contains(typeof(StaticCommand)))) //TODO check only by attribute, i don't knkow how to do it'
                    .Select(Activator.CreateInstance)
                    .Cast<T>()
                    .ToHashSet();
@@ -148,21 +151,25 @@ namespace BotFramework.Bot
             {
                 var suitable = nextPossible.Where(t => t.Suitable(update)).ToList();
                 Logger.Debug("Suitable commands: {SuitableCommands}", string.Join(", ", suitable.Select(s => s.GetType().Name)));
-                var newPossible = new HashSet<ICommand>();
+                HashSet<ICommand> newPossible = null;
                 foreach (var response in suitable.Select(t => t.Execute(update, this)))
                 {
                     if (response.UsePreviousCommands)
-                        newPossible.UnionWith(nextPossible);
+                        newPossible = nextPossible;
+                    else
+                    {
+                        newPossible = new HashSet<ICommand>();
+                        if (response.UseStaticCommands)
+                            newPossible.UnionWith(StaticCommands);
 
-                    if (response.UseStaticCommands)
-                        newPossible.UnionWith(StaticCommands);
+                        newPossible.UnionWith(response.NextPossible);
+                    }
 
-                    newPossible.UnionWith(response.NextPossible);
                     foreach (var message in response.Responses)
                         await message.Send(Bot);
                 }
 
-                NextCommands[from] = newPossible;
+                NextCommands[from] = newPossible ?? new HashSet<ICommand>(StaticCommands);
             }
             catch (Exception e)
             {

@@ -27,7 +27,7 @@ namespace EchoBot
     {
         public override Response Execute(Message message, Client client)
         {
-            return new Response(new TextMessage(message.Chat.Id, message.Text));
+            return new Response().AddMessage(new TextMessage(message.Chat.Id, message.Text));
         }
 
         public override bool Suitable(Message message) => true;
