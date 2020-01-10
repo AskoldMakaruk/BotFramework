@@ -17,9 +17,9 @@ namespace BotFramework.Bot
 {
     public class Client
     {
-        public string       Name   { get; set; }
-        public ClientStatus Status { get; set; }
-        public ILogger      Logger { get; set; }
+        public    string       Name   { get; set; }
+        public    ClientStatus Status { get; set; }
+        protected ILogger      Logger { get; set; }
 
         protected TelegramBotClient Bot { get; set; }
 
@@ -123,17 +123,16 @@ namespace BotFramework.Bot
                     contents = "";
                     break;
                 default:
-                    from     = 0;
-                    fromName = "";
-                    contents = "";
-                    break;
+                    var ex = new NotImplementedException($"Whe don't support {update.Type} right now");
+                    Logger.Error(ex, ex.Message);
+                    throw ex;
             }
 
             Logger.Debug("{UpdateType} | {From}: {Contents}", update.Type, fromName, contents);
             return from;
         }
 
-        public void HandleUpdate(Update update)
+        public async void HandleUpdate(Update update)
         {
             var from = GetIdFromUpdate(update);
 
@@ -148,25 +147,23 @@ namespace BotFramework.Bot
             {
                 var suitable = nextPossible.Where(t => t.Suitable(update)).ToList();
                 Logger.Debug("Suitable commands: {SuitableCommands}", string.Join(", ", suitable.Select(s => s.GetType().Name)));
-                suitable.Select(t => t.Execute(update, this))
-                        .ToList()
-                        .ForEach(async response =>
-                        {
-                            if (!response.UsePreviousCommands)
-                            {
-                                NextCommands[from] = response.NextPossible;
-                            }
+                foreach (var response in suitable.Select(t => t.Execute(update, this)))
+                {
+                    if (!response.UsePreviousCommands)
+                    {
+                        NextCommands[from] = response.NextPossible;
+                    }
 
-                            if (response.UseStaticCommands)
-                            {
-                                var newPossible = NextCommands[from].ToList();
-                                newPossible.AddRange(StaticCommands);
-                                NextCommands[from] = newPossible;
-                            }
+                    if (response.UseStaticCommands)
+                    {
+                        var newPossible = NextCommands[from].ToList();
+                        newPossible.AddRange(StaticCommands);
+                        NextCommands[from] = newPossible;
+                    }
 
-                            foreach (var message in response.Responses)
-                                await message.Send(Bot);
-                        });
+                    foreach (var message in response.Responses)
+                        await message.Send(Bot);
+                }
             }
             catch (Exception e)
             {
@@ -193,9 +190,9 @@ namespace BotFramework.Bot
             }
         }
 
-        public async Task GetInfoAndDownloadFileAsync(string documentFileId, MemoryStream ms)
+        public async Task<Telegram.Bot.Types.File> GetInfoAndDownloadFileAsync(string documentFileId, MemoryStream ms)
         {
-            await Bot.GetInfoAndDownloadFileAsync(documentFileId, ms);
+            return await Bot.GetInfoAndDownloadFileAsync(documentFileId, ms);
         }
     }
 }
