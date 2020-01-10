@@ -23,11 +23,11 @@ class Program
 ```
 Create command to handle messages:
 ```csharp
-public class EchoCommand : MessageCommand
+    public class EchoCommand : MessageCommand, IStaticCommand
     {
         public override Response Execute(Message message, Client client)
         {
-            return new Response().AddMessage(new TextMessage(message.Chat.Id, message.Text));
+            return new Response().AddMessage(new TextMessage(message.Chat.Id, message.Text)); 
         }
 
         public override bool Suitable(Message message) => true; //accept any message
