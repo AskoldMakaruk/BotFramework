@@ -31,6 +31,6 @@ namespace EchoBot
             return new Response(new TextMessage(message.Chat.Id, message.Text));
         }
 
-        public override bool Suitable(Message message) => message.Text != null;
+        public override bool Suitable(Message message) => true;
     }
 }
