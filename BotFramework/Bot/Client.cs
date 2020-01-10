@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using BotFramework.Commands;
+using BotFramework.Responses;
 using Newtonsoft.Json;
 using Serilog;
 using Serilog.Core;
@@ -20,7 +22,7 @@ namespace BotFramework.Bot
     {
         public    string       Name   { get; set; }
         public    ClientStatus Status { get; set; }
-        protected ILogger       Logger { get; set; }
+        protected ILogger      Logger { get; set; }
 
         protected TelegramBotClient Bot { get; set; }
 
@@ -50,7 +52,7 @@ namespace BotFramework.Bot
 
             var assembly = configuration.Assembly;
             Logger.Debug("Loading static commands...");
-            
+
             StaticCommands = LoadTypeFromAssembly<IStaticCommand>(assembly);
 
             Logger.Debug("Loaded {StaticCommandsCount} commands.", StaticCommands.Count());
@@ -124,17 +126,16 @@ namespace BotFramework.Bot
                     contents = "";
                     break;
                 default:
-                    from     = 0;
-                    fromName = "";
-                    contents = "";
-                    break;
+                    var ex = new NotImplementedException($"Whe don't support {update.Type} right now");
+                    Logger.Error(ex, ex.Message);
+                    throw ex;
             }
 
             Logger.Debug("{UpdateType} | {From}: {Contents}", update.Type, fromName, contents);
             return from;
         }
 
-        public void HandleUpdate(Update update)
+        public async void HandleUpdate(Update update)
         {
             var from = GetIdFromUpdate(update);
 
@@ -149,25 +150,23 @@ namespace BotFramework.Bot
             {
                 var suitable = nextPossible.Where(t => t.Suitable(update)).ToList();
                 Logger.Debug("Suitable commands: {SuitableCommands}", string.Join(", ", suitable.Select(s => s.GetType().Name)));
-                suitable.Select(t => t.Run(update, this))
-                        .ToList()
-                        .ForEach(async response =>
-                        {
-                            if (!response.UsePreviousCommands)
-                            {
-                                NextCommands[from] = response.NextPossible;
-                            }
+                foreach (var response in suitable.Select(t => t.Run(update, this)))
+                {
+                    if (!response.UsePreviousCommands)
+                    {
+                        NextCommands[from] = response.NextPossible;
+                    }
 
-                            if (response.UseStaticCommands)
-                            {
-                                var newPossible = NextCommands[from].ToList();
-                                newPossible.AddRange(StaticCommands);
-                                NextCommands[from] = newPossible;
-                            }
+                    if (response.UseStaticCommands)
+                    {
+                        var newPossible = NextCommands[from].ToList();
+                        newPossible.AddRange(StaticCommands);
+                        NextCommands[from] = newPossible;
+                    }
 
-                            foreach (var message in response.Responses)
-                                await message.Send(Bot);
-                        });
+                    foreach (var message in response.Responses)
+                        await message.Send(Bot);
+                }
             }
             catch (Exception e)
             {
