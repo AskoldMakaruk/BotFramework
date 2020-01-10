@@ -5,7 +5,7 @@ using Telegram.Bot.Types;
 
 namespace BotFramework.Responses
 {
-    public class SendMediaGroup : IResponseMessage
+    public class SendMediaGroup : ResponseMessage<Message[]>
     {
         public SendMediaGroup(IEnumerable<IAlbumInputMedia> inputMedia,
                               ChatId                        chatId,
@@ -23,9 +23,7 @@ namespace BotFramework.Responses
         public bool                          DisableNotification { get; }
         public int                           ReplyToMessageId    { get; }
 
-        public async Task Send(TelegramBotClient botClient)
-        {
-            await botClient.SendMediaGroupAsync(InputMedia, ChatId, DisableNotification, ReplyToMessageId);
-        }
+        protected override Task<Message[]> Send(TelegramBotClient botClient) =>
+        botClient.SendMediaGroupAsync(InputMedia, ChatId, DisableNotification, ReplyToMessageId);
     }
 }

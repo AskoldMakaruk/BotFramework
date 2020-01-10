@@ -6,7 +6,7 @@ using Telegram.Bot.Types.ReplyMarkups;
 
 namespace BotFramework.Responses
 {
-    public class TextMessage : IResponseMessage
+    public class TextMessage : ResponseMessage<Message>
     {
         public TextMessage(ChatId       chatId,
                            string       text,
@@ -33,10 +33,8 @@ namespace BotFramework.Responses
         public bool         DisableNotification   { get; }
         public IReplyMarkup ReplyMarkup           { get; set; }
 
-        public async Task Send(TelegramBotClient botClient)
-        {
-            await botClient.SendTextMessageAsync(ChatId, Text, ParseMode, DisableWebPagePreview, DisableNotification,
-                ReplyToMessageId, ReplyMarkup);
-        }
+        protected override Task<Message> Send(TelegramBotClient botClient) =>
+        botClient.SendTextMessageAsync(ChatId, Text, ParseMode, DisableWebPagePreview, DisableNotification,
+            ReplyToMessageId, ReplyMarkup);
     }
 }
