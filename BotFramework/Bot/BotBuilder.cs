@@ -1,4 +1,8 @@
-﻿using System.Reflection;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using BotFramework.Commands;
 using Serilog.Core;
 
 namespace BotFramework.Bot
@@ -20,6 +24,11 @@ namespace BotFramework.Bot
             if (configuration.Logger == null)
             {
                 configuration.Logger = Logger.None;
+            }
+
+            if (configuration.Commands == null)
+            {
+                configuration.Commands = LoadTypeFromAssembly<ICommand>(configuration.Assembly);
             }
 
             var client = new Client(configuration);
@@ -54,6 +63,27 @@ namespace BotFramework.Bot
         {
             configuration.Assembly = assembly;
             return this;
+        }
+
+        public BotBuilder WithStaticCommands(IEnumerable<ICommand> commands)
+        {
+            configuration.Commands = commands;
+            return this;
+        }
+
+        protected static IEnumerable<T> LoadTypeFromAssembly<T>(Assembly assembly, bool getStatic = false)
+        {
+            return assembly
+                   .GetTypes()
+                   .Where(t => (t.IsSubclassOf(typeof(T)) || t.GetInterfaces().Contains(typeof(T))) && !t.IsAbstract)
+#pragma warning disable CS0618 // Type or member is obsolete
+                   .Where(c => !getStatic                                         ||
+                               c.GetInterfaces().Contains(typeof(IStaticCommand)) ||
+                               c.GetCustomAttributes(true)
+#pragma warning restore CS0618                                    // Type or member is obsolete
+                                .Contains(typeof(StaticCommand))) //TODO check only by attribute, i don't knkow how to do it'
+                   .Select(Activator.CreateInstance)
+                   .Cast<T>();
         }
     }
 }

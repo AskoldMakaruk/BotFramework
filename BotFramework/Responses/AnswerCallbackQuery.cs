@@ -18,11 +18,11 @@ namespace BotFramework.Responses
             CacheTime       = cacheTime;
         }
 
-        public readonly string CallbackQueryId;
-        public readonly string Text;
-        public readonly bool   ShowAlert;
-        public readonly string Url;
-        public readonly int    CacheTime;
+        public string CallbackQueryId { get; }
+        public string Text            { get; }
+        public bool   ShowAlert       { get; }
+        public string Url             { get; }
+        public int    CacheTime       { get; }
 
         public async Task Send(TelegramBotClient botClient)
         {

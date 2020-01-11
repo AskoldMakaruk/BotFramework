@@ -25,13 +25,13 @@ namespace BotFramework.Responses
             DisableNotification   = disableNotification;
         }
 
-        public ChatId       ChatId                { get; set; }
-        public string       Text                  { get; set; }
-        public int          ReplyToMessageId      { get; set; }
-        public ParseMode    ParseMode             { get; set; }
+        public ChatId       ChatId                { get; }
+        public string       Text                  { get; }
+        public int          ReplyToMessageId      { get; }
+        public ParseMode    ParseMode             { get; }
         public bool         DisableWebPagePreview { get; }
         public bool         DisableNotification   { get; }
-        public IReplyMarkup ReplyMarkup           { get; set; }
+        public IReplyMarkup ReplyMarkup           { get; }
 
         protected override Task<Message> Send(TelegramBotClient botClient) =>
         botClient.SendTextMessageAsync(ChatId, Text, ParseMode, DisableWebPagePreview, DisableNotification,

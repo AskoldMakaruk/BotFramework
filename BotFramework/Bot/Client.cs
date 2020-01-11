@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using BotFramework.Commands;
@@ -17,23 +16,12 @@ namespace BotFramework.Bot
 {
     public class Client
     {
-        public    string       Name   { get; set; }
-        public    ClientStatus Status { get; set; }
-        protected ILogger      Logger { get; set; }
+        public    string  Name   { get; set; }
+        protected ILogger Logger { get; set; }
 
         protected TelegramBotClient Bot { get; set; }
 
-        protected IEnumerable<IStaticCommand> StaticCommands { get; set; }
-
-        protected static IEnumerable<T> LoadTypeFromAssembly<T>(Assembly assembly)
-        {
-            return assembly
-                   .GetTypes()
-                   .Where(t => (t.IsSubclassOf(typeof(T)) || t.GetInterfaces().Contains(typeof(T))) && !t.IsAbstract)
-                   .Select(Activator.CreateInstance)
-                   .Cast<T>()
-                   .Where(c => c != null);
-        }
+        protected List<ICommand> StaticCommands { get; set; }
 
         protected string Token      { get; }
         protected bool   UseWebhook { get; set; }
@@ -47,17 +35,16 @@ namespace BotFramework.Bot
             Bot          = new TelegramBotClient(Token);
             NextCommands = new Dictionary<long, IEnumerable<ICommand>>();
 
-            var assembly = configuration.Assembly;
             Logger.Debug("Loading static commands...");
-
-            StaticCommands = LoadTypeFromAssembly<IStaticCommand>(assembly);
-
+            StaticCommands = configuration.Commands.ToList();
             Logger.Debug("Loaded {StaticCommandsCount} commands.", StaticCommands.Count());
         }
 
         public void Run()
         {
             Logger.Information("Starting bot...");
+            var me = Bot.GetMeAsync().Result;
+            Logger.Information("Name: {BotFirstName} UserName: @{BotName}", me.FirstName, me.Username);
             if (!UseWebhook)
             {
                 Bot.StartReceiving();
@@ -78,10 +65,35 @@ namespace BotFramework.Bot
             switch (update.Type)
             {
                 case UpdateType.Message:
-                    from     = update.Message.From.Id;
-                    fromName = update.Message.From.Username;
-                    contents = update.Message.Text;
-                    break;
+                    var message = update.Message;
+                    from     = message.From.Id;
+                    fromName = message.From.Username;
+                    switch (update.Message.Type)
+                    {
+                        case MessageType.Text:
+                            contents = message.Text;
+                            break;
+                        case MessageType.Photo:
+                        case MessageType.Audio:
+                        case MessageType.Video:
+                        case MessageType.Document:
+                            Logger.Debug("{UpdateType}.{MessageType} | {From} {Caption}", update.Type,
+                                update.Message.Type, fromName, message.Caption);
+                            return from;
+                        case MessageType.Poll:
+                            contents = message.Poll.Question;
+                            break;
+                        case MessageType.ChatTitleChanged:
+                            contents = update.Message.Chat.Title;
+                            break;
+                        default:
+                            Logger.Debug("{UpdateType}.{MessageType} | {From}", update.Type, update.Message.Type, fromName);
+                            return from;
+                    }
+
+                    Logger.Debug("{UpdateType}.{MessageType} | {From}: {Contents}", update.Type, update.Message.Type, fromName,
+                        contents);
+                    return from;
                 case UpdateType.InlineQuery:
                     from     = update.InlineQuery.From.Id;
                     fromName = update.InlineQuery.From.Username;
@@ -123,7 +135,7 @@ namespace BotFramework.Bot
                     contents = "";
                     break;
                 default:
-                    var ex = new NotImplementedException($"Whe don't support {update.Type} right now");
+                    var ex = new NotImplementedException($"We don't support {update.Type} right now");
                     Logger.Error(ex, ex.Message);
                     throw ex;
             }
@@ -141,29 +153,24 @@ namespace BotFramework.Bot
                 NextCommands.Add(from, StaticCommands);
             }
 
-            var nextPossible = NextCommands[from];
+            var nextPossible = NextCommands[from].ToList();
 
             try
             {
                 var suitable = nextPossible.Where(t => t.Suitable(update)).ToList();
                 Logger.Debug("Suitable commands: {SuitableCommands}", string.Join(", ", suitable.Select(s => s.GetType().Name)));
+                var newPossible = new HashSet<ICommand>(StaticCommands);
                 foreach (var response in suitable.Select(t => t.Execute(update, this)))
                 {
-                    if (!response.UsePreviousCommands)
-                    {
-                        NextCommands[from] = response.NextPossible;
-                    }
-
-                    if (response.UseStaticCommands)
-                    {
-                        var newPossible = NextCommands[from].ToList();
-                        newPossible.AddRange(StaticCommands);
-                        NextCommands[from] = newPossible;
-                    }
+                    if (response.UsePreviousCommands)
+                        newPossible.UnionWith(nextPossible);
+                    newPossible.UnionWith(response.NextPossible);
 
                     foreach (var message in response.Responses)
                         await message.Send(Bot);
                 }
+
+                NextCommands[from] = newPossible;
             }
             catch (Exception e)
             {

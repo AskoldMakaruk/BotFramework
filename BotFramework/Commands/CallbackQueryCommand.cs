@@ -7,7 +7,8 @@ using Telegram.Bot.Types.Enums;
 
 namespace BotFramework.Commands
 {
-    public abstract class CallbackQueryCommand : IStaticCommand
+    [StaticCommand]
+    public abstract class CallbackQueryCommand : ICommand
     {
         public abstract string Alias { get; }
 
