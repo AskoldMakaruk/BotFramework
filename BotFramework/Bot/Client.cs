@@ -61,6 +61,8 @@ namespace BotFramework.Bot
         public void Run()
         {
             Logger.Information("Starting bot...");
+            var me = Bot.GetMeAsync().Result;
+            Logger.Information("Name: {BotFirstName} UserName: @{BotName}", me.FirstName, me.Username);
             if (!UseWebhook)
             {
                 Bot.StartReceiving();
@@ -81,21 +83,23 @@ namespace BotFramework.Bot
             switch (update.Type)
             {
                 case UpdateType.Message:
-                    from     = update.Message.From.Id;
-                    fromName = update.Message.From.Username;
+                    var message = update.Message;
+                    from     = message.From.Id;
+                    fromName = message.From.Username;
                     switch (update.Message.Type)
                     {
                         case MessageType.Text:
-                            contents = update.Message.Text;
+                            contents = message.Text;
                             break;
                         case MessageType.Photo:
                         case MessageType.Audio:
                         case MessageType.Video:
                         case MessageType.Document:
-                            contents = update.Message.Caption;
-                            break;
+                            Logger.Debug("{UpdateType}.{MessageType} | {From} {Caption}", update.Type,
+                                update.Message.Type, fromName, message.Caption);
+                            return from;
                         case MessageType.Poll:
-                            contents = update.Poll.Question;
+                            contents = message.Poll.Question;
                             break;
                         case MessageType.ChatTitleChanged:
                             contents = update.Message.Chat.Title;
@@ -105,7 +109,7 @@ namespace BotFramework.Bot
                             return from;
                     }
 
-                    Logger.Debug("{UpdateType} {MessageType} | {From}: {Contents}", update.Type, update.Message.Type, fromName,
+                    Logger.Debug("{UpdateType}.{MessageType} | {From}: {Contents}", update.Type, update.Message.Type, fromName,
                         contents);
                     return from;
                 case UpdateType.InlineQuery:
