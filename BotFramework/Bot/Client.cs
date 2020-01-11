@@ -35,7 +35,8 @@ namespace BotFramework.Bot
                                 c.GetCustomAttributes(true)
                                  .Contains(typeof(StaticCommand)))) //TODO check only by attribute, i don't knkow how to do it'
                    .Select(Activator.CreateInstance)
-                   .Cast<T>();
+                   .Cast<T>()
+                   .ToList();
         }
 
         protected string Token      { get; }
@@ -161,7 +162,7 @@ namespace BotFramework.Bot
                         await message.Send(Bot);
                 }
 
-                NextCommands[from] = newPossible ?? new HashSet<ICommand>(StaticCommands);
+                NextCommands[from] = newPossible;
             }
             catch (Exception e)
             {
