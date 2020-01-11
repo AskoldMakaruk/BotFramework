@@ -18,7 +18,6 @@ namespace BotFramework.Bot
     public class Client
     {
         public    string       Name   { get; set; }
-        public    ClientStatus Status { get; set; }
         protected ILogger      Logger { get; set; }
 
         protected TelegramBotClient Bot { get; set; }
@@ -80,7 +79,29 @@ namespace BotFramework.Bot
                 case UpdateType.Message:
                     from     = update.Message.From.Id;
                     fromName = update.Message.From.Username;
-                    contents = update.Message.Text;
+                    switch (update.Message.Type)
+                    {
+                        case MessageType.Text:
+                            contents = update.Message.Text;
+                            break;
+                        case MessageType.Photo:
+                        case MessageType.Audio:
+                        case MessageType.Video:
+                        case MessageType.Document:
+                            contents = update.Message.Caption;
+                            break;
+                        case MessageType.Poll:
+                            contents = update.Poll.Question;
+                            break;
+                        case MessageType.ChatTitleChanged:
+                            contents = update.Message.Chat.Title;
+                            break;
+                        default:
+                            Logger.Debug("{UpdateType} {MessageType} | {From}", update.Type, update.Message.Type,
+                                fromName);
+                            return from;
+                    }
+
                     Logger.Debug("{UpdateType} {MessageType} | {From}: {Contents}", update.Type, update.Message.Type, fromName,
                         contents);
                     return from;
