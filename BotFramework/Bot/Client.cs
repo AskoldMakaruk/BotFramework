@@ -17,8 +17,8 @@ namespace BotFramework.Bot
 {
     public class Client
     {
-        public    string       Name   { get; set; }
-        protected ILogger      Logger { get; set; }
+        public    string  Name   { get; set; }
+        protected ILogger Logger { get; set; }
 
         protected TelegramBotClient Bot { get; set; }
 
@@ -97,8 +97,7 @@ namespace BotFramework.Bot
                             contents = update.Message.Chat.Title;
                             break;
                         default:
-                            Logger.Debug("{UpdateType} {MessageType} | {From}", update.Type, update.Message.Type,
-                                fromName);
+                            Logger.Debug("{UpdateType}.{MessageType} | {From}", update.Type, update.Message.Type, fromName);
                             return from;
                     }
 
@@ -181,7 +180,7 @@ namespace BotFramework.Bot
                     {
                         var newPossible = NextCommands[from].ToList();
                         newPossible.AddRange(StaticCommands);
-                        NextCommands[from] = newPossible;
+                        NextCommands[from] = newPossible.GroupBy(c => c.GetType()).Select(c => c.First());
                     }
 
                     foreach (var message in response.Responses)
