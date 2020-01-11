@@ -7,7 +7,7 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <AssemblyVersion>0.0.2.7</AssemblyVersion>
     <FileVersion>0.0.2.7</FileVersion>
-    <Version>0.2.7</Version>
+    <Version>0.2.8-dev-1</Version>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/AskoldMakaruk/BotFramework</PackageProjectUrl>
     <RepositoryUrl>https://github.com/AskoldMakaruk/BotFramework</RepositoryUrl>

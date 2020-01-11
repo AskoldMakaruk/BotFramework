@@ -81,7 +81,9 @@ namespace BotFramework.Bot
                     from     = update.Message.From.Id;
                     fromName = update.Message.From.Username;
                     contents = update.Message.Text;
-                    break;
+                    Logger.Debug("{UpdateType} {MessageType} | {From}: {Contents}", update.Type, update.Message.Type, fromName,
+                        contents);
+                    return from;
                 case UpdateType.InlineQuery:
                     from     = update.InlineQuery.From.Id;
                     fromName = update.InlineQuery.From.Username;
@@ -123,7 +125,7 @@ namespace BotFramework.Bot
                     contents = "";
                     break;
                 default:
-                    var ex = new NotImplementedException($"Whe don't support {update.Type} right now");
+                    var ex = new NotImplementedException($"We don't support {update.Type} right now");
                     Logger.Error(ex, ex.Message);
                     throw ex;
             }
