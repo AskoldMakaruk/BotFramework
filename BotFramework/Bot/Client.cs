@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using BotFramework.Commands;
@@ -22,21 +21,7 @@ namespace BotFramework.Bot
 
         protected TelegramBotClient Bot { get; set; }
 
-        protected IEnumerable<ICommand> StaticCommands { get; set; }
-
-        protected static IEnumerable<T> LoadTypeFromAssembly<T>(Assembly assembly, bool getStatic = false)
-        {
-            return assembly
-                   .GetTypes()
-                   .Where(t => (t.IsSubclassOf(typeof(T)) || t.GetInterfaces().Contains(typeof(T))) && !t.IsAbstract)
-                   .Where(c => !getStatic ||
-                               (c.GetInterfaces().Contains(typeof(IStaticCommand)) ||
-                                c.GetCustomAttributes(true)
-                                 .Contains(typeof(StaticCommand)))) //TODO check only by attribute, i don't knkow how to do it'
-                   .Select(Activator.CreateInstance)
-                   .Cast<T>()
-                   .ToList();
-        }
+        protected List<ICommand> StaticCommands { get; set; }
 
         protected string Token      { get; }
         protected bool   UseWebhook { get; set; }
@@ -50,11 +35,8 @@ namespace BotFramework.Bot
             Bot          = new TelegramBotClient(Token);
             NextCommands = new Dictionary<long, IEnumerable<ICommand>>();
 
-            var assembly = configuration.Assembly;
             Logger.Debug("Loading static commands...");
-
-            StaticCommands = LoadTypeFromAssembly<ICommand>(assembly, true);
-
+            StaticCommands = configuration.Commands.ToList();
             Logger.Debug("Loaded {StaticCommandsCount} commands.", StaticCommands.Count());
         }
 
