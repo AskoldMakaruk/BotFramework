@@ -1,4 +1,5 @@
-﻿using BotFramework.Bot;
+﻿using System;
+using BotFramework.Bot;
 using BotFramework.Responses;
 using Telegram.Bot.Types;
 
@@ -11,6 +12,9 @@ namespace BotFramework.Commands
         bool Suitable(Update message);
     }
 
-    //TODO maybe make [StaticAttibute] instead?
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface)]  
+    public class StaticCommand : Attribute { }
+
+    [StaticCommand]
     public interface IStaticCommand : ICommand { }
 }

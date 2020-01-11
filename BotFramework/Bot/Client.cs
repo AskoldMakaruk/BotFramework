@@ -22,16 +22,20 @@ namespace BotFramework.Bot
 
         protected TelegramBotClient Bot { get; set; }
 
-        protected IEnumerable<IStaticCommand> StaticCommands { get; set; }
+        protected IEnumerable<ICommand> StaticCommands { get; set; }
 
-        protected static IEnumerable<T> LoadTypeFromAssembly<T>(Assembly assembly)
+        protected static IEnumerable<T> LoadTypeFromAssembly<T>(Assembly assembly, bool getStatic = false)
         {
             return assembly
                    .GetTypes()
                    .Where(t => (t.IsSubclassOf(typeof(T)) || t.GetInterfaces().Contains(typeof(T))) && !t.IsAbstract)
+                   .Where(c => !getStatic ||
+                               (c.GetInterfaces().Contains(typeof(IStaticCommand)) ||
+                                c.GetCustomAttributes(true)
+                                 .Contains(typeof(StaticCommand)))) //TODO check only by attribute, i don't knkow how to do it'
                    .Select(Activator.CreateInstance)
                    .Cast<T>()
-                   .Where(c => c != null);
+                   .ToList();
         }
 
         protected string Token      { get; }
@@ -49,7 +53,7 @@ namespace BotFramework.Bot
             var assembly = configuration.Assembly;
             Logger.Debug("Loading static commands...");
 
-            StaticCommands = LoadTypeFromAssembly<IStaticCommand>(assembly);
+            StaticCommands = LoadTypeFromAssembly<ICommand>(assembly, true);
 
             Logger.Debug("Loaded {StaticCommandsCount} commands.", StaticCommands.Count());
         }
@@ -163,29 +167,24 @@ namespace BotFramework.Bot
                 NextCommands.Add(from, StaticCommands);
             }
 
-            var nextPossible = NextCommands[from];
+            var nextPossible = NextCommands[from].ToList();
 
             try
             {
                 var suitable = nextPossible.Where(t => t.Suitable(update)).ToList();
                 Logger.Debug("Suitable commands: {SuitableCommands}", string.Join(", ", suitable.Select(s => s.GetType().Name)));
+                var newPossible = new HashSet<ICommand>(StaticCommands);
                 foreach (var response in suitable.Select(t => t.Execute(update, this)))
                 {
-                    if (!response.UsePreviousCommands)
-                    {
-                        NextCommands[from] = response.NextPossible;
-                    }
-
-                    if (response.UseStaticCommands)
-                    {
-                        var newPossible = NextCommands[from].ToList();
-                        newPossible.AddRange(StaticCommands);
-                        NextCommands[from] = newPossible.GroupBy(c => c.GetType()).Select(c => c.First());
-                    }
+                    if (response.UsePreviousCommands)
+                        newPossible.UnionWith(nextPossible);
+                    newPossible.UnionWith(response.NextPossible);
 
                     foreach (var message in response.Responses)
                         await message.Send(Bot);
                 }
+
+                NextCommands[from] = newPossible;
             }
             catch (Exception e)
             {
