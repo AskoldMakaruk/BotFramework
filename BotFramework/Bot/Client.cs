@@ -31,7 +31,8 @@ namespace BotFramework.Bot
                    .Where(t => (t.IsSubclassOf(typeof(T)) || t.GetInterfaces().Contains(typeof(T))) && !t.IsAbstract)
                    .Select(Activator.CreateInstance)
                    .Cast<T>()
-                   .Where(c => c != null);
+                   .Where(c => c != null)
+                   .ToList();
         }
 
         protected string Token      { get; }
@@ -184,7 +185,7 @@ namespace BotFramework.Bot
                     {
                         var newPossible = NextCommands[from].ToList();
                         newPossible.AddRange(StaticCommands);
-                        NextCommands[from] = newPossible.GroupBy(c => c.GetType()).Select(c => c.First());
+                        NextCommands[from] = newPossible.GroupBy(c => c).Select(c => c.First());
                     }
 
                     foreach (var message in response.Responses)
