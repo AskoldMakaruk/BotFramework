@@ -1,6 +1,7 @@
 # BotFramework
 
-[![package](https://img.shields.io/nuget/v/BotFramework)](https://www.nuget.org/packages/BotFramework)
+[![package](https://img.shields.io/nuget/v/BotFramework)](https://www.nuget.org/packages/BotFramework) [![Nuget (with prereleases)](https://img.shields.io/nuget/vpre/BotFramework)](https://www.nuget.org/packages/BotFramework)
+
 [![Nuget](https://img.shields.io/nuget/dt/BotFramework)](https://www.nuget.org/packages/BotFramework)
 
 ## Echobot
