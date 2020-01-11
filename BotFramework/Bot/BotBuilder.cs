@@ -71,15 +71,19 @@ namespace BotFramework.Bot
             return this;
         }
 
-        private static IEnumerable<T> LoadTypeFromAssembly<T>(Assembly assembly)
+        protected static IEnumerable<T> LoadTypeFromAssembly<T>(Assembly assembly, bool getStatic = false)
         {
             return assembly
                    .GetTypes()
                    .Where(t => (t.IsSubclassOf(typeof(T)) || t.GetInterfaces().Contains(typeof(T))) && !t.IsAbstract)
+#pragma warning disable CS0618 // Type or member is obsolete
+                   .Where(c => !getStatic                                         ||
+                               c.GetInterfaces().Contains(typeof(IStaticCommand)) ||
+                               c.GetCustomAttributes(true)
+#pragma warning restore CS0618                                    // Type or member is obsolete
+                                .Contains(typeof(StaticCommand))) //TODO check only by attribute, i don't knkow how to do it'
                    .Select(Activator.CreateInstance)
-                   .Cast<T>()
-                   .Where(c => c != null)
-                   .ToList();
+                   .Cast<T>();
         }
     }
 }

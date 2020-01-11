@@ -12,9 +12,10 @@ namespace BotFramework.Commands
         bool Suitable(Update message);
     }
 
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface)]  
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface)]
     public class StaticCommand : Attribute { }
 
+    [Obsolete("Use [StaticCommand] instead")]
     [StaticCommand]
     public interface IStaticCommand : ICommand { }
 }

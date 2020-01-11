@@ -23,7 +23,8 @@ namespace EchoBot
         }
     }
 
-    public class EchoCommand : MessageCommand, IStaticCommand
+    [StaticCommand]
+    public class EchoCommand : MessageCommand
     {
         public override Response Execute(Message message, Client client)
         {
