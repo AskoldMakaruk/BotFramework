@@ -22,9 +22,9 @@ namespace BotFramework.Responses
             return this;
         }
 
-        public Response AddMessage(IResponseMessage message)
+        public Response AddMessage(params IResponseMessage[] messages)
         {
-            Responses.Add(message);
+            Responses.AddRange(messages);
             return this;
         }
     }
