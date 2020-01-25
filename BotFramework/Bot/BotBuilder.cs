@@ -3,17 +3,29 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using BotFramework.Commands;
+using Monad;
+using Serilog;
 using Serilog.Core;
 
 namespace BotFramework.Bot
 {
     public class BotBuilder
     {
-        private readonly BotConfiguration configuration;
+        class MBotConfiguration
+        {
+            public bool                  Webhook  { get; set; }
+            public Optional<string>      Token    { get; set; }
+            public Optional<string>      Name     { get; set; }
+            public Optional<Assembly>    Assembly { get; set; }
+            public Optional<ILogger>     Logger   { get; set; }
+            public IEnumerable<ICommand> Commands { get; set; } = new List<ICommand>();
+        }
+
+        private readonly MBotConfiguration configuration;
 
         public BotBuilder()
         {
-            configuration = new BotConfiguration
+            configuration = new MBotConfiguration
             {
                 Webhook = false
             };
@@ -21,18 +33,22 @@ namespace BotFramework.Bot
 
         public Client Build()
         {
-            if (configuration.Logger == null)
-            {
-                configuration.Logger = Logger.None;
-            }
+            var logger = configuration.Logger.FromOptional(Logger.None);
+            var commands =
+            configuration.Assembly.FromOptional(t => LoadTypeFromAssembly<ICommand>(t).Concat(configuration.Commands),
+                configuration.Commands);
+            var client = from name in configuration.Name
+                         from token in configuration.Token
+                         let botConf = new BotConfiguration
+                         {
+                             Name    = name, Token = token, Commands = commands.ToList(), Logger = logger,
+                             Webhook = configuration.Webhook
+                         }
+                         select new Client(botConf);
 
-            if (configuration.Commands == null)
-            {
-                configuration.Commands = LoadTypeFromAssembly<ICommand>(configuration.Assembly);
-            }
-
-            var client = new Client(configuration);
-            return client;
+            if (client.IsEmpty)
+                throw new ArgumentException("");
+            return client.FromOptional((Client) null);
         }
 
         public BotBuilder WithName(string name)
