@@ -37,7 +37,9 @@ namespace BotFramework.Bot
 
             Logger.Debug("Loading static commands...");
             StaticCommands = configuration.Commands.ToList();
-            Logger.Debug("Loaded {StaticCommandsCount} commands.", StaticCommands.Count());
+            Logger.Debug("Loaded {StaticCommandsCount} commands.", StaticCommands.Count);
+            Logger.Debug("{StaticCommands}",
+                string.Join(',', StaticCommands.Select(c => c.GetType().Name)));
         }
 
         public void Run()
