@@ -78,7 +78,7 @@ namespace BotFramework.Bot
                    .Where(t => (t.IsSubclassOf(typeof(T)) || t.GetInterfaces().Contains(typeof(T))) && !t.IsAbstract)
                    .Where(c => !getStatic &&
                                (c.GetInterfaces().Contains(typeof(IStaticCommand)) ||
-                                c.IsDefined(typeof(StaticCommand), false)))
+                                c.IsDefined(typeof(StaticCommandAttribute), false)))
                    .Select(Activator.CreateInstance)
                    .Cast<T>();
         }
