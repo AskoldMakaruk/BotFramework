@@ -11,21 +11,12 @@ using Telegram.Bot;
 using Telegram.Bot.Args;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
+using File = Telegram.Bot.Types.File;
 
 namespace BotFramework.Bot
 {
     public class Client
     {
-        public    string  Name   { get; set; }
-        protected ILogger Logger { get; set; }
-
-        protected TelegramBotClient Bot { get; set; }
-
-        protected List<ICommand> StaticCommands { get; set; }
-
-        protected string Token      { get; }
-        protected bool   UseWebhook { get; set; }
-
         protected internal Client(BotConfiguration configuration)
         {
             Token      = configuration.Token;
@@ -41,6 +32,18 @@ namespace BotFramework.Bot
             Logger.Debug("{StaticCommands}",
                 string.Join(',', StaticCommands.Select(c => c.GetType().Name)));
         }
+
+        public    string  Name   { get; set; }
+        protected ILogger Logger { get; set; }
+
+        protected TelegramBotClient Bot { get; set; }
+
+        protected List<ICommand> StaticCommands { get; set; }
+
+        protected string Token      { get; }
+        protected bool   UseWebhook { get; set; }
+
+        private static Dictionary<long, IEnumerable<ICommand>> NextCommands { get; set; }
 
         public void Run()
         {
@@ -58,8 +61,6 @@ namespace BotFramework.Bot
             new ManualResetEvent(false).WaitOne();
         }
 
-        private static Dictionary<long, IEnumerable<ICommand>> NextCommands { get; set; }
-
         private long GetIdFromUpdate(Update update)
         {
             long   from;
@@ -75,25 +76,28 @@ namespace BotFramework.Bot
                         case MessageType.Text:
                             contents = message.Text;
                             break;
+                        case MessageType.Sticker:
+                            contents = message.Sticker.SetName;
+                            break;
                         case MessageType.Photo:
                         case MessageType.Audio:
                         case MessageType.Video:
                         case MessageType.Document:
                             Logger.Debug("{UpdateType}.{MessageType} | {From} {Caption}", update.Type,
-                                update.Message.Type, fromName, message.Caption);
+                                message.Type, fromName, message.Caption);
                             return from;
                         case MessageType.Poll:
                             contents = message.Poll.Question;
                             break;
                         case MessageType.ChatTitleChanged:
-                            contents = update.Message.Chat.Title;
+                            contents = message.Chat.Title;
                             break;
                         default:
-                            Logger.Debug("{UpdateType}.{MessageType} | {From}", update.Type, update.Message.Type, fromName);
+                            Logger.Debug("{UpdateType}.{MessageType} | {From}", update.Type, message.Type, fromName);
                             return from;
                     }
 
-                    Logger.Debug("{UpdateType}.{MessageType} | {From}: {Contents}", update.Type, update.Message.Type, fromName,
+                    Logger.Debug("{UpdateType}.{MessageType} | {From}: {Contents}", update.Type, message.Type, fromName,
                         contents);
                     return from;
                 case UpdateType.InlineQuery:
@@ -150,10 +154,7 @@ namespace BotFramework.Bot
         {
             var from = GetIdFromUpdate(update);
 
-            if (!NextCommands.ContainsKey(from))
-            {
-                NextCommands.Add(from, StaticCommands);
-            }
+            if (!NextCommands.ContainsKey(from)) NextCommands.Add(from, StaticCommands);
 
             var nextPossible = NextCommands[from].ToList();
 
@@ -199,9 +200,14 @@ namespace BotFramework.Bot
             }
         }
 
-        public async Task<Telegram.Bot.Types.File> GetInfoAndDownloadFileAsync(string documentFileId, MemoryStream ms)
+        public async Task<File> GetInfoAndDownloadFileAsync(string documentFileId, MemoryStream ms)
         {
             return await Bot.GetInfoAndDownloadFileAsync(documentFileId, ms);
+        }
+
+        public async Task<StickerSet> GetStickerSetAsync(string name)
+        {
+            return await Bot.GetStickerSetAsync(name);
         }
     }
 }
