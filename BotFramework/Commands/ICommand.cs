@@ -13,7 +13,7 @@ namespace BotFramework.Commands
     }
 
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface)]
-    public class StaticCommand : Attribute { }
+    public class StaticCommandAttribute : Attribute { }
 
     [Obsolete("Use [StaticCommand] instead")]
     [StaticCommand]
