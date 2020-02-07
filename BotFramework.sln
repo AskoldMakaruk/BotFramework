@@ -5,7 +5,9 @@ VisualStudioVersion = 16.0.29424.173
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotFramework", "BotFramework\BotFramework.csproj", "{CFCAB9A8-2E06-4F92-9217-0050BD92405F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EchoBot", "BotFramework.Examples\EchoBot\EchoBot.csproj", "{D94297A4-E77B-4C57-812E-554F009E07AD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EchoBot", "BotFramework.Examples\EchoBot\EchoBot.csproj", "{D94297A4-E77B-4C57-812E-554F009E07AD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotFramework.Tests", "BotFramework.Tests\BotFramework.Tests.csproj", "{7F3FE3F6-58CE-40CD-942B-C0EC64982F9C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{D94297A4-E77B-4C57-812E-554F009E07AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D94297A4-E77B-4C57-812E-554F009E07AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D94297A4-E77B-4C57-812E-554F009E07AD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7F3FE3F6-58CE-40CD-942B-C0EC64982F9C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7F3FE3F6-58CE-40CD-942B-C0EC64982F9C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7F3FE3F6-58CE-40CD-942B-C0EC64982F9C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7F3FE3F6-58CE-40CD-942B-C0EC64982F9C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

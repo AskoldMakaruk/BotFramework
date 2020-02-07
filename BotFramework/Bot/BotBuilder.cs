@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using BotFramework.Commands;
 using Serilog.Core;
 
@@ -21,6 +22,28 @@ namespace BotFramework.Bot
 
         public Client Build()
         {
+            CheckConfiguration();
+            var client = new Client(configuration);
+            return client;
+        }
+
+        private void CheckConfiguration()
+        {
+            if (configuration.Token == null)
+            {
+                throw new ArgumentNullException(nameof(configuration.Token));
+            }
+
+            if (!Regex.IsMatch(configuration.Token, "\\d{9}:[0-9A-Za-z_-]{35}"))
+            {
+                throw new ArgumentException("Invalid telegram api token.");
+            }
+
+            if (configuration.Assembly == null && configuration.Commands == null)
+            {
+                throw new ArgumentException("You must supply assembly or commands");
+            }
+
             if (configuration.Logger == null)
             {
                 configuration.Logger = Logger.None;
@@ -30,9 +53,6 @@ namespace BotFramework.Bot
             {
                 configuration.Commands = LoadTypeFromAssembly<ICommand>(configuration.Assembly);
             }
-
-            var client = new Client(configuration);
-            return client;
         }
 
         public BotBuilder WithName(string name)
