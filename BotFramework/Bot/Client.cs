@@ -199,15 +199,20 @@ namespace BotFramework.Bot
                 Logger.Error(ex, "Error handling command.");
             }
         }
-        
+
         public async Task<File> GetInfoAndDownloadFileAsync(string documentFileId, Stream ms)
         {
             return await Bot.GetInfoAndDownloadFileAsync(documentFileId, ms);
         }
-        
+
         public async Task<StickerSet> GetStickerSetAsync(string name)
         {
             return await Bot.GetStickerSetAsync(name);
+        }
+
+        public async Task<UserProfilePhotos> GetUserProfilePhotosAsync(int userId, int offset = 0, int limit = 0)
+        {
+            return await Bot.GetUserProfilePhotosAsync(userId, offset, limit);
         }
     }
 }
