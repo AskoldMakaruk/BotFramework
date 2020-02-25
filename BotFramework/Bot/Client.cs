@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using BotFramework.Commands;
@@ -18,14 +20,21 @@ namespace BotFramework.Bot
 {
     public class Client
     {
+        private class GetOnlyClient : TelegramBotClient, IGetOnlyClient
+        {
+            public GetOnlyClient(string token, HttpClient httpClient = null) : base(token, httpClient) { }
+            public GetOnlyClient(string token, IWebProxy  webProxy) : base(token, webProxy) { }
+        }
+
         public    string  Name   { get; set; }
         protected ILogger Logger { get; set; }
 
-        protected TelegramBotClient Bot { get; set; }
+        protected virtual TelegramBotClient Bot => bot;
+        private GetOnlyClient bot { get; set; }
 
         protected List<ICommand> StaticCommands  { get; set; }
         protected List<ICommand> OnStartCommands { get; set; }
-        
+
         protected string Token      { get; }
         protected bool   UseWebhook { get; set; }
 
@@ -35,11 +44,11 @@ namespace BotFramework.Bot
             UseWebhook = configuration.Webhook;
             Logger     = configuration.Logger;
 
-            Bot          = new TelegramBotClient(Token);
+            bot          = new GetOnlyClient(Token);
             NextCommands = new Dictionary<long, IEnumerable<ICommand>>();
 
             Logger.Debug("Loading static commands...");
-            StaticCommands = configuration.Commands;
+            StaticCommands  = configuration.Commands;
             OnStartCommands = configuration.OnStartCommands;
             Logger.Debug("Loaded {StaticCommandsCount} commands.", StaticCommands.Count);
             Logger.Debug("{StaticCommands}",
@@ -49,15 +58,15 @@ namespace BotFramework.Bot
         public void Run()
         {
             Logger.Information("Starting bot...");
-            var me = Bot.GetMeAsync().Result;
+            var me = bot.GetMeAsync().Result;
             Logger.Information("Name: {BotFirstName} UserName: @{BotName}", me.FirstName, me.Username);
             if (!UseWebhook)
             {
-                Bot.StartReceiving();
-                Bot.DeleteWebhookAsync();
+                bot.StartReceiving();
+                bot.DeleteWebhookAsync();
             }
 
-            Bot.OnUpdate += OnUpdateReceived;
+            bot.OnUpdate += OnUpdateReceived;
 
             new ManualResetEvent(false).WaitOne();
         }
@@ -169,14 +178,14 @@ namespace BotFramework.Bot
                 var suitable = nextPossible.Where(t => t.Suitable(update)).ToList();
                 Logger.Debug("Suitable commands: {SuitableCommands}", string.Join(", ", suitable.Select(s => s.GetType().Name)));
                 var newPossible = new HashSet<ICommand>(StaticCommands);
-                foreach (var response in suitable.Select(t => t.Execute(update, this)))
+                foreach (var response in suitable.Select(t => t.Execute(update, bot)))
                 {
                     if (response.UsePreviousCommands)
                         newPossible.UnionWith(nextPossible);
                     newPossible.UnionWith(response.NextPossible);
 
                     foreach (var message in response.Responses)
-                        await message.Send(Bot);
+                        await message.Send(bot);
                 }
 
                 NextCommands[from] = newPossible;
@@ -206,14 +215,5 @@ namespace BotFramework.Bot
             }
         }
 
-        public async Task<File> GetInfoAndDownloadFileAsync(string documentFileId, MemoryStream ms)
-        {
-            return await Bot.GetInfoAndDownloadFileAsync(documentFileId, ms);
-        }
-
-        public async Task<StickerSet> GetStickerSetAsync(string name)
-        {
-            return await Bot.GetStickerSetAsync(name);
-        }
     }
 }

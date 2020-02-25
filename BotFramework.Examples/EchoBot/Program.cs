@@ -26,7 +26,7 @@ namespace EchoBot
     [StaticCommand]
     public class EchoCommand : MessageCommand
     {
-        public override Response Execute(Message message, Client client)
+        public override Response Execute(Message message, IGetOnlyClient client)
         {
             return new Response().AddMessage(new TextMessage(message.Chat.Id, message.Text));
         }

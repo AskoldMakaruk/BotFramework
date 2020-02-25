@@ -12,10 +12,10 @@ namespace BotFramework.Commands
     {
         public abstract string Alias { get; }
 
-        public Response Execute(Update update, Client client) =>
+        public Response Execute(Update update, IGetOnlyClient client) =>
         Execute(update.CallbackQuery, client, UnpackParams(update.CallbackQuery.Data));
 
-        public abstract Response Execute(CallbackQuery message, Client client, Dictionary<string, string> values);
+        public abstract Response Execute(CallbackQuery message, IGetOnlyClient client, Dictionary<string, string> values);
 
         public bool Suitable(Update message)
         {
