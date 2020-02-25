@@ -5,13 +5,13 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using BotFramework.Commands;
-using Monad;
 using Newtonsoft.Json;
 using Serilog;
 using Telegram.Bot;
 using Telegram.Bot.Args;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
+using File = Telegram.Bot.Types.File;
 
 namespace BotFramework.Bot
 {
@@ -39,7 +39,9 @@ namespace BotFramework.Bot
 
             Logger.Debug("Loading static commands...");
             StaticCommands = configuration.Commands.ToList();
-            Logger.Debug("Loaded {StaticCommandsCount} commands.", StaticCommands.Count());
+            Logger.Debug("Loaded {StaticCommandsCount} commands.", StaticCommands.Count);
+            Logger.Debug("{StaticCommands}",
+                string.Join(',', StaticCommands.Select(c => c.GetType().Name)));
         }
 
         public void Run()
@@ -75,6 +77,9 @@ namespace BotFramework.Bot
                         case MessageType.Text:
                             contents = message.Text;
                             break;
+                        case MessageType.Sticker:
+                            contents = message.Sticker.SetName;
+                            break;
                         case MessageType.Photo:
                         case MessageType.Audio:
                         case MessageType.Video:
@@ -86,14 +91,14 @@ namespace BotFramework.Bot
                             contents = message.Poll.Question;
                             break;
                         case MessageType.ChatTitleChanged:
-                            contents = update.Message.Chat.Title;
+                            contents = message.Chat.Title;
                             break;
                         default:
-                            Logger.Debug("{UpdateType}.{MessageType} | {From}", update.Type, update.Message.Type, fromName);
+                            Logger.Debug("{UpdateType}.{MessageType} | {From}", update.Type, message.Type, fromName);
                             return from;
                     }
 
-                    Logger.Debug("{UpdateType}.{MessageType} | {From}: {Contents}", update.Type, update.Message.Type, fromName,
+                    Logger.Debug("{UpdateType}.{MessageType} | {From}: {Contents}", update.Type, message.Type, fromName,
                         contents);
                     return from;
                 case UpdateType.InlineQuery:
@@ -199,9 +204,14 @@ namespace BotFramework.Bot
             }
         }
 
-        public async Task<Telegram.Bot.Types.File> GetInfoAndDownloadFileAsync(string documentFileId, MemoryStream ms)
+        public async Task<File> GetInfoAndDownloadFileAsync(string documentFileId, MemoryStream ms)
         {
             return await Bot.GetInfoAndDownloadFileAsync(documentFileId, ms);
+        }
+
+        public async Task<StickerSet> GetStickerSetAsync(string name)
+        {
+            return await Bot.GetStickerSetAsync(name);
         }
     }
 }

@@ -98,12 +98,9 @@ namespace BotFramework.Bot
             return assembly
                    .GetTypes()
                    .Where(t => (t.IsSubclassOf(typeof(T)) || t.GetInterfaces().Contains(typeof(T))) && !t.IsAbstract)
-#pragma warning disable CS0618 // Type or member is obsolete
-                   .Where(c => !getStatic                                         ||
-                               c.GetInterfaces().Contains(typeof(IStaticCommand)) ||
-                               c.GetCustomAttributes(true)
-#pragma warning restore CS0618                                    // Type or member is obsolete
-                                .Contains(typeof(StaticCommand))) //TODO check only by attribute, i don't knkow how to do it'
+                   .Where(c => !getStatic &&
+                               (c.GetInterfaces().Contains(typeof(IStaticCommand)) ||
+                                c.IsDefined(typeof(StaticCommandAttribute), true)))
                    .Select(Activator.CreateInstance)
                    .Cast<T>();
         }
