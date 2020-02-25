@@ -11,6 +11,7 @@ using Telegram.Bot;
 using Telegram.Bot.Args;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
+using Optional;
 using File = Telegram.Bot.Types.File;
 
 namespace BotFramework.Bot
@@ -23,7 +24,7 @@ namespace BotFramework.Bot
         protected TelegramBotClient Bot { get; set; }
 
         protected List<ICommand> StaticCommands  { get; set; }
-        protected Optional<ICommand> OnStartCommand { get; set; }
+        protected List<ICommand> OnStartCommands { get; set; }
         
         protected string Token      { get; }
         protected bool   UseWebhook { get; set; }
@@ -38,7 +39,8 @@ namespace BotFramework.Bot
             NextCommands = new Dictionary<long, IEnumerable<ICommand>>();
 
             Logger.Debug("Loading static commands...");
-            StaticCommands = configuration.Commands.ToList();
+            StaticCommands = configuration.Commands;
+            OnStartCommands = configuration.OnStartCommands;
             Logger.Debug("Loaded {StaticCommandsCount} commands.", StaticCommands.Count);
             Logger.Debug("{StaticCommands}",
                 string.Join(',', StaticCommands.Select(c => c.GetType().Name)));
@@ -157,7 +159,7 @@ namespace BotFramework.Bot
 
             if (!NextCommands.ContainsKey(from))
             {
-                NextCommands.Add(from, OnStartCommand.FromOptional(t => Enumerable.Repeat(t,1), StaticCommands));
+                NextCommands.Add(from, OnStartCommands.Concat(StaticCommands));
             }
 
             var nextPossible = NextCommands[from].ToList();

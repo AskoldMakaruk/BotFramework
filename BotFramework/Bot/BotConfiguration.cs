@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Reflection;
 using BotFramework.Commands;
-using Monad;
+using Optional;
 using Serilog;
 
 namespace BotFramework.Bot
@@ -12,7 +12,7 @@ namespace BotFramework.Bot
         public string                Token    { get; set; }
         public string                Name     { get; set; }
         public ILogger               Logger   { get; set; }
-        public List<ICommand> Commands { get; set; }
-        public Optional<ICommand> OnStartCommand { get; set; }
+        public List<ICommand> Commands { get; set; } = new List<ICommand>();
+        public List<ICommand> OnStartCommands { get; set; } = new List<ICommand>();
     }
 }

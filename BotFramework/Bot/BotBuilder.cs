@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using BotFramework.Commands;
-using Monad;
+using Optional;
 using Serilog;
 using Serilog.Core;
 
@@ -13,13 +13,13 @@ namespace BotFramework.Bot
     {
         class MBotConfiguration
         {
-            public bool                  Webhook  { get; set; }
-            public Optional<string>      Token    { get; set; }
-            public Optional<string>      Name     { get; set; }
-            public Optional<Assembly>    Assembly { get; set; }
-            public Optional<ILogger>     Logger   { get; set; }
-            public IEnumerable<ICommand> Commands { get; set; } = new List<ICommand>();
-            public Optional<ICommand> OnStartCommand { get; set; } 
+            public bool               Webhook         { get; set; }
+            public Optional<string>   Token           { get; set; }
+            public Optional<string>   Name            { get; set; }
+            public Optional<Assembly> Assembly        { get; set; }
+            public Optional<ILogger>  Logger          { get; set; }
+            public List<ICommand>     Commands        { get; set; } = new List<ICommand>();
+            public List<ICommand>     OnStartCommands { get; set; } = new List<ICommand>();
         }
 
         private readonly MBotConfiguration configuration;
@@ -35,15 +35,20 @@ namespace BotFramework.Bot
         public Client Build()
         {
             var logger = configuration.Logger.FromOptional(Logger.None);
-            var commands =
-            configuration.Assembly.FromOptional(t => LoadTypeFromAssembly<ICommand>(t).Concat(configuration.Commands),
+            var (staticCommands, onStartCommands) =
+            configuration.Assembly.FromOptional(
+                assembly => (GetStaticCommands(assembly).Concat(configuration.Commands).ToList(),
+                                GetOnStartCommand(assembly).Concat(configuration.OnStartCommands).ToList()),
+                (configuration.Commands, configuration.OnStartCommands));
+            configuration.Assembly.FromOptional(assembly => GetStaticCommands(assembly).Concat(configuration.Commands),
                 configuration.Commands);
             var client = from name in configuration.Name
                          from token in configuration.Token
                          let botConf = new BotConfiguration
                          {
-                             Name    = name, Token = token, Commands = commands.ToList(), Logger = logger,
-                             Webhook = configuration.Webhook, OnStartCommand = configuration.OnStartCommand
+                             Name    = name, Token = token, Commands = staticCommands,
+                             Logger  = logger,
+                             Webhook = configuration.Webhook, OnStartCommands = onStartCommands
                          }
                          select new Client(botConf);
 
@@ -82,27 +87,45 @@ namespace BotFramework.Bot
             return this;
         }
 
-        public BotBuilder WithStaticCommands(IEnumerable<ICommand> commands)
+        public BotBuilder WithStaticCommands(List<ICommand> commands)
         {
             configuration.Commands = commands;
             return this;
         }
-        public BotBuilder OnStartCommand(ICommand command)
+
+        public BotBuilder OnStartCommand(List<ICommand> command)
         {
-            configuration.OnStartCommand = command.ToOptional();
+            configuration.OnStartCommands = command;
             return this;
         }
 
-        protected static IEnumerable<T> LoadTypeFromAssembly<T>(Assembly assembly, bool getStatic = false)
+        protected static List<ICommand> GetStaticCommands(Assembly assembly)
         {
             return assembly
                    .GetTypes()
-                   .Where(t => (t.IsSubclassOf(typeof(T)) || t.GetInterfaces().Contains(typeof(T))) && !t.IsAbstract)
-                   .Where(c => !getStatic &&
-                               (c.GetInterfaces().Contains(typeof(IStaticCommand)) ||
-                                c.IsDefined(typeof(StaticCommandAttribute), true)))
+                   .Where(t => (t.IsSubclassOf(typeof(ICommand)) || t.GetInterfaces().Contains(typeof(ICommand))) &&
+                               !t.IsAbstract)
+                   .Where(c =>
+#pragma warning disable 618
+                   (c.GetInterfaces().Contains(typeof(IStaticCommand)) ||
+#pragma warning restore 618
+                    c.IsDefined(typeof(StaticCommandAttribute), true)))
                    .Select(Activator.CreateInstance)
-                   .Cast<T>();
+                   .Cast<ICommand>()
+                   .ToList();
+        }
+
+        protected static List<ICommand> GetOnStartCommand(Assembly assembly)
+        {
+            return assembly
+                   .GetTypes()
+                   .Where(t => (t.IsSubclassOf(typeof(ICommand)) || t.GetInterfaces().Contains(typeof(ICommand))) &&
+                               !t.IsAbstract)
+                   .Where(c =>
+                   c.IsDefined(typeof(OnStartCommand), true))
+                   .Select(Activator.CreateInstance)
+                   .Cast<ICommand>()
+                   .ToList();
         }
     }
 }
