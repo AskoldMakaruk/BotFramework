@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using BotFramework.Commands;
+using Monad;
 using Newtonsoft.Json;
 using Serilog;
 using Telegram.Bot;
@@ -21,8 +22,9 @@ namespace BotFramework.Bot
 
         protected TelegramBotClient Bot { get; set; }
 
-        protected List<ICommand> StaticCommands { get; set; }
-
+        protected List<ICommand> StaticCommands  { get; set; }
+        protected Optional<ICommand> OnStartCommand { get; set; }
+        
         protected string Token      { get; }
         protected bool   UseWebhook { get; set; }
 
@@ -150,7 +152,7 @@ namespace BotFramework.Bot
 
             if (!NextCommands.ContainsKey(from))
             {
-                NextCommands.Add(from, StaticCommands);
+                NextCommands.Add(from, OnStartCommand.FromOptional(t => Enumerable.Repeat(t,1), StaticCommands));
             }
 
             var nextPossible = NextCommands[from].ToList();

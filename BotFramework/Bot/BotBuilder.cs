@@ -19,6 +19,7 @@ namespace BotFramework.Bot
             public Optional<Assembly>    Assembly { get; set; }
             public Optional<ILogger>     Logger   { get; set; }
             public IEnumerable<ICommand> Commands { get; set; } = new List<ICommand>();
+            public Optional<ICommand> OnStartCommand { get; set; } 
         }
 
         private readonly MBotConfiguration configuration;
@@ -42,7 +43,7 @@ namespace BotFramework.Bot
                          let botConf = new BotConfiguration
                          {
                              Name    = name, Token = token, Commands = commands.ToList(), Logger = logger,
-                             Webhook = configuration.Webhook
+                             Webhook = configuration.Webhook, OnStartCommand = configuration.OnStartCommand
                          }
                          select new Client(botConf);
 
@@ -84,6 +85,11 @@ namespace BotFramework.Bot
         public BotBuilder WithStaticCommands(IEnumerable<ICommand> commands)
         {
             configuration.Commands = commands;
+            return this;
+        }
+        public BotBuilder OnStartCommand(ICommand command)
+        {
+            configuration.OnStartCommand = command.ToOptional();
             return this;
         }
 

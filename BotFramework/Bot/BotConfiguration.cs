@@ -13,5 +13,6 @@ namespace BotFramework.Bot
         public string                Name     { get; set; }
         public ILogger               Logger   { get; set; }
         public List<ICommand> Commands { get; set; }
+        public Optional<ICommand> OnStartCommand { get; set; }
     }
 }
