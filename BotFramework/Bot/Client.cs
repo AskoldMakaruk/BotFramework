@@ -18,6 +18,12 @@ using File = Telegram.Bot.Types.File;
 
 namespace BotFramework.Bot
 {
+    public class AClient : Client
+    {
+        protected internal AClient(BotConfiguration configuration) : base(configuration) { }
+        protected override TelegramBotClient Bot { get; }
+    }
+
     public class Client
     {
         private class GetOnlyClient : TelegramBotClient, IGetOnlyClient
@@ -29,8 +35,9 @@ namespace BotFramework.Bot
         public    string  Name   { get; set; }
         protected ILogger Logger { get; set; }
 
-        protected virtual TelegramBotClient Bot => bot;
-        private GetOnlyClient bot { get; set; }
+        protected virtual IGetOnlyClient GetOnlyBot => _bot;
+        protected virtual TelegramBotClient Bot => _bot;
+        private GetOnlyClient _bot { get; set; }
 
         protected List<ICommand> StaticCommands  { get; set; }
         protected List<ICommand> OnStartCommands { get; set; }
@@ -44,7 +51,7 @@ namespace BotFramework.Bot
             UseWebhook = configuration.Webhook;
             Logger     = configuration.Logger;
 
-            bot          = new GetOnlyClient(Token);
+            _bot          = new GetOnlyClient(Token);
             NextCommands = new Dictionary<long, IEnumerable<ICommand>>();
 
             Logger.Debug("Loading static commands...");
@@ -58,15 +65,15 @@ namespace BotFramework.Bot
         public void Run()
         {
             Logger.Information("Starting bot...");
-            var me = bot.GetMeAsync().Result;
+            var me = Bot.GetMeAsync().Result;
             Logger.Information("Name: {BotFirstName} UserName: @{BotName}", me.FirstName, me.Username);
             if (!UseWebhook)
             {
-                bot.StartReceiving();
-                bot.DeleteWebhookAsync();
+                Bot.StartReceiving();
+                Bot.DeleteWebhookAsync();
             }
 
-            bot.OnUpdate += OnUpdateReceived;
+            Bot.OnUpdate += OnUpdateReceived;
 
             new ManualResetEvent(false).WaitOne();
         }
@@ -178,14 +185,14 @@ namespace BotFramework.Bot
                 var suitable = nextPossible.Where(t => t.Suitable(update)).ToList();
                 Logger.Debug("Suitable commands: {SuitableCommands}", string.Join(", ", suitable.Select(s => s.GetType().Name)));
                 var newPossible = new HashSet<ICommand>(StaticCommands);
-                foreach (var response in suitable.Select(t => t.Execute(update, bot)))
+                foreach (var response in suitable.Select(t => t.Execute(update, GetOnlyBot)))
                 {
                     if (response.UsePreviousCommands)
                         newPossible.UnionWith(nextPossible);
                     newPossible.UnionWith(response.NextPossible);
 
                     foreach (var message in response.Responses)
-                        await message.Send(bot);
+                        await message.Send(Bot);
                 }
 
                 NextCommands[from] = newPossible;
