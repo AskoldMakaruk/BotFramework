@@ -1,61 +1,48 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
-using BotFramework.Commands;
+﻿using BotFramework.Commands;
 using Newtonsoft.Json;
 using Serilog;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
+using System.Threading;
 using Telegram.Bot;
 using Telegram.Bot.Args;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using Optional;
-using File = Telegram.Bot.Types.File;
 
 namespace BotFramework.Bot
 {
-    public class AClient : Client
-    {
-        protected internal AClient(BotConfiguration configuration) : base(configuration) { }
-        protected override TelegramBotClient Bot { get; }
-    }
-
     public class Client
     {
         private class GetOnlyClient : TelegramBotClient, IGetOnlyClient
         {
             public GetOnlyClient(string token, HttpClient httpClient = null) : base(token, httpClient) { }
-            public GetOnlyClient(string token, IWebProxy  webProxy) : base(token, webProxy) { }
         }
 
-        public    string  Name   { get; set; }
         protected ILogger Logger { get; set; }
 
         protected virtual IGetOnlyClient GetOnlyBot => _bot;
         protected virtual TelegramBotClient Bot => _bot;
         private GetOnlyClient _bot { get; set; }
 
-        protected List<ICommand> StaticCommands  { get; set; }
+        protected List<ICommand> StaticCommands { get; set; }
         protected List<ICommand> OnStartCommands { get; set; }
 
-        protected string Token      { get; }
-        protected bool   UseWebhook { get; set; }
+        protected string Token { get; }
+        protected bool UseWebhook { get; set; }
 
         protected internal Client(BotConfiguration configuration)
         {
-            Token      = configuration.Token;
+            Token = configuration.Token;
             UseWebhook = configuration.Webhook;
-            Logger     = configuration.Logger;
+            Logger = configuration.Logger;
 
-            _bot          = new GetOnlyClient(Token);
+            _bot = new GetOnlyClient(Token);
             NextCommands = new Dictionary<long, IEnumerable<ICommand>>();
 
             Logger.Debug("Loading static commands...");
-            StaticCommands  = configuration.Commands;
+            StaticCommands = configuration.Commands;
             OnStartCommands = configuration.OnStartCommands;
             Logger.Debug("Loaded {StaticCommandsCount} commands.", StaticCommands.Count);
             Logger.Debug("{StaticCommands}",
@@ -82,13 +69,13 @@ namespace BotFramework.Bot
 
         private long GetIdFromUpdate(Update update)
         {
-            long   from;
+            long from;
             string fromName, contents;
             switch (update.Type)
             {
                 case UpdateType.Message:
                     var message = update.Message;
-                    from     = message.From.Id;
+                    from = message.From.Id;
                     fromName = message.From.Username;
                     switch (update.Message.Type)
                     {
@@ -120,42 +107,42 @@ namespace BotFramework.Bot
                         contents);
                     return from;
                 case UpdateType.InlineQuery:
-                    from     = update.InlineQuery.From.Id;
+                    from = update.InlineQuery.From.Id;
                     fromName = update.InlineQuery.From.Username;
                     contents = update.InlineQuery.Query;
                     break;
                 case UpdateType.ChosenInlineResult:
-                    from     = update.ChosenInlineResult.From.Id;
+                    from = update.ChosenInlineResult.From.Id;
                     fromName = update.ChosenInlineResult.From.Username;
                     contents = update.ChosenInlineResult.Query;
                     break;
                 case UpdateType.CallbackQuery:
-                    from     = update.CallbackQuery.From.Id;
+                    from = update.CallbackQuery.From.Id;
                     fromName = update.CallbackQuery.From.Username;
                     contents = update.CallbackQuery.Data;
                     break;
                 case UpdateType.EditedMessage:
-                    from     = update.EditedMessage.From.Id;
+                    from = update.EditedMessage.From.Id;
                     fromName = update.EditedMessage.From.Username;
                     contents = update.EditedMessage.Text;
                     break;
                 case UpdateType.ChannelPost:
-                    from     = update.ChannelPost.From.Id;
+                    from = update.ChannelPost.From.Id;
                     fromName = update.ChannelPost.From.Username;
                     contents = update.ChannelPost.Text;
                     break;
                 case UpdateType.EditedChannelPost:
-                    from     = update.EditedChannelPost.From.Id;
+                    from = update.EditedChannelPost.From.Id;
                     fromName = update.EditedChannelPost.From.Username;
                     contents = update.EditedChannelPost.Text;
                     break;
                 case UpdateType.ShippingQuery:
-                    from     = update.ShippingQuery.From.Id;
+                    from = update.ShippingQuery.From.Id;
                     fromName = update.ShippingQuery.From.Username;
                     contents = update.ShippingQuery.InvoicePayload;
                     break;
                 case UpdateType.PreCheckoutQuery:
-                    from     = update.PreCheckoutQuery.From.Id;
+                    from = update.PreCheckoutQuery.From.Id;
                     fromName = update.PreCheckoutQuery.From.Username;
                     contents = "";
                     break;
@@ -221,6 +208,5 @@ namespace BotFramework.Bot
                 Logger.Error(ex, "Error handling command.");
             }
         }
-
     }
 }

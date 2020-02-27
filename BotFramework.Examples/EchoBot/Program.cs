@@ -1,7 +1,6 @@
 ﻿using BotFramework.Bot;
 using BotFramework.Commands;
 using BotFramework.Responses;
-using Serilog;
 using Telegram.Bot.Types;
 
 namespace EchoBot
@@ -12,12 +11,8 @@ namespace EchoBot
         {
             new BotBuilder()
             .UseAssembly(typeof(Program).Assembly)
-            .WithName("EchoBot")
             .WithToken("<YOURTOKEN>")
-            .UseLogger(new LoggerConfiguration()
-                       .MinimumLevel.Debug()
-                       .WriteTo.Console()
-                       .CreateLogger())
+            .UseConsoleLogger()
             .Build()
             .Run();
         }
