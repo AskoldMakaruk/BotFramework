@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using BotFramework.Commands;
 using Optional;
 using Serilog;
@@ -11,22 +12,11 @@ namespace BotFramework.Bot
 {
     public class BotBuilder
     {
-        class MBotConfiguration
-        {
-            public bool               Webhook         { get; set; }
-            public Optional<string>   Token           { get; set; }
-            public Optional<string>   Name            { get; set; }
-            public Optional<Assembly> Assembly        { get; set; }
-            public Optional<ILogger>  Logger          { get; set; }
-            public List<ICommand>     Commands        { get; set; } = new List<ICommand>();
-            public List<ICommand>     OnStartCommands { get; set; } = new List<ICommand>();
-        }
-
-        private readonly MBotConfiguration configuration;
+        private readonly BotConfiguration configuration;
 
         public BotBuilder()
         {
-            configuration = new MBotConfiguration
+            configuration = new BotConfiguration
             {
                 Webhook = false
             };
@@ -34,6 +24,32 @@ namespace BotFramework.Bot
 
         public Client Build()
         {
+            CheckConfiguration();
+            var client = new Client(configuration);
+            return client;
+        }
+
+        private void CheckConfiguration()
+        {
+            if (configuration.Token == null)
+            {
+                throw new ArgumentNullException(nameof(configuration.Token));
+            }
+
+            if (!Regex.IsMatch(configuration.Token, "\\d{9}:[0-9A-Za-z_-]{35}"))
+            {
+                throw new ArgumentException("Invalid telegram api token.");
+            }
+
+            if (configuration.Assembly == null && configuration.Commands == null)
+            {
+                throw new ArgumentException("You must supply assembly or commands");
+            }
+
+            if (configuration.Logger == null)
+            {
+                configuration.Logger = Logger.None;
+            }
             var logger = configuration.Logger.FromOptional(Logger.None);
             var (staticCommands, onStartCommands) =
             configuration.Assembly.FromOptional(
@@ -55,6 +71,10 @@ namespace BotFramework.Bot
             if (client.IsEmpty)
                 throw new ArgumentException("");
             return client.FromOptional((Client) null);
+            if (configuration.Commands == null)
+            {
+                configuration.Commands = LoadTypeFromAssembly<ICommand>(configuration.Assembly);
+            }
         }
 
         public BotBuilder WithName(string name)
@@ -103,6 +123,9 @@ namespace BotFramework.Bot
         {
             return assembly
                    .GetTypes()
+                   .Where(t => (t.IsSubclassOf(typeof(T)) || t.GetInterfaces().Contains(typeof(T))) && !t.IsAbstract)
+                   .Where(c => !getStatic &&
+                               c.IsDefined(typeof(StaticCommandAttribute), true))
                    .Where(t => (t.IsSubclassOf(typeof(ICommand)) || t.GetInterfaces().Contains(typeof(ICommand))) &&
                                !t.IsAbstract)
                    .Where(c =>

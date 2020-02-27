@@ -16,8 +16,4 @@ namespace BotFramework.Commands
     public class StaticCommandAttribute : Attribute { }
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface)]
     public class OnStartCommand : Attribute { }
-
-    [Obsolete("Use [StaticCommand] instead")]
-    [StaticCommand]
-    public interface IStaticCommand : ICommand { }
 }
