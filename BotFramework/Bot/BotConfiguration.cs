@@ -10,6 +10,6 @@ namespace BotFramework.Bot
         public string Token { get; set; }
         public ILogger Logger { get; set; }
         public List<ICommand> Commands { get; set; } = new List<ICommand>();
-        public List<ICommand> OnStartCommands { get; set; } = new List<ICommand>();
+        public List<ICommand> StartCommands { get; set; } = new List<ICommand>();
     }
 }

@@ -29,6 +29,12 @@ namespace BotFramework.Bot
             return client;
         }
 
+        public BotConfiguration BuildConfiguration()
+        {
+            CheckConfiguration();
+            return configuration;
+        }
+
         private void CheckConfiguration()
         {
             if (configuration.Token == null)
@@ -48,17 +54,17 @@ namespace BotFramework.Bot
 
             configuration.Logger??=Logger.None;
 
-            (configuration.Commands, configuration.OnStartCommands) =
+            (configuration.Commands, configuration.StartCommands) =
             _assembly != null
             ? (
                   GetStaticCommands(_assembly)
                   .Concat(configuration.Commands)
                   .ToList(),
                   GetOnStartCommand(_assembly)
-                  .Concat(configuration.OnStartCommands)
+                  .Concat(configuration.StartCommands)
                   .ToList()
               )
-            : (configuration.Commands, configuration.OnStartCommands);
+            : (configuration.Commands, configuration.StartCommands);
         }
 
         public BotBuilder WithToken(string token)
@@ -94,17 +100,28 @@ namespace BotFramework.Bot
             return this;
         }
 
-        public BotBuilder WithStaticCommands(List<ICommand> commands)
+        public BotBuilder WithStaticCommands(params ICommand[] commands)
         {
-            configuration.Commands = commands;
+            return WithStaticCommands(commands.ToList());
+        }
+
+        public BotBuilder WithStaticCommands(IEnumerable<ICommand> commands)
+        {
+            configuration.Commands = commands.ToList();
             return this;
         }
 
-        public BotBuilder OnStartCommand(List<ICommand> command)
+        public BotBuilder WithStartCommands(params ICommand[] commands)
         {
-            configuration.OnStartCommands = command;
+            return WithStartCommands(commands.ToList());
+        }
+
+        public BotBuilder WithStartCommands(IEnumerable<ICommand> commands)
+        {
+            configuration.StartCommands = commands.ToList();
             return this;
         }
+       
 
         protected static List<ICommand> GetStaticCommands(Assembly assembly)
         {
