@@ -8,6 +8,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using BotFramework.Responses;
+using Serilog.Context;
 using Telegram.Bot;
 using Telegram.Bot.Args;
 using Telegram.Bot.Types;
@@ -72,7 +73,7 @@ namespace BotFramework.Bot
         private long GetIdFromUpdate(Update update)
         {
             long   from;
-            string fromName, contents;
+            string fromName, contents ="";
             switch (update.Type)
             {
                 case UpdateType.Message:
@@ -91,23 +92,27 @@ namespace BotFramework.Bot
                         case MessageType.Audio:
                         case MessageType.Video:
                         case MessageType.Document:
-                            Logger.Debug("{UpdateType}.{MessageType} | {From} {Caption}", update.Type,
-                                update.Message.Type, fromName, message.Caption);
-                            return from;
+                            //Logger.Debug("{UpdateType}.{MessageType} | {From} {Caption}", update.Type, update.Message.Type, fromName, message.Caption);
+                            //return from;
+                            contents = message.Caption;
+                            break;
                         case MessageType.Poll:
                             contents = message.Poll.Question;
                             break;
                         case MessageType.ChatTitleChanged:
                             contents = message.Chat.Title;
                             break;
+                        case MessageType.Contact:
+                            contents = $"{message.Contact.FirstName} {message.Contact.LastName} {message.Contact.PhoneNumber}";
+                            break;
                         default:
-                            Logger.Debug("{UpdateType}.{MessageType} | {From}", update.Type, message.Type, fromName);
-                            return from;
+                            //      Logger.Debug("{UpdateType}.{MessageType} | {From}", update.Type, message.Type, fromName);
+                            //    return from;
+                            break;
                     }
 
-                    Logger.Debug("{UpdateType}.{MessageType} | {From}: {Contents}", update.Type, message.Type, fromName,
-                        contents);
-                    return from;
+                    //Logger.Debug("{UpdateType}.{MessageType} | {From}: {Contents}", update.Type, message.Type, fromName, contents);
+                    break;
                 case UpdateType.InlineQuery:
                     from     = update.InlineQuery.From.Id;
                     fromName = update.InlineQuery.From.Username;
@@ -154,7 +159,14 @@ namespace BotFramework.Bot
                     throw ex;
             }
 
-            Logger.Debug("{UpdateType} | {From}: {Contents}", update.Type, fromName, contents);
+            using (LogContext.PushProperty("UpdateType", update.Type))
+            using (LogContext.PushProperty("MessageType", update.Message?.Type))
+            using (LogContext.PushProperty("From", fromName))
+            using (LogContext.PushProperty("Contents", contents))
+            {
+                Logger.Debug("{UpdateType} {MessageType} | {From} {Contents}");
+            }
+
             return from;
         }
 

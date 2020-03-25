@@ -84,6 +84,7 @@ namespace BotFramework.Bot
             configuration.Logger = new LoggerConfiguration()
                                    .MinimumLevel.Debug()
                                    .WriteTo.Console()
+                                   .Enrich.FromLogContext()
                                    .CreateLogger();
             return this;
         }
