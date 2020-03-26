@@ -7,7 +7,7 @@ namespace BotFramework.Commands
 {
     public interface ICommand
     {
-        Response Execute(Update message, Client client);
+        Response Execute(Update message, IGetOnlyClient client);
 
         bool Suitable(Update message);
     }
@@ -15,7 +15,6 @@ namespace BotFramework.Commands
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface)]
     public class StaticCommandAttribute : Attribute { }
 
-    [Obsolete("Use [StaticCommand] instead")]
-    [StaticCommand]
-    public interface IStaticCommand : ICommand { }
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface)]
+    public class OnStartCommand : Attribute { }
 }

@@ -1,17 +1,16 @@
-﻿using System.Collections.Generic;
-using System.Reflection;
-using BotFramework.Commands;
+﻿using BotFramework.Commands;
 using Serilog;
+using System.Collections.Generic;
 
 namespace BotFramework.Bot
 {
     public class BotConfiguration
     {
-        public bool                  Webhook  { get; set; }
-        public string                Token    { get; set; }
-        public string                Name     { get; set; }
-        public Assembly              Assembly { get; set; }
-        public ILogger               Logger   { get; set; }
-        public IEnumerable<ICommand> Commands { get; set; }
+        public bool                Webhook       { get; set; }
+        public string              Token         { get; set; }
+        public ILogger             Logger        { get; set; }
+        public INextCommandStorage Storage       { get; set; }
+        public List<ICommand>      Commands      { get; set; } = new List<ICommand>();
+        public List<ICommand>      StartCommands { get; set; } = new List<ICommand>();
     }
 }

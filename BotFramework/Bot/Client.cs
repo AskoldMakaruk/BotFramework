@@ -1,49 +1,56 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using BotFramework.Commands;
+﻿using BotFramework.Commands;
 using Newtonsoft.Json;
 using Serilog;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
+using BotFramework.Responses;
+using Serilog.Context;
 using Telegram.Bot;
 using Telegram.Bot.Args;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using File = Telegram.Bot.Types.File;
 
 namespace BotFramework.Bot
 {
     public class Client
     {
-        protected internal Client(BotConfiguration configuration)
+        private class GetOnlyClient : TelegramBotClient, IGetOnlyClient
         {
-            Token      = configuration.Token;
-            UseWebhook = configuration.Webhook;
-            Logger     = configuration.Logger;
-
-            Bot          = new TelegramBotClient(Token);
-            NextCommands = new Dictionary<long, IEnumerable<ICommand>>();
-
-            Logger.Debug("Loading static commands...");
-            StaticCommands = configuration.Commands.ToList();
-            Logger.Debug("Loaded {StaticCommandsCount} commands.", StaticCommands.Count);
-            Logger.Debug("{StaticCommands}",
-                string.Join(',', StaticCommands.Select(c => c.GetType().Name)));
+            public GetOnlyClient(string token, HttpClient httpClient = null) : base(token, httpClient) { }
         }
 
-        public    string  Name   { get; set; }
         protected ILogger Logger { get; set; }
 
-        protected TelegramBotClient Bot { get; set; }
+        protected virtual IGetOnlyClient    GetOnlyBot => _bot;
+        protected virtual TelegramBotClient Bot        => _bot;
+        private           GetOnlyClient     _bot       { get; set; }
 
-        protected List<ICommand> StaticCommands { get; set; }
+        protected List<ICommand> StaticCommands  { get; set; }
+        protected List<ICommand> OnStartCommands { get; set; }
 
         protected string Token      { get; }
         protected bool   UseWebhook { get; set; }
 
-        private static Dictionary<long, IEnumerable<ICommand>> NextCommands { get; set; }
+        public Client(BotConfiguration configuration)
+        {
+            Token              = configuration.Token;
+            UseWebhook         = configuration.Webhook;
+            Logger             = configuration.Logger;
+            NextCommandStorage = configuration.Storage;
+
+            _bot = new GetOnlyClient(Token);
+
+            Logger.Debug("Loading static commands...");
+            StaticCommands  = configuration.Commands;
+            OnStartCommands = configuration.StartCommands;
+            Logger.Debug("Loaded {StaticCommandsCount} commands.", StaticCommands.Count);
+            Logger.Debug("{StaticCommands}",
+                string.Join(',', StaticCommands.Select(c => c.GetType().Name)));
+        }
 
         public void Run()
         {
@@ -61,10 +68,12 @@ namespace BotFramework.Bot
             new ManualResetEvent(false).WaitOne();
         }
 
+        private INextCommandStorage NextCommandStorage { get; set; }
+
         private long GetIdFromUpdate(Update update)
         {
             long   from;
-            string fromName, contents;
+            string fromName, contents = "";
             switch (update.Type)
             {
                 case UpdateType.Message:
@@ -83,23 +92,27 @@ namespace BotFramework.Bot
                         case MessageType.Audio:
                         case MessageType.Video:
                         case MessageType.Document:
-                            Logger.Debug("{UpdateType}.{MessageType} | {From} {Caption}", update.Type,
-                                message.Type, fromName, message.Caption);
-                            return from;
+                            //Logger.Debug("{UpdateType}.{MessageType} | {From} {Caption}", update.Type, update.Message.Type, fromName, message.Caption);
+                            //return from;
+                            contents = message.Caption;
+                            break;
                         case MessageType.Poll:
                             contents = message.Poll.Question;
                             break;
                         case MessageType.ChatTitleChanged:
                             contents = message.Chat.Title;
                             break;
+                        case MessageType.Contact:
+                            contents = $"{message.Contact.FirstName} {message.Contact.LastName} {message.Contact.PhoneNumber}";
+                            break;
                         default:
-                            Logger.Debug("{UpdateType}.{MessageType} | {From}", update.Type, message.Type, fromName);
-                            return from;
+                            //      Logger.Debug("{UpdateType}.{MessageType} | {From}", update.Type, message.Type, fromName);
+                            //    return from;
+                            break;
                     }
 
-                    Logger.Debug("{UpdateType}.{MessageType} | {From}: {Contents}", update.Type, message.Type, fromName,
-                        contents);
-                    return from;
+                    //Logger.Debug("{UpdateType}.{MessageType} | {From}: {Contents}", update.Type, message.Type, fromName, contents);
+                    break;
                 case UpdateType.InlineQuery:
                     from     = update.InlineQuery.From.Id;
                     fromName = update.InlineQuery.From.Username;
@@ -146,39 +159,60 @@ namespace BotFramework.Bot
                     throw ex;
             }
 
-            Logger.Debug("{UpdateType} | {From}: {Contents}", update.Type, fromName, contents);
+            using (LogContext.PushProperty("UpdateType", update.Type))
+            using (LogContext.PushProperty("MessageType", update.Message?.Type))
+            using (LogContext.PushProperty("From", fromName))
+            using (LogContext.PushProperty("Contents", contents))
+            {
+                Logger.Debug("{UpdateType} {MessageType} | {From} {Contents}");
+            }
+
             return from;
         }
 
-        public async void HandleUpdate(Update update)
+        public async Task HandleUpdate(Update update)
         {
+            if (update == null)
+                return;
+
             var from = GetIdFromUpdate(update);
 
-            if (!NextCommands.ContainsKey(from)) NextCommands.Add(from, StaticCommands);
+            if (NextCommandStorage.GetCommands(from) == null)
+            {
+                NextCommandStorage.SetNextCommands(from, OnStartCommands.Concat(StaticCommands));
+            }
 
-            var nextPossible = NextCommands[from].ToList();
+            var nextPossible = NextCommandStorage.GetCommands(from).ToList();
 
             try
             {
                 var suitable = nextPossible.Where(t => t.Suitable(update)).ToList();
                 Logger.Debug("Suitable commands: {SuitableCommands}", string.Join(", ", suitable.Select(s => s.GetType().Name)));
                 var newPossible = new HashSet<ICommand>(StaticCommands);
-                foreach (var response in suitable.Select(t => t.Execute(update, this)))
+                foreach (var response in suitable.Select(t => t.Execute(update, GetOnlyBot)))
                 {
                     if (response.UsePreviousCommands)
+                    {
                         newPossible.UnionWith(nextPossible);
+                    }
+
                     newPossible.UnionWith(response.NextPossible);
 
-                    foreach (var message in response.Responses)
-                        await message.Send(Bot);
+                    await SendMessages(response.Responses);
                 }
 
-                NextCommands[from] = newPossible;
+                NextCommandStorage.SetNextCommands(from, newPossible);
             }
             catch (Exception e)
             {
                 Logger.Error(e, "Error handling command.");
             }
+        }
+
+        public virtual async Task SendMessages(IEnumerable<IResponseMessage> responses)
+        {
+            foreach (var message in responses)
+                await message.Send(Bot);
         }
 
         public void HandleUpdate(string json)
@@ -198,16 +232,6 @@ namespace BotFramework.Bot
             {
                 Logger.Error(ex, "Error handling command.");
             }
-        }
-
-        public async Task<File> GetInfoAndDownloadFileAsync(string documentFileId, MemoryStream ms)
-        {
-            return await Bot.GetInfoAndDownloadFileAsync(documentFileId, ms);
-        }
-
-        public async Task<StickerSet> GetStickerSetAsync(string name)
-        {
-            return await Bot.GetStickerSetAsync(name);
         }
     }
 }

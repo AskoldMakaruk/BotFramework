@@ -1,7 +1,6 @@
 ﻿using BotFramework.Bot;
 using BotFramework.Commands;
 using BotFramework.Responses;
-using Serilog;
 using Telegram.Bot.Types;
 
 namespace EchoBot
@@ -12,12 +11,8 @@ namespace EchoBot
         {
             new BotBuilder()
             .UseAssembly(typeof(Program).Assembly)
-            .WithName("EchoBot")
             .WithToken("<YOURTOKEN>")
-            .UseLogger(new LoggerConfiguration()
-                       .MinimumLevel.Debug()
-                       .WriteTo.Console()
-                       .CreateLogger())
+            .UseConsoleLogger()
             .Build()
             .Run();
         }
@@ -26,7 +21,7 @@ namespace EchoBot
     [StaticCommand]
     public class EchoCommand : MessageCommand
     {
-        public override Response Execute(Message message, Client client)
+        public override Response Execute(Message message, IGetOnlyClient client)
         {
             return new Response().AddMessage(new TextMessage(message.Chat.Id, message.Text));
         }

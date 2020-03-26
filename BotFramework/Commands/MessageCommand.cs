@@ -7,7 +7,7 @@ namespace BotFramework.Commands
 {
     public abstract class MessageCommand : ICommand
     {
-        public Response Execute(Update update, Client client) =>
+        public Response Execute(Update update, IGetOnlyClient client) =>
         Execute(update.Message, client);
 
         public bool Suitable(Update message) =>
@@ -15,6 +15,6 @@ namespace BotFramework.Commands
 
         public abstract bool Suitable(Message message);
 
-        public abstract Response Execute(Message message, Client client);
+        public abstract Response Execute(Message message, IGetOnlyClient client);
     }
 }
