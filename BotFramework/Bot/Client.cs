@@ -37,12 +37,12 @@ namespace BotFramework.Bot
 
         public Client(BotConfiguration configuration)
         {
-            Token      = configuration.Token;
-            UseWebhook = configuration.Webhook;
-            Logger     = configuration.Logger;
+            Token              = configuration.Token;
+            UseWebhook         = configuration.Webhook;
+            Logger             = configuration.Logger;
+            NextCommandStorage = configuration.Storage;
 
-            _bot         = new GetOnlyClient(Token);
-            NextCommands = new Dictionary<long, IEnumerable<ICommand>>();
+            _bot = new GetOnlyClient(Token);
 
             Logger.Debug("Loading static commands...");
             StaticCommands  = configuration.Commands;
@@ -68,12 +68,12 @@ namespace BotFramework.Bot
             new ManualResetEvent(false).WaitOne();
         }
 
-        private static Dictionary<long, IEnumerable<ICommand>> NextCommands { get; set; }
+        private INextCommandStorage NextCommandStorage { get; set; }
 
         private long GetIdFromUpdate(Update update)
         {
             long   from;
-            string fromName, contents ="";
+            string fromName, contents = "";
             switch (update.Type)
             {
                 case UpdateType.Message:
@@ -172,14 +172,17 @@ namespace BotFramework.Bot
 
         public async Task HandleUpdate(Update update)
         {
+            if (update == null)
+                return;
+
             var from = GetIdFromUpdate(update);
 
-            if (!NextCommands.ContainsKey(from))
+            if (NextCommandStorage.GetCommands(from) == null)
             {
-                NextCommands.Add(from, OnStartCommands.Concat(StaticCommands));
+                NextCommandStorage.SetNextCommands(from, OnStartCommands.Concat(StaticCommands));
             }
 
-            var nextPossible = NextCommands[from].ToList();
+            var nextPossible = NextCommandStorage.GetCommands(from).ToList();
 
             try
             {
@@ -198,7 +201,7 @@ namespace BotFramework.Bot
                     await SendMessages(response.Responses);
                 }
 
-                NextCommands[from] = newPossible;
+                NextCommandStorage.SetNextCommands(from, newPossible);
             }
             catch (Exception e)
             {
