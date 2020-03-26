@@ -52,7 +52,12 @@ namespace BotFramework.Bot
                 throw new ArgumentException("You must supply assembly or commands");
             }
 
-            configuration.Logger??=Logger.None;
+            if (configuration.Storage == null)
+            {
+                configuration.Storage = new DictionaryStorage();
+            }
+
+            configuration.Logger ??= Logger.None;
 
             (configuration.Commands, configuration.StartCommands) =
             _assembly != null
@@ -84,6 +89,7 @@ namespace BotFramework.Bot
             configuration.Logger = new LoggerConfiguration()
                                    .MinimumLevel.Debug()
                                    .WriteTo.Console()
+                                   .Enrich.FromLogContext()
                                    .CreateLogger();
             return this;
         }
@@ -93,6 +99,14 @@ namespace BotFramework.Bot
             configuration.Webhook = true;
             return this;
         }
+
+        public BotBuilder UseNextCommandStorage(INextCommandStorage storage)
+        {
+            configuration.Storage = storage;
+            return this;
+        }
+
+#region Commands
 
         public BotBuilder UseAssembly(Assembly assembly)
         {
@@ -121,7 +135,7 @@ namespace BotFramework.Bot
             configuration.StartCommands = commands.ToList();
             return this;
         }
-       
+
 
         protected static List<ICommand> GetStaticCommands(Assembly assembly)
         {
@@ -147,5 +161,7 @@ namespace BotFramework.Bot
                    .Cast<ICommand>()
                    .ToList();
         }
+
+#endregion
     }
 }
