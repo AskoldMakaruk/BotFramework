@@ -29,8 +29,9 @@ namespace BotFramework.Bot
         protected virtual TelegramBotClient Bot        => _bot;
         private           GetOnlyClient     _bot       { get; set; }
 
-        protected List<ICommand> StaticCommands  { get; set; }
-        protected List<ICommand> OnStartCommands { get; set; }
+        protected List<Type> StaticCommands  { get; set; }
+        protected List<Type> OnStartCommands { get; set; }
+        private DI injector { get; set; }
 
         protected string Token      { get; }
         protected bool   UseWebhook { get; set; }
@@ -43,6 +44,7 @@ namespace BotFramework.Bot
             NextCommandStorage = configuration.Storage;
 
             _bot = new GetOnlyClient(Token);
+            injector = new DI(configuration.Validators);
 
             Logger.Debug("Loading static commands...");
             StaticCommands  = configuration.Commands;
@@ -177,19 +179,21 @@ namespace BotFramework.Bot
 
             var from = GetIdFromUpdate(update);
 
-            if (NextCommandStorage.GetCommands(from) == null)
+            if (!NextCommandStorage.GetCommands(from).Any())
             {
                 NextCommandStorage.SetNextCommands(from, OnStartCommands.Concat(StaticCommands));
             }
 
-            var nextPossible = NextCommandStorage.GetCommands(from).ToList();
+            //var nextPossible = NextCommandStorage.GetCommands(from).ToList();
+            var nextPossible = new HashSet<Type>(NextCommandStorage.GetCommands(from));
+            nextPossible.UnionWith(StaticCommands);
 
             try
             {
-                var suitable = nextPossible.Where(t => t.Suitable(update)).ToList();
+                var suitable = injector.GetPossible(nextPossible, update, GetOnlyBot);
                 Logger.Debug("Suitable commands: {SuitableCommands}", string.Join(", ", suitable.Select(s => s.GetType().Name)));
-                var newPossible = new HashSet<ICommand>(StaticCommands);
-                foreach (var response in suitable.Select(t => t.Execute(update, GetOnlyBot)))
+                var newPossible = new HashSet<Type>(StaticCommands);
+                foreach (var response in suitable.Select(t => t.Execute()))
                 {
                     if (response.UsePreviousCommands)
                     {

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using BotFramework.Commands;
 
 namespace BotFramework.Bot
@@ -7,16 +8,16 @@ namespace BotFramework.Bot
     {
         static DictionaryStorage()
         {
-            NextCommands = new Dictionary<long, IEnumerable<ICommand>>();
+            NextCommands = new Dictionary<long, IEnumerable<Type>>();
         }
 
-        private static Dictionary<long, IEnumerable<ICommand>> NextCommands { get; }
+        private static Dictionary<long, IEnumerable<Type>> NextCommands { get; }
 
-        public void SetNextCommands(long chatId, IEnumerable<ICommand> commands)
+        public void SetNextCommands(long chatId, IEnumerable<Type> commands)
         {
             NextCommands[chatId] = commands;
         }
 
-        public IEnumerable<ICommand> GetCommands(long chatId) => NextCommands.ContainsKey(chatId) ? NextCommands[chatId] : null;
+        public IEnumerable<Type> GetCommands(long chatId) => NextCommands.ContainsKey(chatId) ? NextCommands[chatId] : new List<Type>();
     }
 }

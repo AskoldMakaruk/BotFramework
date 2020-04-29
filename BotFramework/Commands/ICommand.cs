@@ -7,9 +7,7 @@ namespace BotFramework.Commands
 {
     public interface ICommand
     {
-        Response Execute(Update message, IGetOnlyClient client);
-
-        bool Suitable(Update message);
+        Response Execute();
     }
 
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface)]

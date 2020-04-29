@@ -1,6 +1,9 @@
-﻿using BotFramework.Bot;
+﻿using System;
+using System.Collections.Generic;
+using BotFramework.Bot;
 using BotFramework.Commands;
 using BotFramework.Responses;
+using Optional;
 using Telegram.Bot.Types;
 
 namespace EchoBot
@@ -11,7 +14,7 @@ namespace EchoBot
         {
             new BotBuilder()
             .UseAssembly(typeof(Program).Assembly)
-            .WithToken("<YOURTOKEN>")
+            .WithToken("823973981:AAGYpq1Eyl_AAYGXLeW8s28uCH89S7fsHZA")
             .UseConsoleLogger()
             .Build()
             .Run();
@@ -19,13 +22,15 @@ namespace EchoBot
     }
 
     [StaticCommand]
-    public class EchoCommand : MessageCommand
+    public class EchoCommand : ICommand
     {
-        public override Response Execute(Message message, IGetOnlyClient client)
+        private readonly Message message;
+        public Response Execute()
         {
             return new Response().AddMessage(new TextMessage(message.Chat.Id, message.Text));
         }
 
-        public override bool Suitable(Message message) => true;
+        public EchoCommand(Message message) => this.message = message;
+
     }
 }

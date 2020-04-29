@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using BotFramework.Commands;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -11,11 +13,11 @@ namespace BotFramework.Responses
         public          bool                   UsePreviousCommands;
         public readonly List<IResponseMessage> Responses;
 
-        public readonly ICommand[] NextPossible;
+        public readonly List<Type> NextPossible;
 
-        public Response(params ICommand[] nextPossible)
+        public Response(params Type[] nextPossible)
         {
-            NextPossible = nextPossible;
+            NextPossible = nextPossible.Where(t => t.IsSubclassOf(typeof(ICommand))).ToList();
             Responses    = new List<IResponseMessage>();
         }
 

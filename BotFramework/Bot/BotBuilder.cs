@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using BotFramework.Commands;
 using Serilog;
 using Serilog.Core;
+using Telegram.Bot.Types;
 
 namespace BotFramework.Bot
 {
@@ -57,6 +58,7 @@ namespace BotFramework.Bot
                 configuration.Storage = new DictionaryStorage();
             }
 
+            configuration.Validators.Add(typeof(Message), typeof(MessageValidator));
             configuration.Logger ??= Logger.None;
 
             (configuration.Commands, configuration.StartCommands) =
@@ -121,7 +123,7 @@ namespace BotFramework.Bot
 
         public BotBuilder WithStaticCommands(IEnumerable<ICommand> commands)
         {
-            configuration.Commands = commands.ToList();
+            configuration.Commands = commands.Select(t => t.GetType()).ToList();
             return this;
         }
 
@@ -132,24 +134,22 @@ namespace BotFramework.Bot
 
         public BotBuilder WithStartCommands(IEnumerable<ICommand> commands)
         {
-            configuration.StartCommands = commands.ToList();
+            configuration.StartCommands = commands.Select(t => t.GetType()).ToList();
             return this;
         }
 
 
-        protected static List<ICommand> GetStaticCommands(Assembly assembly)
+        protected static List<Type> GetStaticCommands(Assembly assembly)
         {
             return assembly
                    .GetTypes()
                    .Where(t => (t.IsSubclassOf(typeof(ICommand)) || t.GetInterfaces().Contains(typeof(ICommand))) &&
                                !t.IsAbstract)
                    .Where(c => c.IsDefined(typeof(StaticCommandAttribute), true))
-                   .Select(Activator.CreateInstance)
-                   .Cast<ICommand>()
                    .ToList();
         }
 
-        protected static List<ICommand> GetOnStartCommand(Assembly assembly)
+        protected static List<Type> GetOnStartCommand(Assembly assembly)
         {
             return assembly
                    .GetTypes()
@@ -157,8 +157,6 @@ namespace BotFramework.Bot
                                !t.IsAbstract)
                    .Where(c =>
                    c.IsDefined(typeof(OnStartCommand), true))
-                   .Select(Activator.CreateInstance)
-                   .Cast<ICommand>()
                    .ToList();
         }
 
