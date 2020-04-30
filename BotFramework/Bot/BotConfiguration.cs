@@ -14,5 +14,6 @@ namespace BotFramework.Bot
         public List<Type>             Commands      { get; set; } = new List<Type>();
         public List<Type>             StartCommands { get; set; } = new List<Type>();
         public Dictionary<Type, Type> Validators    { get; set; } = new Dictionary<Type, Type>();
+        public bool UseBuiltInValidators { get; set; } = true;
     }
 }

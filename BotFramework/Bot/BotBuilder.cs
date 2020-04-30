@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using BotFramework.Commands;
+using BotFramework.Commands.Validators;
 using Serilog;
 using Serilog.Core;
 using Telegram.Bot.Types;
@@ -50,7 +51,6 @@ namespace BotFramework.Bot
             if (configuration.Storage == null)
                 configuration.Storage = new DictionaryStorage();
 
-            configuration.Validators.Add(typeof(Message), typeof(MessageValidator));
             configuration.Logger ??= Logger.None;
 
             if (_assembly != null)
@@ -64,6 +64,12 @@ namespace BotFramework.Bot
                 var validators = GetValidators(_assembly);
                 foreach (var (t, validatorT) in validators)
                     configuration.Validators[t] = validatorT;
+            }
+
+            if (configuration.UseBuiltInValidators)
+            {
+                configuration.Validators[typeof(Message)] = typeof(MessageValidator);
+                configuration.Validators[typeof(ParsedCallBackQuery)] = typeof(CallBackQueryValidator);
             }
         }
 

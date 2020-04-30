@@ -1,13 +1,10 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.Runtime.CompilerServices;
 using BotFramework.Bot;
+using BotFramework.Commands.Validators;
 using Optional;
 using Optional.Collections;
-using Optional.Linq;
 using Telegram.Bot.Types;
 
 namespace BotFramework.Commands
@@ -24,7 +21,7 @@ namespace BotFramework.Commands
         {
             return commandTypes.Select(t => Create(tgUpdate, client, t))
                                .Select(t =>
-                               t.SelectMany(k => (k as ICommand).SomeNotNull()))
+                               t.FlatMap(k => (k as ICommand).SomeNotNull()))
                                .Values();
         }
 

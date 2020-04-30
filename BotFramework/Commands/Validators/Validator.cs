@@ -3,7 +3,7 @@ using Optional;
 using Optional.Linq;
 using Telegram.Bot.Types;
 
-namespace BotFramework.Commands
+namespace BotFramework.Commands.Validators
 {
     public interface Validator
     {
@@ -16,9 +16,5 @@ namespace BotFramework.Commands
         {
             return Validate(update, client).Select(t => (object) t);
         }
-    }
-    public class MessageValidator : Validator<Message>
-    {
-        public Option<Message> Validate(Update update, IGetOnlyClient client) => update.Message.SomeNotNull();
     }
 }

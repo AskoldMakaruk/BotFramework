@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using BotFramework.Bot;
 using BotFramework.Commands;
+using BotFramework.Commands.Validators;
 using BotFramework.Responses;
 using Optional;
 using Telegram.Bot.Types;
@@ -32,5 +33,14 @@ namespace EchoBot
 
         public EchoCommand(Message message) => this.message = message;
 
+    }
+    public class InlineCommand : ICommand
+    {
+        private readonly ParsedCallBackQuery query;
+        public Response Execute()
+        {
+            throw new NotImplementedException();
+        }
+        public InlineCommand(ParsedCallBackQuery query) => this.query = query;
     }
 }
