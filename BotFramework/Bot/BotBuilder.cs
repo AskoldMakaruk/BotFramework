@@ -39,39 +39,32 @@ namespace BotFramework.Bot
         private void CheckConfiguration()
         {
             if (configuration.Token == null)
-            {
                 throw new ArgumentNullException(nameof(configuration.Token));
-            }
 
             if (!Regex.IsMatch(configuration.Token, "\\d{9}:[0-9A-Za-z_-]{35}"))
-            {
                 throw new ArgumentException("Invalid telegram api token.");
-            }
 
             if (_assembly == null && configuration.Commands == null)
-            {
                 throw new ArgumentException("You must supply assembly or commands");
-            }
 
             if (configuration.Storage == null)
-            {
                 configuration.Storage = new DictionaryStorage();
-            }
 
             configuration.Validators.Add(typeof(Message), typeof(MessageValidator));
             configuration.Logger ??= Logger.None;
 
-            (configuration.Commands, configuration.StartCommands) =
-            _assembly != null
-            ? (
-                  GetStaticCommands(_assembly)
-                  .Concat(configuration.Commands)
-                  .ToList(),
-                  GetOnStartCommand(_assembly)
-                  .Concat(configuration.StartCommands)
-                  .ToList()
-              )
-            : (configuration.Commands, configuration.StartCommands);
+            if (_assembly != null)
+            {
+                var commands      = new HashSet<Type>(configuration.Commands);
+                var startCommands = new HashSet<Type>(configuration.Commands);
+                commands.UnionWith(GetStaticCommands(_assembly));
+                startCommands.UnionWith(GetOnStartCommand(_assembly));
+                configuration.Commands = commands.ToList();
+                configuration.StartCommands = startCommands.ToList();
+                var validators = GetValidators(_assembly);
+                foreach (var (t, validatorT) in validators)
+                    configuration.Validators[t] = validatorT;
+            }
         }
 
         public BotBuilder WithToken(string token)
@@ -108,13 +101,13 @@ namespace BotFramework.Bot
             return this;
         }
 
-#region Commands
-
         public BotBuilder UseAssembly(Assembly assembly)
         {
             _assembly = assembly;
             return this;
         }
+
+#region Commands
 
         public BotBuilder WithStaticCommands(params ICommand[] commands)
         {
@@ -158,6 +151,13 @@ namespace BotFramework.Bot
                    .Where(c =>
                    c.IsDefined(typeof(OnStartCommand), true))
                    .ToList();
+        }
+
+        protected static Dictionary<Type, Type> GetValidators(Assembly assembly)
+        {
+            return assembly.GetTypes()
+                           .Where(t => t.GetInterfaces().Contains(typeof(Validator<>)) && !t.IsAbstract)
+                           .ToDictionary(t => t.GenericTypeArguments[0], t => t);
         }
 
 #endregion

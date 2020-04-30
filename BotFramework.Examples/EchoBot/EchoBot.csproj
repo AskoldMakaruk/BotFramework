@@ -9,8 +9,4 @@
     <ProjectReference Include="..\..\BotFramework\BotFramework.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="OptionalMonad" Version="2.4.0" />
-  </ItemGroup>
-
 </Project>

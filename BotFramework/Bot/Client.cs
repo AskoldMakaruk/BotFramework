@@ -31,7 +31,7 @@ namespace BotFramework.Bot
 
         protected List<Type> StaticCommands  { get; set; }
         protected List<Type> OnStartCommands { get; set; }
-        private DI injector { get; set; }
+        private DependencyInjector injector { get; set; }
 
         protected string Token      { get; }
         protected bool   UseWebhook { get; set; }
@@ -44,7 +44,7 @@ namespace BotFramework.Bot
             NextCommandStorage = configuration.Storage;
 
             _bot = new GetOnlyClient(Token);
-            injector = new DI(configuration.Validators);
+            injector = new DependencyInjector(configuration.Validators);
 
             Logger.Debug("Loading static commands...");
             StaticCommands  = configuration.Commands;
