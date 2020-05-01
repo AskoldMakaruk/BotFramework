@@ -59,7 +59,7 @@ namespace BotFramework.Bot
                 var startCommands = new HashSet<Type>(configuration.Commands);
                 commands.UnionWith(GetStaticCommands(_assembly));
                 startCommands.UnionWith(GetOnStartCommand(_assembly));
-                configuration.Commands = commands.ToList();
+                configuration.Commands      = commands.ToList();
                 configuration.StartCommands = startCommands.ToList();
                 var validators = GetValidators(_assembly);
                 foreach (var (t, validatorT) in validators)
@@ -68,7 +68,7 @@ namespace BotFramework.Bot
 
             if (configuration.UseBuiltInValidators)
             {
-                configuration.Validators[typeof(Message)] = typeof(MessageValidator);
+                configuration.Validators[typeof(Message)]             = typeof(MessageValidator);
                 configuration.Validators[typeof(ParsedCallBackQuery)] = typeof(CallBackQueryValidator);
             }
         }
@@ -115,25 +115,25 @@ namespace BotFramework.Bot
 
 #region Commands
 
-        public BotBuilder WithStaticCommands(params ICommand[] commands)
+        public BotBuilder WithStaticCommands(params Type[] commands)
         {
             return WithStaticCommands(commands.ToList());
         }
 
-        public BotBuilder WithStaticCommands(IEnumerable<ICommand> commands)
+        public BotBuilder WithStaticCommands(IEnumerable<Type> commands)
         {
-            configuration.Commands = commands.Select(t => t.GetType()).ToList();
+            configuration.Commands = commands.ToList();
             return this;
         }
 
-        public BotBuilder WithStartCommands(params ICommand[] commands)
+        public BotBuilder WithStartCommands(params Type[] commands)
         {
             return WithStartCommands(commands.ToList());
         }
 
-        public BotBuilder WithStartCommands(IEnumerable<ICommand> commands)
+        public BotBuilder WithStartCommands(IEnumerable<Type> commands)
         {
-            configuration.StartCommands = commands.Select(t => t.GetType()).ToList();
+            configuration.StartCommands = commands.ToList();
             return this;
         }
 
@@ -161,9 +161,15 @@ namespace BotFramework.Bot
 
         protected static Dictionary<Type, Type> GetValidators(Assembly assembly)
         {
-            return assembly.GetTypes()
-                           .Where(t => t.GetInterfaces().Contains(typeof(Validator<>)) && !t.IsAbstract)
-                           .ToDictionary(t => t.GenericTypeArguments[0], t => t);
+            var res = from type in assembly.GetTypes()
+                      from baseType in type.GetInterfaces()
+                      where !type.IsAbstract       &&
+                            !type.IsInterface      &&
+                            baseType != null       &&
+                            baseType.IsGenericType &&
+                            typeof(Validator<>).IsAssignableFrom(baseType.GetGenericTypeDefinition())
+                      select new KeyValuePair<Type, Type>(baseType.GetGenericArguments().First(), type);
+            return new Dictionary<Type, Type>(res);
         }
 
 #endregion

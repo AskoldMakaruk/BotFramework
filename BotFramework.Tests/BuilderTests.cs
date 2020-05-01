@@ -23,7 +23,7 @@ namespace BotFramework.Tests
         public void Build_StaticCommands_1()
         {
             builder
-            .WithStaticCommands(new SomeCommand())
+            .WithStaticCommands(typeof(SomeCommand))
             .Build();
 
             Assert.Pass();
@@ -43,7 +43,7 @@ namespace BotFramework.Tests
         public void Build_StartCommand()
         {
             builder
-            .WithStartCommands(new SomeCommand())
+            .WithStartCommands(typeof(SomeCommand))
             .Build();
 
             Assert.Pass();
@@ -52,20 +52,21 @@ namespace BotFramework.Tests
         [Test]
         public void Build_InlineCommand()
         {
-            builder.WithStaticCommands(CommandFactory.CreateCommand(
-                (u, client) => new Response(),
-                u => true));
+            builder.WithStaticCommands(typeof(SomeCommand));
         }
     }
 
     [StaticCommand]
-    public class SomeCommand : MessageCommand
+    public class SomeCommand : ICommand
     {
-        public override Response Execute(Message message, IGetOnlyClient client)
+        public Response Execute(Message message, IGetOnlyClient client)
         {
             return new Response().AddMessage(new TextMessage(0, ""));
         }
 
-        public override bool Suitable(Message message) => message.Text == "true";
+        public Response Execute()
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }

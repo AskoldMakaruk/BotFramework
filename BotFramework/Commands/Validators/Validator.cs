@@ -7,14 +7,14 @@ namespace BotFramework.Commands.Validators
 {
     public interface Validator
     {
-       Option<object> Validate(Update update, IGetOnlyClient client);
+       Option<object> Validate();
     }
     public interface Validator<T> : Validator
     {
-        new Option<T> Validate(Update update, IGetOnlyClient client);
-        Option<object> Validator.Validate(Update update, IGetOnlyClient client)
+        new Option<T> Validate();
+        Option<object> Validator.Validate()
         {
-            return Validate(update, client).Select(t => (object) t);
+            return Validate().Map(t => (object) t);
         }
     }
 }

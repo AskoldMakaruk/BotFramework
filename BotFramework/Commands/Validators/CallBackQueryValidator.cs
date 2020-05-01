@@ -10,7 +10,9 @@ namespace BotFramework.Commands.Validators
 {
     public class CallBackQueryValidator : Validator<ParsedCallBackQuery>
     {
-        public Option<ParsedCallBackQuery> Validate(Update update, IGetOnlyClient client)
+        private readonly Update update;
+        public CallBackQueryValidator(Update update) => this.update = update;
+        public Option<ParsedCallBackQuery> Validate()
         {
             return from query in update.CallbackQuery.SomeWhen(t => t != null && update.Type == UpdateType.CallbackQuery)
                    from values in UnpackParams(query.Data)
@@ -38,10 +40,14 @@ namespace BotFramework.Commands.Validators
         }
     }
 
-    public class ParsedCallBackQuery
+    public class ParsedCallBackQuery : CallbackQuery
     {
-        public CallbackQuery              Query  { get; }
         public Dictionary<string, string> Values { get; }
-        public ParsedCallBackQuery(CallbackQuery query, Dictionary<string, string> values) => (Query, Values) = (query, values);
+
+        public ParsedCallBackQuery(CallbackQuery query, Dictionary<string, string> values)
+        {
+            DependencyInjector.CopyAllParams(this, query);
+            Values = values;
+        }
     }
 }

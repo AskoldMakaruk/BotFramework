@@ -26,21 +26,27 @@ namespace EchoBot
     public class EchoCommand : ICommand
     {
         private readonly Message message;
+
         public Response Execute()
         {
             return new Response().AddMessage(new TextMessage(message.Chat.Id, message.Text));
         }
 
-        public EchoCommand(Message message) => this.message = message;
-
+        public EchoCommand(HelloMessage message) => this.message = message;
     }
-    public class InlineCommand : ICommand
+
+    public class HelloMessage : Message
     {
-        private readonly ParsedCallBackQuery query;
-        public Response Execute()
-        {
-            throw new NotImplementedException();
-        }
-        public InlineCommand(ParsedCallBackQuery query) => this.query = query;
+        public HelloMessage(Message m) => DependencyInjector.CopyAllParams(this, m);
+    }
+
+    public class HelloCommandValidator : Validator<HelloMessage>
+    {
+        private readonly Message message;
+
+        public Option<HelloMessage> Validate() =>
+        new HelloMessage(message).SomeWhen(t => message.Text == "hello");
+
+        public HelloCommandValidator(Message message) => this.message = message;
     }
 }

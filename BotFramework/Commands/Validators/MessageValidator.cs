@@ -6,6 +6,8 @@ namespace BotFramework.Commands.Validators
 {
     public class MessageValidator : Validator<Message>
     {
-        public Option<Message> Validate(Update update, IGetOnlyClient client) => update.Message.SomeNotNull();
+        private readonly Update update;
+        public Option<Message> Validate() => update.Message.SomeNotNull();
+        public MessageValidator(Update update) => this.update = update;
     }
 }

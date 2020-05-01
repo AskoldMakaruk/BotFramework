@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using BotFramework.Bot;
 using BotFramework.Commands.Validators;
 using Optional;
@@ -9,7 +10,7 @@ using Telegram.Bot.Types;
 
 namespace BotFramework.Commands
 {
-    internal class DependencyInjector
+    public class DependencyInjector
     {
         //Dictionary <T, Validator<T>>
         public DependencyInjector(Dictionary<Type, Type> validators) => this.validators = validators;
@@ -19,7 +20,8 @@ namespace BotFramework.Commands
         public IEnumerable<ICommand> GetPossible(IEnumerable<Type> commandTypes, Update tgUpdate,
                                                  IGetOnlyClient    client)
         {
-            return commandTypes.Select(t => Create(tgUpdate, client, t))
+            return commandTypes.Where(t => t.GetInterfaces().Contains(typeof(ICommand)) && !t.IsAbstract)
+                               .Select(t => Create(tgUpdate, client, t))
                                .Select(t =>
                                t.FlatMap(k => (k as ICommand).SomeNotNull()))
                                .Values();
@@ -31,7 +33,7 @@ namespace BotFramework.Commands
             if (objType == typeof(IGetOnlyClient)) return ((object) client).Some();
             if (validators.ContainsKey(objType))
                 return Create(tgUpdate, client, validators[objType])
-                .FlatMap(validator => ((Validator) validator).Validate(tgUpdate, client));
+                .FlatMap(validator => ((Validator) validator).Validate());
 
             if (objType.GetInterfaces().Contains(typeof(Validator)) || objType.GetInterfaces().Contains(typeof(ICommand)))
                 foreach (var constructor in objType.GetConstructors())
@@ -44,6 +46,21 @@ namespace BotFramework.Commands
                 }
 
             return Option.None<object>();
+        }
+
+        //todo test
+        public static void CopyAllParams(object newObject, object parentObject)
+        {
+            var type     = newObject.GetType();
+            var baseType = parentObject.GetType();
+            if (type.BaseType != baseType)
+                throw new InvalidCastException($"{type} is not child of {baseType}");
+            var flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Default;
+            foreach (var field in baseType.GetFields(flags))
+                field.SetValue(newObject, field.GetValue(parentObject));
+            foreach (var property in baseType.GetProperties().Where(t => t.SetMethod != null && t.GetMethod != null))
+               property.SetValue(newObject, property.GetValue(parentObject)); 
+
         }
     }
 }
