@@ -4,7 +4,10 @@ using BotFramework.Bot;
 using BotFramework.Commands;
 using BotFramework.Commands.Validators;
 using BotFramework.Responses;
+using Microsoft.CodeAnalysis.CSharp.Scripting;
+using Microsoft.CodeAnalysis.Scripting;
 using Optional;
+using Optional.Linq;
 using Telegram.Bot.Types;
 
 namespace EchoBot
@@ -13,12 +16,12 @@ namespace EchoBot
     {
         static void Main()
         {
-            new BotBuilder()
-            .UseAssembly(typeof(Program).Assembly)
-            .WithToken("823973981:AAGYpq1Eyl_AAYGXLeW8s28uCH89S7fsHZA")
-            .UseConsoleLogger()
-            .Build()
-            .Run();
+            Func<Update, IGetOnlyClient, Option<EchoCommand>> f1 = (update, client) =>
+            from u in update.Some()
+            from a in u.Some()
+            from mesValidator in new MessageValidator(u).Validate()
+            from helloValidator in new HelloCommandValidator(mesValidator).Validate()
+            select new EchoCommand(helloValidator);
         }
     }
 

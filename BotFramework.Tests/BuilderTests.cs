@@ -52,7 +52,7 @@ namespace BotFramework.Tests
         [Test]
         public void Build_InlineCommand()
         {
-            builder.WithStaticCommands(typeof(SomeCommand));
+            builder.UseAssembly(assembly);
         }
     }
 
