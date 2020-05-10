@@ -101,9 +101,10 @@ namespace BotFramework.Tests
             return func;
         }
 
-        public class HelloMessage : Message
+        public class HelloMessage
         {
-            public HelloMessage(Message m) => DependencyInjector.CopyAllParams(this, m);
+            public Message Message;
+            public HelloMessage(Message m) => Message = m;
         }
 
 

@@ -136,18 +136,5 @@ namespace BotFramework.Commands
             return res;
         }
 
-        //todo test
-        public static void CopyAllParams(object newObject, object parentObject)
-        {
-            var type     = newObject.GetType();
-            var baseType = parentObject.GetType();
-            if (type.BaseType != baseType)
-                throw new InvalidCastException($"{type} is not child of {baseType}");
-            var flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Default;
-            foreach (var field in baseType.GetFields(flags))
-                field.SetValue(newObject, field.GetValue(parentObject));
-            foreach (var property in baseType.GetProperties().Where(t => t.SetMethod != null && t.GetMethod != null))
-                property.SetValue(newObject, property.GetValue(parentObject));
-        }
     }
 }
