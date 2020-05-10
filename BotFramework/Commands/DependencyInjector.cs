@@ -5,6 +5,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using BotFramework.Bot;
 using BotFramework.Commands.Validators;
+using FastExpressionCompiler;
 using Optional;
 using Optional.Collections;
 using Telegram.Bot.Types;
@@ -76,7 +77,7 @@ namespace BotFramework.Commands
             var body = CreateExpr(SortDependencies(commandType, new Stack<Type>(), new HashSet<Type>()), vars);
             var func = Expression.Lambda<Func<Update, IGetOnlyClient, Option<ICommand>>>(body: body,
                 parameters: new[] {vars[typeof(Update)], vars[typeof(IGetOnlyClient)]});
-            return func.Compile();
+            return func.CompileFast();
         }
 
         private Expression CreateExpr(Stack<Type> types, Dictionary<Type, ParameterExpression> variables)

@@ -71,13 +71,12 @@ namespace BotFramework.Tests
         [Test]
         public void TestFuncPreCompiled()
         {
+            Func<Update, IGetOnlyClient, Option<ICommand>> f = (update, client) => new MessageValidator(update)
+                                                                                   .Validate()
+                                                                                   .FlatMap(mes =>
+                                                                                   (new EchoCommand(mes) as ICommand).Some());
             for (int i = 0; i < benchScale; i++)
-            {
-                _ = new MessageValidator(update)
-                    .Validate()
-                    .FlatMap(mes => new EchoCommand(mes).Some())
-                    .Map(t => t.Execute());
-            }
+                _ = f(update, null).Map(t => t.Execute());
         }
 
         [Test]
