@@ -9,6 +9,7 @@ using FastExpressionCompiler;
 using Optional;
 using Optional.Collections;
 using Telegram.Bot.Types;
+using static System.Linq.Expressions.Expression;
 
 namespace BotFramework.Commands
 {
@@ -32,8 +33,8 @@ namespace BotFramework.Commands
                                .Values();
         }
 
-        public IEnumerable<ICommand> GetPossible1(IEnumerable<Type> commandTypes, Update tgUpdate,
-                                                  IGetOnlyClient    client)
+        public IEnumerable<ICommand> GetPossibleCompiler(IEnumerable<Type> commandTypes, Update tgUpdate,
+                                                         IGetOnlyClient    client)
         {
             return commandTypes.Where(t => t.GetInterfaces().Contains(typeof(ICommand)) && !t.IsAbstract)
                                .Select(t =>
@@ -70,12 +71,12 @@ namespace BotFramework.Commands
         {
             var vars = new Dictionary<Type, ParameterExpression>
             {
-                [typeof(IGetOnlyClient)] = Expression.Parameter(typeof(IGetOnlyClient), "client"),
-                [typeof(Update)]         = Expression.Parameter(typeof(Update),         "update")
+                [typeof(IGetOnlyClient)] = Parameter(typeof(IGetOnlyClient), "client"),
+                [typeof(Update)]         = Parameter(typeof(Update),         "update")
             };
 
             var body = CreateExpr(SortDependencies(commandType, new Stack<Type>(), new HashSet<Type>()), vars);
-            var func = Expression.Lambda<Func<Update, IGetOnlyClient, Option<ICommand>>>(body: body,
+            var func = Lambda<Func<Update, IGetOnlyClient, Option<ICommand>>>(body: body,
                 parameters: new[] {vars[typeof(Update)], vars[typeof(IGetOnlyClient)]});
             return func.CompileFast();
         }
@@ -95,34 +96,29 @@ namespace BotFramework.Commands
                            if (t == typeof(IGetOnlyClient))
                                return variables[typeof(IGetOnlyClient)];
                            if (!variables.ContainsKey(t))
-                               variables[t] = Expression.Parameter(t);
+                               variables[t] = Parameter(t);
                            return variables[t];
                        });
 
             if (types.Count == 0)
             {
                 var constructor = currentType.GetConstructors()[0];
-                var newExpr1    = Expression.New(constructor, GetParams(constructor));
-                var asType      = Expression.TypeAs(newExpr1, typeof(ICommand));
-                return Expression.Call(typeof(Option), "Some", new[] {typeof(ICommand)}, asType);
+                var asType      = TypeAs(New(constructor, GetParams(constructor)), typeof(ICommand));
+                return Call(typeof(Option), "Some", new[] {typeof(ICommand)}, asType);
             }
 
-            Console.WriteLine(validators[currentType]);
             var validatorConstructor = validators[currentType].GetConstructors()[0];
-            var newExpr = Expression.New(validatorConstructor, GetParams(validatorConstructor));
-            var callValidate = Expression.Call(newExpr, validators[currentType].GetMethod("Validate")!);
-            if (!variables.ContainsKey(currentType)) variables[currentType] = Expression.Parameter(currentType);
-            var func = Expression.Lambda(CreateExpr(types, variables), variables[currentType]);
+            var callValidate = Call(New(validatorConstructor, GetParams(validatorConstructor)),
+                validators[currentType].GetMethod("Validate")!);
+            if (!variables.ContainsKey(currentType)) variables[currentType] = Parameter(currentType);
+            var func = Lambda(CreateExpr(types, variables), variables[currentType]);
             var method = typeof(Option<>).MakeGenericType(currentType)
                                          .GetMethods()
                                          .Where(t => t.Name                         == "FlatMap")
                                          .Where(t => t.GetGenericArguments().Length == 1)
                                          .Select(t => t.MakeGenericMethod(func.ReturnType.GenericTypeArguments[0]))
                                          .First();
-            var generic = func.ReturnType.GenericTypeArguments[0];
-            Console.WriteLine("hello");
-            var callFlatMap = Expression.Call(callValidate, method, func);
-            //var callFlatMap  = Expression.Call(typeof(Option<>), "FlatMap", new []{currentType}, func);
+            var callFlatMap = Call(callValidate, method, func);
             return callFlatMap;
         }
 

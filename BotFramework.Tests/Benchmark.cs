@@ -65,7 +65,7 @@ namespace BotFramework.Tests
         public void TestFunc()
         {
             for (int i = 0; i < benchScale; i++)
-                _ = injector.GetPossible1(new[] {typeof(EchoCommand)}, update, null).Select(t => t.Execute()).ToList();
+                _ = injector.GetPossibleCompiler(new[] {typeof(EchoCommand)}, update, null).Select(t => t.Execute()).ToList();
         }
 
         [Test]
