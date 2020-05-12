@@ -191,15 +191,13 @@ namespace BotFramework.Bot
 
             try
             {
-                var suitable = Injector.GetPossible(nextPossible, update, GetOnlyBot);
+                var suitable = Injector.GetPossible(nextPossible, update, GetOnlyBot).ToList();
                 Logger.Debug("Suitable commands: {SuitableCommands}", string.Join(", ", suitable.Select(s => s.GetType().Name)));
                 var newPossible = new HashSet<Type>(StaticCommands);
                 foreach (var response in suitable.Select(t => t.Execute()))
                 {
                     if (response.UsePreviousCommands)
-                    {
                         newPossible.UnionWith(nextPossible);
-                    }
 
                     newPossible.UnionWith(response.NextPossible);
 

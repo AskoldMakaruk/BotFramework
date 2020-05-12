@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using BotFramework.Commands;
 
 namespace BotFramework.Bot
@@ -15,7 +16,7 @@ namespace BotFramework.Bot
 
         public void SetNextCommands(long chatId, IEnumerable<Type> commands)
         {
-            NextCommands[chatId] = commands;
+            NextCommands[chatId] = BotConfiguration.CheckICommand(commands);
         }
 
         public IEnumerable<Type> GetCommands(long chatId) => NextCommands.ContainsKey(chatId) ? NextCommands[chatId] : new List<Type>();

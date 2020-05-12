@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -37,14 +38,14 @@ namespace BotFramework.Bot
         public ILogger             Logger  { get => logger ?? Serilog.Core.Logger.None; set => logger = value; }
         public INextCommandStorage Storage { get;                                       set; }
 
-        public IReadOnlyCollection<Type> Commands      { get => commands;      set => commands = CheckTypes(value); }
-        public IReadOnlyCollection<Type> StartCommands { get => startCommands; set => startCommands = CheckTypes(value); }
+        public IReadOnlyCollection<Type> Commands      { get => commands;      set => commands = CheckICommand(value); }
+        public IReadOnlyCollection<Type> StartCommands { get => startCommands; set => startCommands = CheckICommand(value); }
 
         public DependencyInjector Injector { get; set; }
 
-        private static List<Type> CheckTypes(IReadOnlyCollection<Type> input)
+        internal static List<Type> CheckICommand(IEnumerable<Type> input)
         {
-            var output = new List<Type>(input.Count);
+            var output = new List<Type>();
             foreach (var command in input)
             {
                 if (!command.GetInterfaces().Contains(typeof(ICommand)))
