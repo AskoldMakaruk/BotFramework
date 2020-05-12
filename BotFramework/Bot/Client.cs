@@ -37,7 +37,7 @@ namespace BotFramework.Bot
         protected string Token      { get; }
         protected bool   UseWebhook { get; }
 
-        public Client(BotConfiguration configuration)
+        public Client(IBotConfiguration configuration)
         {
             Token              = configuration.Token;
             UseWebhook         = configuration.Webhook;
@@ -48,11 +48,11 @@ namespace BotFramework.Bot
             Injector = configuration.Injector;
 
             Logger.Debug("Loading static commands...");
-            StaticCommands  = configuration.Commands;
-            OnStartCommands = configuration.StartCommands;
+            StaticCommands  = configuration.Commands.ToList();
+            OnStartCommands = configuration.StartCommands.ToList();
             Logger.Debug("Loaded {StaticCommandsCount} commands.", StaticCommands.Count);
             Logger.Debug("{StaticCommands}",
-                string.Join(',', StaticCommands.Select(c => c.GetType().Name)));
+                string.Join(',', StaticCommands.Select(c => c.Name)));
         }
 
         public void Run()

@@ -13,12 +13,11 @@ namespace EchoBot
     {
         static void Main()
         {
-            new BotBuilder()
-            .UseAssembly(typeof(Program).Assembly)
-            .WithToken("<YOUR TOKEN>")
-            .UseConsoleLogger()
-            .Build()
-            .Run();
+            var configuration = new BotConfiguration(typeof(Program).Assembly, "<YOUR TOKEN>")
+            {
+                Logger = BotConfiguration.ConsoleLogger()
+            };
+            new Client(configuration).Run();
         }
     }
 
