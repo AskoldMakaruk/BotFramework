@@ -30,6 +30,8 @@ namespace BotFramework.Bot
             Token = token;
 
             var validators = GetValidators(assembly);
+            foreach (var (key, value) in GetValidators(typeof(BotConfiguration).Assembly))
+                validators.Add(key, value);                
             Injector = new CompilerInjector(validators);
         }
 
