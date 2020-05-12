@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using BotFramework.Commands;
+using BotFramework.Commands.Injectors;
 using BotFramework.Commands.Validators;
 using Serilog;
 using Serilog.Core;
@@ -76,6 +77,12 @@ namespace BotFramework.Bot
         public BotBuilder WithToken(string token)
         {
             configuration.Token = token;
+            return this;
+        }
+
+        public BotBuilder WithCustomInjector(DependencyInjector injector)
+        {
+            configuration.Injector = injector;
             return this;
         }
 

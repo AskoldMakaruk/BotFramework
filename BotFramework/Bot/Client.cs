@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using BotFramework.Commands.Injectors;
 using BotFramework.Responses;
 using Serilog.Context;
 using Telegram.Bot;
@@ -27,14 +28,14 @@ namespace BotFramework.Bot
 
         protected virtual IGetOnlyClient    GetOnlyBot => _bot;
         protected virtual TelegramBotClient Bot        => _bot;
-        private           GetOnlyClient     _bot       { get; set; }
+        private           GetOnlyClient     _bot       { get; }
 
-        protected List<Type> StaticCommands  { get; set; }
-        protected List<Type> OnStartCommands { get; set; }
-        private DependencyInjector injector { get; set; }
+        protected List<Type> StaticCommands  { get; }
+        protected List<Type> OnStartCommands { get; }
+        protected DependencyInjector Injector { get; }
 
         protected string Token      { get; }
-        protected bool   UseWebhook { get; set; }
+        protected bool   UseWebhook { get; }
 
         public Client(BotConfiguration configuration)
         {
@@ -44,7 +45,7 @@ namespace BotFramework.Bot
             NextCommandStorage = configuration.Storage;
 
             _bot = new GetOnlyClient(Token);
-            injector = new DependencyInjector(configuration.Validators);
+            Injector = configuration.Injector;
 
             Logger.Debug("Loading static commands...");
             StaticCommands  = configuration.Commands;
@@ -190,7 +191,7 @@ namespace BotFramework.Bot
 
             try
             {
-                var suitable = injector.GetPossible(nextPossible, update, GetOnlyBot);
+                var suitable = Injector.GetPossible(nextPossible, update, GetOnlyBot);
                 Logger.Debug("Suitable commands: {SuitableCommands}", string.Join(", ", suitable.Select(s => s.GetType().Name)));
                 var newPossible = new HashSet<Type>(StaticCommands);
                 foreach (var response in suitable.Select(t => t.Execute()))

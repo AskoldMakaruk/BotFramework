@@ -2,6 +2,7 @@
 using BotFramework.Commands;
 using Serilog;
 using System.Collections.Generic;
+using BotFramework.Commands.Injectors;
 
 namespace BotFramework.Bot
 {
@@ -13,7 +14,6 @@ namespace BotFramework.Bot
         public INextCommandStorage    Storage       { get; set; }
         public List<Type>             Commands      { get; set; } = new List<Type>();
         public List<Type>             StartCommands { get; set; } = new List<Type>();
-        public Dictionary<Type, Type> Validators    { get; set; } = new Dictionary<Type, Type>();
-        public bool UseBuiltInValidators { get; set; } = true;
+        public DependencyInjector     Injector { get; set; }
     }
 }

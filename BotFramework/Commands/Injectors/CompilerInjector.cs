@@ -4,37 +4,26 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using BotFramework.Bot;
-using BotFramework.Commands.Validators;
 using FastExpressionCompiler;
 using Optional;
 using Optional.Collections;
 using Telegram.Bot.Types;
 using static System.Linq.Expressions.Expression;
 
-namespace BotFramework.Commands
+namespace BotFramework.Commands.Injectors
 {
-    public class DependencyInjector
+    public class CompilerInjector : DependencyInjector
     {
         //Dictionary <T, Validator<T>>
-        public DependencyInjector(Dictionary<Type, Type> validators) => this.validators = validators;
+        public CompilerInjector(Dictionary<Type, Type> validators) => this.validators = validators;
 
-        private Dictionary<Type, Type> validators { get; }
+        private readonly Dictionary<Type, Type> validators;
 
-        private Dictionary<Type, Func<Update, IGetOnlyClient, Option<ICommand>>> commandCreators { get; } =
+        private readonly Dictionary<Type, Func<Update, IGetOnlyClient, Option<ICommand>>> commandCreators =
             new Dictionary<Type, Func<Update, IGetOnlyClient, Option<ICommand>>>();
 
         public IEnumerable<ICommand> GetPossible(IEnumerable<Type> commandTypes, Update tgUpdate,
                                                  IGetOnlyClient    client)
-        {
-            return commandTypes.Where(t => t.GetInterfaces().Contains(typeof(ICommand)) && !t.IsAbstract)
-                               .Select(t => Create(tgUpdate, client, t))
-                               .Select(t =>
-                               t.FlatMap(k => (k as ICommand).SomeNotNull()))
-                               .Values();
-        }
-
-        public IEnumerable<ICommand> GetPossibleCompiler(IEnumerable<Type> commandTypes, Update tgUpdate,
-                                                         IGetOnlyClient    client)
         {
             return commandTypes.Where(t => t.GetInterfaces().Contains(typeof(ICommand)) && !t.IsAbstract)
                                .Select(t =>
@@ -43,28 +32,8 @@ namespace BotFramework.Commands
                                        commandCreators[t] = CompileCommand(t);
                                    return commandCreators[t](tgUpdate, client);
                                })
-                               .Values();
-        }
-
-        private Option<object> Create(Update tgUpdate, IGetOnlyClient client, Type objType)
-        {
-            if (objType == typeof(Update)) return ((object) tgUpdate).Some();
-            if (objType == typeof(IGetOnlyClient)) return ((object) client).Some();
-            if (validators.ContainsKey(objType))
-                return Create(tgUpdate, client, validators[objType])
-                .FlatMap(validator => ((Validator) validator).Validate());
-
-            if (objType.GetInterfaces().Contains(typeof(Validator)) || objType.GetInterfaces().Contains(typeof(ICommand)))
-                foreach (var constructor in objType.GetConstructors())
-                {
-                    var paramTypes = constructor.GetParameters().Select(t => t.ParameterType).ToArray();
-                    var parameters = paramTypes.Select(t => Create(tgUpdate, client, t)).Values().ToArray();
-                    if (parameters.Length != paramTypes.Length)
-                        continue;
-                    return Activator.CreateInstance(objType, parameters).SomeNotNull();
-                }
-
-            return Option.None<object>();
+                               .Values()
+                               .Where(t => t.Suitable);
         }
 
         public Func<Update, IGetOnlyClient, Option<ICommand>> CompileCommand(Type commandType)
@@ -135,6 +104,5 @@ namespace BotFramework.Commands
                 SortDependencies(par.ParameterType, res, helper);
             return res;
         }
-
     }
 }

@@ -5,6 +5,7 @@ using System.Linq.Expressions;
 using System.Text;
 using BotFramework.Bot;
 using BotFramework.Commands;
+using BotFramework.Commands.Injectors;
 using BotFramework.Commands.Validators;
 using BotFramework.Responses;
 using NUnit.Framework;
@@ -15,7 +16,8 @@ namespace BotFramework.Tests
 {
     public class Benchmark
     {
-        private DependencyInjector injector;
+        private CompilerInjector compilerInjector;
+        private ReflectionInjector reflInjector;
 
         Update update => new Update
         {
@@ -39,17 +41,18 @@ namespace BotFramework.Tests
             {
                 [typeof(Message)] = typeof(MessageValidator), [typeof(HelloMessage)] = typeof(HelloCommandValidator)
             };
-            injector = new DependencyInjector(validators);
+            compilerInjector = new CompilerInjector(validators);
+            reflInjector = new ReflectionInjector(validators);
 
             func = Compiled();
             func(update, null);
         }
 
         [Test]
-        public void TestInjector()
+        public void TestReflectionInjector()
         {
             for (int i = 0; i < benchScale; i++)
-                _ = injector.GetPossible(new[] {typeof(EchoCommand)}, update, null).Select(t => t.Execute()).ToList();
+                _ = reflInjector.GetPossible(new[] {typeof(EchoCommand)}, update, null).Select(t => t.Execute()).ToList();
         }
 
         [Test]
@@ -62,10 +65,10 @@ namespace BotFramework.Tests
         }
 
         [Test]
-        public void TestFunc()
+        public void TestCompilerInjector()
         {
             for (int i = 0; i < benchScale; i++)
-                _ = injector.GetPossibleCompiler(new[] {typeof(EchoCommand)}, update, null).Select(t => t.Execute()).ToList();
+                _ = compilerInjector.GetPossible(new[] {typeof(EchoCommand)}, update, null).Select(t => t.Execute()).ToList();
         }
 
         [Test]
@@ -80,7 +83,7 @@ namespace BotFramework.Tests
         }
 
         [Test]
-        public void TestFuncPure()
+        public void TestFunc()
         {
             for (int i = 0; i < benchScale; i++)
                 _ = func(update, null).Map(t => t.Execute());
@@ -88,14 +91,12 @@ namespace BotFramework.Tests
 
 
         [Test]
-        public void TestCompiling()
-        {
+        public void TestCompiling() =>
             Compiled();
-        }
 
         private Func<Update, IGetOnlyClient, Option<ICommand>> Compiled()
         {
-            var func = injector.CompileCommand(typeof(EchoCommand));
+            var func = compilerInjector.CompileCommand(typeof(EchoCommand));
             Console.WriteLine(func.ToString());
             Console.WriteLine(func(update, null).HasValue);
             return func;
