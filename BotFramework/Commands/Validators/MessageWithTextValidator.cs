@@ -1,4 +1,6 @@
+using System;
 using Optional;
+using ValueOf;
 using Telegram.Bot.Types;
 
 namespace BotFramework.Commands.Validators
@@ -9,16 +11,18 @@ namespace BotFramework.Commands.Validators
 
         public Option<MessageWithText> Validate()
         {
-            return message?.Text != null ? new MessageWithText(message).Some() : Option.None<MessageWithText>();
+            return message?.Text != null ? MessageWithText.From(message).Some() : Option.None<MessageWithText>();
         }
 
         public MessageWithTextValidator(Update update) => message = update.Message;
     }
 
-    public struct MessageWithText
+    public class MessageWithText : ValueOf<Message, MessageWithText>
     {
-        public Message Message;
-        public string Text => Message.Text;
-        public MessageWithText(Message message) => Message = message;
+        protected override void Validate()
+        {
+            if (Value.Text == null)
+                throw new NullReferenceException("Text is null");
+        }
     }
 }

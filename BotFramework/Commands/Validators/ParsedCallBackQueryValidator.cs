@@ -37,7 +37,7 @@ namespace BotFramework.Commands.Validators
             return $"{Alias} {string.Join('&'.ToString(), input.Select(i => $"{i.Name}={i.Value}"))}";
         }
     }
-    public class ParsedCallBackQuery
+    public struct ParsedCallBackQuery
     {
         public Dictionary<string, string> Values { get; }
         public CallbackQuery Query { get; }
