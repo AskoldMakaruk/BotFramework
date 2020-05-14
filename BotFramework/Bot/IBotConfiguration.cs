@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections;
-using BotFramework.Commands;
 using Serilog;
 using System.Collections.Generic;
 using BotFramework.Commands.Injectors;

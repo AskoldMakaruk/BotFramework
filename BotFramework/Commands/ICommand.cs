@@ -1,7 +1,5 @@
 ﻿using System;
-using BotFramework.Bot;
 using BotFramework.Responses;
-using Telegram.Bot.Types;
 
 namespace BotFramework.Commands
 {

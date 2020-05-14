@@ -20,7 +20,7 @@ namespace BotFramework.Commands.Injectors
         private readonly Dictionary<Type, Type> validators;
 
         private readonly Dictionary<Type, Func<Update, IGetOnlyClient, Option<ICommand>>> commandCreators =
-            new Dictionary<Type, Func<Update, IGetOnlyClient, Option<ICommand>>>();
+        new Dictionary<Type, Func<Update, IGetOnlyClient, Option<ICommand>>>();
 
         public IEnumerable<ICommand> GetPossible(IEnumerable<Type> commandTypes, Update tgUpdate,
                                                  IGetOnlyClient    client)
@@ -94,14 +94,22 @@ namespace BotFramework.Commands.Injectors
         private Stack<Type> SortDependencies(Type currentType, Stack<Type> res, HashSet<Type> helper)
         {
             if (currentType == typeof(IGetOnlyClient) || currentType == typeof(Update)) return res;
-            if (!helper.Contains(currentType))
+            var type = validators.ContainsKey(currentType)
+                       ? validators[currentType].Some()
+                       : currentType.GetInterfaces().Contains(typeof(ICommand)) && !currentType.IsAbstract
+                       ? currentType.Some()
+                       : Option.None<Type>();
+            type.MatchSome(typeToGetDependencies =>
             {
-                res.Push(currentType);
-                helper.Add(currentType);
-            }
+                if (!helper.Contains(currentType))
+                {
+                    res.Push(currentType);
+                    helper.Add(currentType);
+                }
 
-            foreach (var par in currentType.GetConstructors().Select(t => t.GetParameters()).First())
-                SortDependencies(par.ParameterType, res, helper);
+                foreach (var par in typeToGetDependencies.GetConstructors().Select(t => t.GetParameters()).First())
+                    SortDependencies(par.ParameterType, res, helper);
+            });
             return res;
         }
     }
