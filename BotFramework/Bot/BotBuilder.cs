@@ -37,6 +37,10 @@ namespace BotFramework.Bot
 
         private void CheckConfiguration()
         {
+            if (configuration.Injector == null)
+            {
+                throw new ArgumentNullException(nameof(configuration.Injector));
+            }
             if (configuration.Token == null)
             {
                 throw new ArgumentNullException(nameof(configuration.Token));
@@ -75,6 +79,11 @@ namespace BotFramework.Bot
         public BotBuilder WithToken(string token)
         {
             configuration.Token = token;
+            return this;
+        }
+        public BotBuilder WithInjector(IInjector injector)
+        {
+            configuration.Injector = injector;
             return this;
         }
 

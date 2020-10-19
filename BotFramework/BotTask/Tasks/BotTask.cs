@@ -11,11 +11,10 @@ namespace BotFramework.BotTask
     {
         internal BotTask() { }
 
-        internal bool                       IsCompleted;
-        public   Exception?                 Exception   { get; internal set; }
-        public   Action                     OnCompleted { get; internal set; }
-        internal INotifyCompletion?         NonBotTask;
-        internal ICriticalNotifyCompletion? NonBotTask_;
+        internal bool       IsCompleted;
+        public   Exception? Exception   { get; internal set; }
+        public   Action     OnCompleted { get; internal set; }
+        internal bool       IsRunningNonBotTask;
 
         public new BotAwaiter<T> GetAwaiter()
         {

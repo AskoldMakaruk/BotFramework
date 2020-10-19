@@ -32,10 +32,11 @@ namespace BotFramework.Bot
 
         public Client(BotConfiguration configuration)
         {
-            Token         = configuration.Token;
-            UseWebhook    = configuration.Webhook;
-            Logger        = configuration.Logger;
-            ClientStorage = configuration.Storage;
+            Token           = configuration.Token;
+            UseWebhook      = configuration.Webhook;
+            Logger          = configuration.Logger;
+            ClientStorage   = configuration.Storage;
+            CommandInjector = configuration.Injector;
 
             Bot = new TelegramBotClient(Token);
 
@@ -165,7 +166,7 @@ namespace BotFramework.Bot
             return from;
         }
 
-        public async Task HandleUpdate(Update? update)
+        public void HandleUpdate(Update? update)
         {
             if (update == null)
                 return;
@@ -175,7 +176,7 @@ namespace BotFramework.Bot
             var client = ClientStorage.GetClient(from);
             if (client == null)
             {
-                var currentCommand = OnStartCommands.Select(CommandInjector.Create)
+                var currentCommand = OnStartCommands.Concat(StaticCommands).Select(CommandInjector.Create)
                                                     .Cast<IStaticCommand>()
                                                     .FirstOrDefault(t => t.Suitable(update));
                 client = new PerUserClient(Bot, from);

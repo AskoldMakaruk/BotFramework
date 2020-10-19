@@ -6,6 +6,14 @@ namespace BotFramework.BotTask
 {
     public struct BotTaskMethodBuilder<TResult>
     {
+        public BotTaskMethodBuilder(BotTask<TResult> t)
+        {
+            Task = t;
+        }
+        public static BotTaskMethodBuilder<TResult> Create()
+        {
+           return new BotTaskMethodBuilder<TResult>(new BotTask<TResult>());
+        }
         public void Start<TStateMachine>(ref TStateMachine stateMachine)
         where TStateMachine : IAsyncStateMachine
         {
@@ -39,9 +47,18 @@ namespace BotFramework.BotTask
         where TStateMachine : IAsyncStateMachine
         {
 
-            if (typeof(TAwaiter) != typeof(BotAwaiter<>))
+            if (typeof(TAwaiter).GetGenericTypeDefinition() != typeof(BotAwaiter<>))
             {
-                Task.NonBotTask = awaiter;
+                var task = Task;
+                Task.IsRunningNonBotTask = true;
+                var machine = stateMachine;
+                awaiter.OnCompleted(() =>
+                {
+                    machine.MoveNext();
+                    task.IsRunningNonBotTask = false;
+
+                });
+                return;
             }
             awaiter.OnCompleted(stateMachine.MoveNext);
         }
@@ -52,10 +69,18 @@ namespace BotFramework.BotTask
         where TAwaiter : ICriticalNotifyCompletion
         where TStateMachine : IAsyncStateMachine
         {
-            if (typeof(TAwaiter) != typeof(BotAwaiter<>))
+            if (typeof(TAwaiter).GetGenericTypeDefinition() != typeof(BotAwaiter<>))
             {
-                Task.NonBotTask_ = awaiter;
-                Task.NonBotTask = awaiter;
+                var task = Task;
+                Task.IsRunningNonBotTask = true;
+                var machine = stateMachine;
+                awaiter.OnCompleted(() =>
+                {
+                    machine.MoveNext();
+                    task.IsRunningNonBotTask = false;
+
+                });
+                return;
             }
             awaiter.OnCompleted(stateMachine.MoveNext);
         }

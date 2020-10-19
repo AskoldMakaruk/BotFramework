@@ -13,9 +13,11 @@ namespace BotFramework.Bot
 
         private static Dictionary<long, PerUserClient> Clients { get; }
 
-        public PerUserClient GetClient(long id)
+        public PerUserClient? GetClient(long id)
         {
-            return Clients[id];
+            if (Clients.ContainsKey(id))
+                return Clients[id];
+            else return null;
         }
 
         public void SetClient(long id, PerUserClient client)

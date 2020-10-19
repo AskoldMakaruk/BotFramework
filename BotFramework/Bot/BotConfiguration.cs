@@ -14,5 +14,6 @@ namespace BotFramework.Bot
         public List<Type>      AllCommands    { get; set; } = new List<Type>();
         public List<Type>      StaticCommands { get; set; } = new List<Type>();
         public List<Type>      StartCommands  { get; set; } = new List<Type>();
+        public IInjector?      Injector       { get; set; }
     }
 }

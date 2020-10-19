@@ -16,13 +16,13 @@ namespace BotFramework.Bot
         private TelegramBotClient  _client;
         public  BasicBotTask?      CurrentBasicBotTask;
         public  BotTask<Response>? CurrentTask;
-        public  Queue<Update>      UpdatesToHandle;
+        public  Queue<Update>      UpdatesToHandle = new Queue<Update>();
         public PerUserClient(TelegramBotClient client, long userId) => (_client, UserId) = (client, userId);
 
         public BasicBotTask GetUpdateAsync(Func<Update, bool>? filter = null)
         {
             //бля треба б щось типу валуе таск
-            CurrentBasicBotTask ??= new BasicBotTask(filter);
+            CurrentBasicBotTask = new BasicBotTask(filter);
             if (UpdatesToHandle.Count > 0)
             {
                 CurrentBasicBotTask.HandleUpdate(UpdatesToHandle.Dequeue());
@@ -33,12 +33,13 @@ namespace BotFramework.Bot
 
         public void HandleUpdate(Update update)
         {
-            if (CurrentTask != null && !CurrentTask.IsCompleted)
+            if (CurrentTask?.IsRunningNonBotTask == true)
             {
                 UpdatesToHandle.Enqueue(update);
                 return;
             }
-            CurrentBasicBotTask?.HandleUpdate(update);
+            UpdatesToHandle.Enqueue(update);
+            CurrentBasicBotTask?.HandleUpdate(UpdatesToHandle.Dequeue());
         }
 
         public Task<TResponse> MakeRequestAsync<TResponse>(IRequest<TResponse> request,
