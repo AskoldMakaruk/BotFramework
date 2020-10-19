@@ -16,7 +16,7 @@ namespace BotFramework.Clients
         public  BasicBotTask?      CurrentBasicBotTask;
         public  BotTask<Response>? CurrentTask;
         public  Queue<Update>      UpdatesToHandle = new Queue<Update>();
-        public Client(TelegramBotClient client, long userId) => (_client, UserId) = (client, userId);
+        public  Client(TelegramBotClient client, long userId) => (_client, UserId) = (client, userId);
 
         public BasicBotTask GetUpdateAsync(Func<Update, bool>? filter = null)
         {
@@ -37,6 +37,7 @@ namespace BotFramework.Clients
                 UpdatesToHandle.Enqueue(update);
                 return;
             }
+
             UpdatesToHandle.Enqueue(update);
             CurrentBasicBotTask?.HandleUpdate(UpdatesToHandle.Dequeue());
         }

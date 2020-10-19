@@ -25,9 +25,9 @@ namespace BotFramework.Bot
 
         protected TelegramBotClient BotClient;
 
-        protected List<Type> StaticCommands  { get; set; }
-        protected List<Type> OnStartCommands { get; set; }
-        protected IInjector  CommandInjector { get; set; }
+        protected List<(IStaticCommand, Type)> StaticCommands  { get; set; }
+        protected List<(IStaticCommand, Type)> OnStartCommands { get; set; }
+        protected IInjector                    CommandInjector { get; set; }
 
         protected string Token      { get; }
         protected bool   UseWebhook { get; set; }
@@ -43,8 +43,8 @@ namespace BotFramework.Bot
             BotClient = new TelegramBotClient(Token);
 
             Logger.Debug("Loading static commands...");
-            StaticCommands  = configuration.StaticCommands;
-            OnStartCommands = configuration.StartCommands;
+            StaticCommands  = configuration.StaticCommands.Select(t => (CommandInjector!.Create(t) as IStaticCommand, t)).ToList()!;
+            OnStartCommands  = configuration.StartCommands.Select(t => (CommandInjector!.Create(t) as IStaticCommand, t)).ToList()!;
             Logger.Debug("Loaded {StaticCommandsCount} commands.", StaticCommands.Count);
             Logger.Debug("{StaticCommands}",
                 string.Join(',', StaticCommands.Select(c => c.GetType().Name)));
@@ -168,6 +168,43 @@ namespace BotFramework.Bot
             return from;
         }
 
+        private Client InitClient(long id, Update update)
+        {
+            var currentCommand = OnStartCommands.Concat(StaticCommands)
+                                                .Where(t => t.Item1.Suitable(update))
+                                                .Select(t => CommandInjector.Create(t.Item2))
+                                                .Cast<IStaticCommand>()
+                                                .FirstOrDefault(t => t.Suitable(update));
+            var client = new Client(BotClient, id);
+            ClientStorage.SetClient(id, client);
+            if (currentCommand != null)
+                client.CurrentTask = currentCommand.Execute(client);
+            return client;
+        }
+
+        private ICommand? TryFindPossible(Update update)
+        {
+            return StaticCommands.Where(t => t.Item1.Suitable(update))
+                                 .Select(t => CommandInjector.Create(t.Item2))
+                                 .Cast<IStaticCommand>()
+                                 .FirstOrDefault();
+        }
+
+        private void SetOnCompleted(Client client)
+        {
+            var task = client.CurrentTask;
+            if(task == null) return;
+            task.OnCompleted = () =>
+            {
+                if (task.Exception != null)
+                {
+                    Logger.Error("Error handling command", task.Exception);
+                }
+
+                client.CurrentTask = task.Result.NextCommand?.Execute(client);
+            };
+        }
+
         public void HandleUpdate(Update? update)
         {
             if (update == null)
@@ -178,74 +215,16 @@ namespace BotFramework.Bot
             var client = ClientStorage.GetClient(from);
             if (client == null)
             {
-                var currentCommand = OnStartCommands.Concat(StaticCommands).Select(CommandInjector.Create)
-                                                    .Cast<IStaticCommand>()
-                                                    .FirstOrDefault(t => t.Suitable(update));
-                client = new Client(BotClient, from);
-                ClientStorage.SetClient(from, client);
-                if (currentCommand != null)
-                {
-                    client.CurrentTask = currentCommand.Execute(client);
-                }
+                client = InitClient(@from, update);
+                SetOnCompleted(client);
             }
-            else if (client.CurrentTask == null)
+            if (client.CurrentTask == null)
             {
-                var currentCommand = StaticCommands.Select(CommandInjector.Create)
-                                                   .Cast<IStaticCommand>()
-                                                   .FirstOrDefault(t => t.Suitable(update));
-                client.CurrentTask = currentCommand?.Execute(client);
+                client.CurrentTask = TryFindPossible(update)?.Execute(client);
+                SetOnCompleted(client);
             }
-            else if (client.CurrentTask.IsCompleted)
-            {
-                if (client.CurrentTask.Exception != null)
-                {
-                    Logger.Error("Error handling command", client.CurrentTask.Exception);
-                    var currentCommand = StaticCommands.Select(CommandInjector.Create)
-                                                       .Cast<IStaticCommand>()
-                                                       .FirstOrDefault(t => t.Suitable(update));
-                    client.CurrentTask = currentCommand?.Execute(client);
-                }
-                var response = client.CurrentTask.Result;
-                if (response.NextCommand == null)
-                {
-                    //todo cache injected not used static commands
-                    var currentCommand = StaticCommands.Select(CommandInjector.Create)
-                                                       .Cast<IStaticCommand>()
-                                                       .FirstOrDefault(t => t.Suitable(update));
-                    client.CurrentTask = currentCommand?.Execute(client);
-                }
-                else
-                {
-                    response.NextCommand.Execute(client);
-                }
-            }
-
+            if (client.CurrentTask == null) return;
             client.HandleUpdate(update);
-            /*
-
-            try
-            {
-                var suitable = nextPossible.Where(t => t.Suitable(update)).ToList();
-                Logger.Debug("Suitable commands: {SuitableCommands}", string.Join(", ", suitable.Select(s => s.GetType().Name)));
-                var newPossible = new HashSet<ICommand>(StaticCommands);
-                foreach (var response in suitable.Select(t => t.Execute(update, GetOnlyBot)))
-                {
-                    if (response.UsePreviousCommands)
-                    {
-                        newPossible.UnionWith(nextPossible);
-                    }
-
-                    newPossible.UnionWith(response.NextPossible);
-
-                    await SendMessages(response.Responses);
-                }
-
-                NextCommandStorage.SetNextCommands(from, newPossible);
-            }
-            catch (Exception e)
-            {
-                Logger.Error(e, "Error handling command.");
-            }*/
         }
 
 

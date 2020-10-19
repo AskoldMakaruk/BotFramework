@@ -10,7 +10,7 @@ namespace BotFramework.BotTask
             this.task = task;
         }
 
-        public           bool       IsCompleted { get => task.IsCompleted; internal set => task.IsCompleted = value; }
+        public           bool       IsCompleted => task.IsCompleted;
         private readonly BotTask<T> task;
 
         public T GetResult()

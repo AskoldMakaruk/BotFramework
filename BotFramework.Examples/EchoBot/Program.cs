@@ -16,7 +16,7 @@ namespace EchoBot
         {
             new BotBuilder()
             .UseAssembly(typeof(Program).Assembly)
-            .WithToken("")
+            .WithToken("547180886:AAGzSudnS64sVfN2h6hFZTqjkJsGELfEVKQ")
             .WithInjector(new StupidInjector())
             .UseConsoleLogger()
             .Build()

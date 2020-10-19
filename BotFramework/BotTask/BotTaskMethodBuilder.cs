@@ -26,15 +26,12 @@ namespace BotFramework.BotTask
 
         public void SetResult(TResult result)
         {
-            Task.IsCompleted = true;
             Task.Result      = result;
-            Task.OnCompleted?.Invoke();
         }
 
         public void SetException(Exception exception)
         {
             Task.Exception   = exception;
-            Task.IsCompleted = true;
         }
 
         public BotTask<TResult> Task { get; }

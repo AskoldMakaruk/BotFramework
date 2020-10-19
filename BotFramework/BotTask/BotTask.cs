@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Telegram.Bot.Types;
@@ -10,17 +12,45 @@ namespace BotFramework.BotTask
     {
         internal BotTask() { }
 
-        internal bool       IsCompleted;
-        public   Exception? Exception   { get; internal set; }
-        public   Action     OnCompleted { get; internal set; }
-        internal bool       IsRunningNonBotTask;
+        public  bool       IsCompleted { get; private set; }
+        private T          result;
+        private Exception? exception;
 
-        public new BotAwaiter<T> GetAwaiter()
+        public T Result
+        {
+            get => result;
+            internal set
+            {
+                IsCompleted = true;
+                result      = value;
+                InvokeOnCompleted();
+            }
+        }
+
+        public Exception? Exception
+        {
+            get => exception;
+            internal set
+            {
+                IsCompleted = true;
+                exception   = value;
+                InvokeOnCompleted();
+            }
+        }
+
+        private void InvokeOnCompleted()
+        {
+            foreach (var action in onCompletedActions)
+               action.Invoke();
+        }
+        private readonly List<Action> onCompletedActions = new List<Action>();
+        public           Action       OnCompleted { set => onCompletedActions.Add(value); }
+        internal         bool         IsRunningNonBotTask;
+
+        public BotAwaiter<T> GetAwaiter()
         {
             return new BotAwaiter<T>(this);
         }
-
-        internal T Result;
     }
 
     [AsyncMethodBuilder(typeof(BotTaskMethodBuilder<>))]
@@ -37,11 +67,7 @@ namespace BotFramework.BotTask
         {
             if (IsCompleted) return;
             if (filter == null || filter.Invoke(update))
-            {
-                IsCompleted = true;
                 Result      = update;
-                OnCompleted?.Invoke();
-            }
         }
     }
 }
