@@ -14,6 +14,7 @@
     <RepositoryType>Open</RepositoryType>
     <PackageTags>telegram bot</PackageTags>
     <PackageReleaseNotes>Please don't use previous version.</PackageReleaseNotes>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

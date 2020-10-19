@@ -1,7 +1,10 @@
 ﻿using BotFramework.Bot;
+using BotFramework.BotTask;
 using BotFramework.Commands;
 using BotFramework.Responses;
+using Telegram.Bot.Requests;
 using Telegram.Bot.Types;
+using File = System.IO.File;
 
 namespace EchoBot
 {
@@ -19,13 +22,18 @@ namespace EchoBot
     }
 
     [StaticCommand]
-    public class EchoCommand : MessageCommand
+    public class EchoCommand : IOnStartCommand
     {
-        public override Response Execute(Message message, IGetOnlyClient client)
+        public async BotTask<Response> Execute(IClient client)
         {
-            return new Response().AddMessage(new TextMessage(message.Chat.Id, message.Text));
+            var update = await client.GetUpdateAsync();
+            await client.MakeRequestAsync(new SendMessageRequest(client.UserId, "Hello"));
+            return Responses.Ok();
         }
 
-        public override bool Suitable(Message message) => true;
+        public bool Suitable(Update message)
+        {
+            return true;
+        }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using BotFramework.Commands;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -6,42 +7,29 @@ using Telegram.Bot.Types.ReplyMarkups;
 
 namespace BotFramework.Responses
 {
-    public class Response
+    public static class Responses
     {
-        public          bool                   UsePreviousCommands;
-        public readonly List<IResponseMessage> Responses;
+        public static Response Ok() => new Response();
 
-        public readonly ICommand[] NextPossible;
-
-        public Response(params ICommand[] nextPossible)
+        public static void NextCommand<T>() where T : ICommand
         {
-            NextPossible = nextPossible;
-            Responses    = new List<IResponseMessage>();
+            
         }
 
-        public Response UsePrevious(bool usePrevious)
+        public static void NextCommand(Type commandType)
         {
-            UsePreviousCommands = usePrevious;
-            return this;
+            
         }
 
-        public Response AddMessage(params IResponseMessage[] messages)
-        {
-            Responses.AddRange(messages);
-            return this;
-        }
+        public static Response NextCommand(ICommand command) => new Response(nextCommand: command);
+    }
 
-        public Response AddTextMessage(ChatId       chatId,
-                                       string       text,
-                                       ParseMode    parseMode             = ParseMode.Default,
-                                       bool         disableWebPagePreview = false,
-                                       bool         disableNotification   = false,
-                                       int          replyToMessageId      = 0,
-                                       IReplyMarkup replyMarkup           = null)
+    public readonly struct Response
+    {
+        public readonly ICommand? NextCommand;
+        public Response(ICommand? nextCommand = null)
         {
-            Responses.Add(new TextMessage(chatId, text, parseMode, disableWebPagePreview, disableNotification, replyToMessageId,
-                replyMarkup));
-            return this;
+            NextCommand     = nextCommand;
         }
     }
 }

@@ -47,7 +47,7 @@ namespace BotFramework.Bot
                 throw new ArgumentException("Invalid telegram api token.");
             }
 
-            if (_assembly == null && configuration.Commands == null)
+            if (_assembly == null && configuration.AllCommands == null)
             {
                 throw new ArgumentException("You must supply assembly or commands");
             }
@@ -59,17 +59,17 @@ namespace BotFramework.Bot
 
             configuration.Logger ??= Logger.None;
 
-            (configuration.Commands, configuration.StartCommands) =
+            (configuration.StaticCommands, configuration.StartCommands) =
             _assembly != null
             ? (
                   GetStaticCommands(_assembly)
-                  .Concat(configuration.Commands)
+                  .Concat(configuration.StaticCommands)
                   .ToList(),
                   GetOnStartCommand(_assembly)
                   .Concat(configuration.StartCommands)
                   .ToList()
               )
-            : (configuration.Commands, configuration.StartCommands);
+            : (configuration.StaticCommands, configuration.StartCommands);
         }
 
         public BotBuilder WithToken(string token)
@@ -100,7 +100,7 @@ namespace BotFramework.Bot
             return this;
         }
 
-        public BotBuilder UseNextCommandStorage(INextCommandStorage storage)
+        public BotBuilder UseNextCommandStorage(IClientStorage storage)
         {
             configuration.Storage = storage;
             return this;
@@ -114,42 +114,40 @@ namespace BotFramework.Bot
             return this;
         }
 
-        public BotBuilder WithStaticCommands(params ICommand[] commands)
+        public BotBuilder WithStaticCommands(params Type[] commands)
         {
             return WithStaticCommands(commands.ToList());
         }
 
-        public BotBuilder WithStaticCommands(IEnumerable<ICommand> commands)
+        public BotBuilder WithStaticCommands(IEnumerable<Type> commands)
         {
-            configuration.Commands = commands.ToList();
+            configuration.StaticCommands = commands.ToList();
             return this;
         }
 
-        public BotBuilder WithStartCommands(params ICommand[] commands)
+        public BotBuilder WithStartCommands(params Type[] commands)
         {
             return WithStartCommands(commands.ToList());
         }
 
-        public BotBuilder WithStartCommands(IEnumerable<ICommand> commands)
+        public BotBuilder WithStartCommands(IEnumerable<Type> commands)
         {
             configuration.StartCommands = commands.ToList();
             return this;
         }
 
 
-        protected static List<ICommand> GetStaticCommands(Assembly assembly)
+        protected static List<Type> GetStaticCommands(Assembly assembly)
         {
             return assembly
                    .GetTypes()
                    .Where(t => (t.IsSubclassOf(typeof(ICommand)) || t.GetInterfaces().Contains(typeof(ICommand))) &&
                                !t.IsAbstract)
                    .Where(c => c.IsDefined(typeof(StaticCommandAttribute), true))
-                   .Select(Activator.CreateInstance)
-                   .Cast<ICommand>()
                    .ToList();
         }
 
-        protected static List<ICommand> GetOnStartCommand(Assembly assembly)
+        protected static List<Type> GetOnStartCommand(Assembly assembly)
         {
             return assembly
                    .GetTypes()
@@ -157,8 +155,6 @@ namespace BotFramework.Bot
                                !t.IsAbstract)
                    .Where(c =>
                    c.IsDefined(typeof(OnStartCommand), true))
-                   .Select(Activator.CreateInstance)
-                   .Cast<ICommand>()
                    .ToList();
         }
 

@@ -1,11 +1,13 @@
 ﻿using System.Collections.Generic;
+using BotFramework.BotTask;
 using BotFramework.Commands;
+using BotFramework.Responses;
 
 namespace BotFramework.Bot
 {
-    public interface INextCommandStorage
+    public interface IClientStorage
     {
-        void                  SetNextCommands(long chatId, IEnumerable<ICommand> commands);
-        IEnumerable<ICommand> GetCommands(long     chatId);
+        PerUserClient?     GetClient(long id);
+        void               SetClient(long id, PerUserClient client);
     }
 }

@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using BotFramework.BotTask;
 using BotFramework.Responses;
 using Serilog.Context;
 using Telegram.Bot;
@@ -16,36 +17,30 @@ using Telegram.Bot.Types.Enums;
 
 namespace BotFramework.Bot
 {
-    public class Client
+    public partial class Client
     {
-        private class GetOnlyClient : TelegramBotClient, IGetOnlyClient
-        {
-            public GetOnlyClient(string token, HttpClient httpClient = null) : base(token, httpClient) { }
-        }
-
         protected ILogger Logger { get; set; }
 
-        protected virtual IGetOnlyClient    GetOnlyBot => _bot;
-        protected virtual TelegramBotClient Bot        => _bot;
-        private           GetOnlyClient     _bot       { get; set; }
+        protected TelegramBotClient Bot;
 
-        protected List<ICommand> StaticCommands  { get; set; }
-        protected List<ICommand> OnStartCommands { get; set; }
+        protected List<Type> StaticCommands  { get; set; }
+        protected List<Type> OnStartCommands { get; set; }
+        protected IInjector  CommandInjector { get; set; }
 
         protected string Token      { get; }
         protected bool   UseWebhook { get; set; }
 
         public Client(BotConfiguration configuration)
         {
-            Token              = configuration.Token;
-            UseWebhook         = configuration.Webhook;
-            Logger             = configuration.Logger;
-            NextCommandStorage = configuration.Storage;
+            Token         = configuration.Token;
+            UseWebhook    = configuration.Webhook;
+            Logger        = configuration.Logger;
+            ClientStorage = configuration.Storage;
 
-            _bot = new GetOnlyClient(Token);
+            Bot = new TelegramBotClient(Token);
 
             Logger.Debug("Loading static commands...");
-            StaticCommands  = configuration.Commands;
+            StaticCommands  = configuration.StaticCommands;
             OnStartCommands = configuration.StartCommands;
             Logger.Debug("Loaded {StaticCommandsCount} commands.", StaticCommands.Count);
             Logger.Debug("{StaticCommands}",
@@ -68,7 +63,7 @@ namespace BotFramework.Bot
             new ManualResetEvent(false).WaitOne();
         }
 
-        private INextCommandStorage NextCommandStorage { get; set; }
+        private IClientStorage ClientStorage { get; set; }
 
         private long GetIdFromUpdate(Update update)
         {
@@ -170,19 +165,52 @@ namespace BotFramework.Bot
             return from;
         }
 
-        public async Task HandleUpdate(Update update)
+        public async Task HandleUpdate(Update? update)
         {
             if (update == null)
                 return;
 
             var from = GetIdFromUpdate(update);
 
-            if (NextCommandStorage.GetCommands(from) == null)
+            var client = ClientStorage.GetClient(from);
+            if (client == null)
             {
-                NextCommandStorage.SetNextCommands(from, OnStartCommands.Concat(StaticCommands));
+                var currentCommand = OnStartCommands.Select(CommandInjector.Create)
+                                                    .Cast<IStaticCommand>()
+                                                    .FirstOrDefault(t => t.Suitable(update));
+                client = new PerUserClient(Bot, from);
+                ClientStorage.SetClient(from, client);
+                if (currentCommand != null)
+                {
+                    client.CurrentTask = currentCommand.Execute(client);
+                }
+            }
+            else if (client.CurrentTask == null)
+            {
+                var currentCommand = StaticCommands.Select(CommandInjector.Create)
+                                                   .Cast<IStaticCommand>()
+                                                   .FirstOrDefault(t => t.Suitable(update));
+                client.CurrentTask = currentCommand?.Execute(client);
+            }
+            else if (client.CurrentTask.IsCompleted)
+            {
+                var response = client.CurrentTask.Result;
+                if (response.NextCommand == null)
+                {
+                    //todo cache injected not used static commands
+                    var currentCommand = StaticCommands.Select(CommandInjector.Create)
+                                                       .Cast<IStaticCommand>()
+                                                       .FirstOrDefault(t => t.Suitable(update));
+                    client.CurrentTask = currentCommand?.Execute(client);
+                }
+                else
+                {
+                    response.NextCommand.Execute(client);
+                }
             }
 
-            var nextPossible = NextCommandStorage.GetCommands(from).ToList();
+            client.HandleUpdate(update);
+            /*
 
             try
             {
@@ -206,14 +234,9 @@ namespace BotFramework.Bot
             catch (Exception e)
             {
                 Logger.Error(e, "Error handling command.");
-            }
+            }*/
         }
 
-        public virtual async Task SendMessages(IEnumerable<IResponseMessage> responses)
-        {
-            foreach (var message in responses)
-                await message.Send(Bot);
-        }
 
         public void HandleUpdate(string json)
         {

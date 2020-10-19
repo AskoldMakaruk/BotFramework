@@ -1,22 +1,28 @@
 ﻿using System.Collections.Generic;
+using BotFramework.BotTask;
 using BotFramework.Commands;
 
 namespace BotFramework.Bot
 {
-    public class DictionaryStorage : INextCommandStorage
+    public class DictionaryStorage : IClientStorage
     {
         static DictionaryStorage()
         {
-            NextCommands = new Dictionary<long, IEnumerable<ICommand>>();
+            Clients = new Dictionary<long, PerUserClient>();
         }
 
-        private static Dictionary<long, IEnumerable<ICommand>> NextCommands { get; }
+        private static Dictionary<long, PerUserClient> Clients { get; }
 
-        public void SetNextCommands(long chatId, IEnumerable<ICommand> commands)
+        public PerUserClient GetClient(long id)
         {
-            NextCommands[chatId] = commands;
+            return Clients[id];
         }
 
-        public IEnumerable<ICommand> GetCommands(long chatId) => NextCommands.ContainsKey(chatId) ? NextCommands[chatId] : null;
+        public void SetClient(long id, PerUserClient client)
+        {
+            if(Clients.ContainsKey(id))
+                Clients[id] = client;
+            else Clients.Add(id, client);
+        }
     }
 }
