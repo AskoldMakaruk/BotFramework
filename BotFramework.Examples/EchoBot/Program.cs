@@ -29,12 +29,12 @@ namespace EchoBot
     {
         public async BotTask<Response> Execute(IClient client)
         {
-            var update = await client.GetUpdateAsync();
-            await client.MakeRequestAsync(new SendMessageRequest(client.UserId, $"Hello, here ypur last message {update.Message.Text}, type somethinh again"));
-            update = await client.GetUpdateAsync();
-            await client.MakeRequestAsync(new SendMessageRequest(client.UserId, $"And this is your new message {update.Message.Text}, and now type only message with hello"));
+            var message = await client.GetTextMessageAsync();
+            await client.SendTextMessageAsync($"Hello, here ypur last message {message.Text}, type somethinh again");
+            message = await client.GetTextMessageAsync();
+            await client.SendTextMessageAsync($"And this is your new message {message.Text}, and now type only message with hello");
             var helloMessage = await client.GetMessageWithHelloTextAsync();
-            await client.MakeRequestAsync(new SendMessageRequest(client.UserId, $"Well done!"));
+            await client.SendTextMessageAsync("Well done!");
             return Responses.Ok();
         }
 
