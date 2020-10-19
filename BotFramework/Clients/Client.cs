@@ -20,7 +20,6 @@ namespace BotFramework.Clients
 
         public BasicBotTask GetUpdateAsync(Func<Update, bool>? filter = null)
         {
-            //бля треба б щось типу валуе таск
             CurrentBasicBotTask = new BasicBotTask(filter);
             if (UpdatesToHandle.Count > 0)
             {
