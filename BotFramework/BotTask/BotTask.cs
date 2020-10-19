@@ -1,7 +1,6 @@
 using System;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using BotFramework.BotTask.Awaiters;
 using Telegram.Bot.Types;
 
 namespace BotFramework.BotTask

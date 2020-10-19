@@ -8,7 +8,9 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using BotFramework.BotTask;
+using BotFramework.Clients;
 using BotFramework.Responses;
+using BotFramework.Storage;
 using Serilog.Context;
 using Telegram.Bot;
 using Telegram.Bot.Args;
@@ -17,11 +19,11 @@ using Telegram.Bot.Types.Enums;
 
 namespace BotFramework.Bot
 {
-    public partial class Client
+    public class Bot
     {
         protected ILogger Logger { get; set; }
 
-        protected TelegramBotClient Bot;
+        protected TelegramBotClient BotClient;
 
         protected List<Type> StaticCommands  { get; set; }
         protected List<Type> OnStartCommands { get; set; }
@@ -30,7 +32,7 @@ namespace BotFramework.Bot
         protected string Token      { get; }
         protected bool   UseWebhook { get; set; }
 
-        public Client(BotConfiguration configuration)
+        public Bot(BotConfiguration configuration)
         {
             Token           = configuration.Token;
             UseWebhook      = configuration.Webhook;
@@ -38,7 +40,7 @@ namespace BotFramework.Bot
             ClientStorage   = configuration.Storage;
             CommandInjector = configuration.Injector;
 
-            Bot = new TelegramBotClient(Token);
+            BotClient = new TelegramBotClient(Token);
 
             Logger.Debug("Loading static commands...");
             StaticCommands  = configuration.StaticCommands;
@@ -51,15 +53,15 @@ namespace BotFramework.Bot
         public void Run()
         {
             Logger.Information("Starting bot...");
-            var me = Bot.GetMeAsync().Result;
+            var me = BotClient.GetMeAsync().Result;
             Logger.Information("Name: {BotFirstName} UserName: @{BotName}", me.FirstName, me.Username);
             if (!UseWebhook)
             {
-                Bot.StartReceiving();
-                Bot.DeleteWebhookAsync();
+                BotClient.StartReceiving();
+                BotClient.DeleteWebhookAsync();
             }
 
-            Bot.OnUpdate += OnUpdateReceived;
+            BotClient.OnUpdate += OnUpdateReceived;
 
             new ManualResetEvent(false).WaitOne();
         }
@@ -179,7 +181,7 @@ namespace BotFramework.Bot
                 var currentCommand = OnStartCommands.Concat(StaticCommands).Select(CommandInjector.Create)
                                                     .Cast<IStaticCommand>()
                                                     .FirstOrDefault(t => t.Suitable(update));
-                client = new PerUserClient(Bot, from);
+                client = new Client(BotClient, from);
                 ClientStorage.SetClient(from, client);
                 if (currentCommand != null)
                 {
@@ -195,6 +197,14 @@ namespace BotFramework.Bot
             }
             else if (client.CurrentTask.IsCompleted)
             {
+                if (client.CurrentTask.Exception != null)
+                {
+                    Logger.Error("Error handling command", client.CurrentTask.Exception);
+                    var currentCommand = StaticCommands.Select(CommandInjector.Create)
+                                                       .Cast<IStaticCommand>()
+                                                       .FirstOrDefault(t => t.Suitable(update));
+                    client.CurrentTask = currentCommand?.Execute(client);
+                }
                 var response = client.CurrentTask.Result;
                 if (response.NextCommand == null)
                 {

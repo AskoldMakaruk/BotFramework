@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.CompilerServices;
 
-namespace BotFramework.BotTask.Awaiters
+namespace BotFramework.BotTask
 {
     public readonly struct BotAwaiter<T> : ICriticalNotifyCompletion
     {

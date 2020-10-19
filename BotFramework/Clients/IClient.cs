@@ -1,14 +1,11 @@
 using System;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using BotFramework.BotTask;
-using BotFramework.Commands;
 using Telegram.Bot.Requests.Abstractions;
 using Telegram.Bot.Types;
-using File = Telegram.Bot.Types.File;
 
-namespace BotFramework.Bot
+namespace BotFramework.Clients
 {
     public interface IClient
     {

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using BotFramework.Commands;
+using BotFramework.Storage;
 using Serilog;
 using Serilog.Core;
 
@@ -22,10 +23,10 @@ namespace BotFramework.Bot
             };
         }
 
-        public Client Build()
+        public Bot Build()
         {
             CheckConfiguration();
-            var client = new Client(configuration);
+            var client = new Bot(configuration);
             return client;
         }
 

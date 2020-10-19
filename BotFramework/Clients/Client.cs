@@ -3,21 +3,20 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using BotFramework.BotTask;
-using BotFramework.Commands;
 using BotFramework.Responses;
 using Telegram.Bot;
 using Telegram.Bot.Requests.Abstractions;
 using Telegram.Bot.Types;
 
-namespace BotFramework.Bot
+namespace BotFramework.Clients
 {
-    public class PerUserClient : IClient
+    public class Client : IClient
     {
         private TelegramBotClient  _client;
         public  BasicBotTask?      CurrentBasicBotTask;
         public  BotTask<Response>? CurrentTask;
         public  Queue<Update>      UpdatesToHandle = new Queue<Update>();
-        public PerUserClient(TelegramBotClient client, long userId) => (_client, UserId) = (client, userId);
+        public Client(TelegramBotClient client, long userId) => (_client, UserId) = (client, userId);
 
         public BasicBotTask GetUpdateAsync(Func<Update, bool>? filter = null)
         {

@@ -1,6 +1,7 @@
 ﻿using System;
 using BotFramework.Bot;
 using BotFramework.BotTask;
+using BotFramework.Clients;
 using BotFramework.Commands;
 using BotFramework.Responses;
 using Telegram.Bot.Requests;

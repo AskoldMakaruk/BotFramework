@@ -1,10 +1,9 @@
 using System;
 using System.Runtime.CompilerServices;
-using BotFramework.BotTask.Awaiters;
 
 namespace BotFramework.BotTask
 {
-    public struct BotTaskMethodBuilder<TResult>
+    public readonly struct BotTaskMethodBuilder<TResult>
     {
         public BotTaskMethodBuilder(BotTask<TResult> t)
         {
