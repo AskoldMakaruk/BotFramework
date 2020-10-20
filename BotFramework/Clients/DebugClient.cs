@@ -1,8 +1,6 @@
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using BotFramework.BotTask;
 using Telegram.Bot.Requests.Abstractions;
 using Telegram.Bot.Types;
 
@@ -29,10 +27,9 @@ namespace BotFramework.Clients
             return Task.FromResult(res);
         }
 
-        public BasicBotTask GetUpdateAsync(Func<Update, bool>? filter = null)
+        public Task<Update> GetUpdateAsync(Func<Update, bool>? filter = null)
         {
-            var t = new BasicBotTask(null) {Result = UserInputs[inputOffset++]};
-            return t;
+            return Task.FromResult(UserInputs[inputOffset++]);
         }
 
         public long UserId => 0;

@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using BotFramework.BotTask;
 using BotFramework.Responses;
 using Telegram.Bot;
 using Telegram.Bot.Requests.Abstractions;
@@ -14,26 +12,34 @@ namespace BotFramework.Clients
     public class Client : IClient
     {
         private TelegramBotClient                   _client;
-        public  BasicBotTask?                       CurrentBasicBotTask;
-        public  BotTask<Response>?                  CurrentTask;
+        public  TaskCompletionSource<Update>?       CurrentBasicBotTask;
+        public  Task<Response>?                     CurrentTask;
+        private Func<Update, bool>?                 CurrentFilter;
         public  IProducerConsumerCollection<Update> UpdatesToHandle = new ConcurrentQueue<Update>();
         public Client(TelegramBotClient client, long userId) => (_client, UserId) = (client, userId);
 
-        public BasicBotTask GetUpdateAsync(Func<Update, bool>? filter = null)
+        public Task<Update> GetUpdateAsync(Func<Update, bool>? filter = null)
         {
-            CurrentBasicBotTask = new BasicBotTask(filter);
-            while (!CurrentBasicBotTask.IsCompleted && UpdatesToHandle.TryTake(out var update))
-                CurrentBasicBotTask.HandleUpdate(update);
-            return CurrentBasicBotTask;
+            CurrentBasicBotTask = new TaskCompletionSource<Update>();
+            CurrentFilter       = filter;
+            while (!CurrentBasicBotTask.Task.IsCompleted && UpdatesToHandle.TryTake(out var update))
+            {
+                if (CurrentFilter?.Invoke(update) == true)
+                    CurrentBasicBotTask.SetResult(update);
+            }
+            return CurrentBasicBotTask.Task;
         }
 
         public void HandleUpdate(Update update)
         {
             UpdatesToHandle.TryAdd(update);
-            if (CurrentBasicBotTask == null || CurrentBasicBotTask.IsCompleted)
+            if (CurrentBasicBotTask == null || CurrentBasicBotTask.Task.IsCompleted)
                 return;
-            while (!CurrentBasicBotTask.IsCompleted && UpdatesToHandle.TryTake(out update))
-                CurrentBasicBotTask.HandleUpdate(update);
+            while (!CurrentBasicBotTask.Task.IsCompleted && UpdatesToHandle.TryTake(out update))
+            {
+                if (CurrentFilter?.Invoke(update) == true)
+                    CurrentBasicBotTask.SetResult(update);
+            }
         }
 
         public Task<TResponse> MakeRequestAsync<TResponse>(IRequest<TResponse> request,

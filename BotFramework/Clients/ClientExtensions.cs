@@ -1,5 +1,4 @@
 using System.Threading.Tasks;
-using BotFramework.BotTask;
 using Telegram.Bot.Requests;
 using Telegram.Bot.Types;
 
@@ -13,7 +12,7 @@ namespace BotFramework.Clients
             return client.MakeRequestAsync(new SendMessageRequest(userId.Value, text));
         }
 
-        public static async BotTask<Message> GetTextMessageAsync(this IClient client)
+        public static async Task<Message> GetTextMessageAsync(this IClient client)
         {
             var update = await client.GetUpdateAsync(u => !string.IsNullOrEmpty(u.Message?.Text));
             return update.Message;

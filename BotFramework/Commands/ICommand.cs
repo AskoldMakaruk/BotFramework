@@ -1,6 +1,5 @@
 ﻿using System;
-using BotFramework.Bot;
-using BotFramework.BotTask;
+using System.Threading.Tasks;
 using BotFramework.Clients;
 using BotFramework.Responses;
 using Telegram.Bot.Types;
@@ -9,7 +8,7 @@ namespace BotFramework.Commands
 {
     public interface ICommand
     {
-        BotTask.BotTask<Response> Execute(IClient client);
+        Task<Response> Execute(IClient client);
     }
 
     public interface IStaticCommand : ICommand

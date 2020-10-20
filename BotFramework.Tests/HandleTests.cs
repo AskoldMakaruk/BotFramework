@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using BotFramework.Bot;
-using BotFramework.Commands;
 using BotFramework.Responses;
 using Moq;
 using NUnit.Framework;

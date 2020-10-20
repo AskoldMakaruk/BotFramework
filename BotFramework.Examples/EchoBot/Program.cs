@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Threading.Tasks;
 using BotFramework.Bot;
-using BotFramework.BotTask;
 using BotFramework.Clients;
 using BotFramework.Commands;
 using BotFramework.Responses;
-using Telegram.Bot.Requests;
 using Telegram.Bot.Types;
-using File = System.IO.File;
 
 namespace EchoBot
 {
@@ -28,7 +25,7 @@ namespace EchoBot
     [StaticCommand]
     public class EchoCommand : IOnStartCommand
     {
-        public async BotTask<Response> Execute(IClient client)
+        public async Task<Response> Execute(IClient client)
         {
             await Task.Delay(10000);
             var message = await client.GetTextMessageAsync();
@@ -49,7 +46,7 @@ namespace EchoBot
 
     public static class Shit
     {
-        public static async BotTask<Message> GetMessageWithHelloTextAsync(this IClient client)
+        public static async Task<Message> GetMessageWithHelloTextAsync(this IClient client)
         {
             var res = await client.GetUpdateAsync(u => u?.Message?.Text?.Contains("Hello") == true);
             return res.Message;

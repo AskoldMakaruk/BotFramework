@@ -4,12 +4,8 @@ using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
 using System.Threading;
-using System.Threading.Tasks;
-using BotFramework.BotTask;
 using BotFramework.Clients;
-using BotFramework.Responses;
 using BotFramework.Storage;
 using Serilog.Context;
 using Telegram.Bot;
@@ -193,8 +189,7 @@ namespace BotFramework.Bot
         private void SetOnCompleted(Client client)
         {
             var task = client.CurrentTask;
-            if(task == null) return;
-            task.OnCompleted = () =>
+            task?.ContinueWith(_ =>
             {
                 if (task.Exception != null)
                 {
@@ -202,7 +197,7 @@ namespace BotFramework.Bot
                 }
 
                 client.CurrentTask = task.Result.NextCommand?.Execute(client);
-            };
+            });
         }
 
         public void HandleUpdate(Update? update)

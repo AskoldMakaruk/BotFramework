@@ -1,5 +1,4 @@
-﻿using BotFramework.Bot;
-using BotFramework.Clients;
+﻿using BotFramework.Clients;
 
 namespace BotFramework.Storage
 {

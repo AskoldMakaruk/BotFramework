@@ -1,7 +1,6 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using BotFramework.BotTask;
 using Telegram.Bot.Requests.Abstractions;
 using Telegram.Bot.Types;
 
@@ -13,7 +12,7 @@ namespace BotFramework.Clients
             IRequest<TResponse> request,
             CancellationToken   cancellationToken = default(CancellationToken));
 
-        BasicBotTask GetUpdateAsync(Func<Update, bool>? filter = null);
+        Task<Update> GetUpdateAsync(Func<Update, bool>? filter = null);
         long         UserId { get; }
     }
 }
