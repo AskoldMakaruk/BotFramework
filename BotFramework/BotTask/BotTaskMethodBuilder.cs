@@ -42,20 +42,6 @@ namespace BotFramework.BotTask
         where TAwaiter : INotifyCompletion
         where TStateMachine : IAsyncStateMachine
         {
-
-            if (typeof(TAwaiter).GetGenericTypeDefinition() != typeof(BotAwaiter<>))
-            {
-                var task = Task;
-                Task.IsRunningNonBotTask = true;
-                var machine = stateMachine;
-                awaiter.OnCompleted(() =>
-                {
-                    machine.MoveNext();
-                    task.IsRunningNonBotTask = false;
-
-                });
-                return;
-            }
             awaiter.OnCompleted(stateMachine.MoveNext);
         }
 
@@ -65,19 +51,6 @@ namespace BotFramework.BotTask
         where TAwaiter : ICriticalNotifyCompletion
         where TStateMachine : IAsyncStateMachine
         {
-            if (typeof(TAwaiter).GetGenericTypeDefinition() != typeof(BotAwaiter<>))
-            {
-                var task = Task;
-                Task.IsRunningNonBotTask = true;
-                var machine = stateMachine;
-                awaiter.OnCompleted(() =>
-                {
-                    machine.MoveNext();
-                    task.IsRunningNonBotTask = false;
-
-                });
-                return;
-            }
             awaiter.OnCompleted(stateMachine.MoveNext);
         }
     }

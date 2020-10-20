@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using BotFramework.Bot;
 using BotFramework.BotTask;
 using BotFramework.Clients;
@@ -29,6 +30,7 @@ namespace EchoBot
     {
         public async BotTask<Response> Execute(IClient client)
         {
+            await Task.Delay(10000);
             var message = await client.GetTextMessageAsync();
             await client.SendTextMessageAsync($"Hello, here ypur last message {message.Text}, type somethinh again");
             message = await client.GetTextMessageAsync();

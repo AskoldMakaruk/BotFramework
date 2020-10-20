@@ -45,7 +45,6 @@ namespace BotFramework.BotTask
         }
         private readonly List<Action> onCompletedActions = new List<Action>();
         public           Action       OnCompleted { set => onCompletedActions.Add(value); }
-        internal         bool         IsRunningNonBotTask;
 
         public BotAwaiter<T> GetAwaiter()
         {
