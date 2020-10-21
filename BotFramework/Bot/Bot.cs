@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using BotFramework.Clients;
 using BotFramework.Storage;
 using Serilog.Context;
@@ -21,9 +22,9 @@ namespace BotFramework.Bot
 
         protected TelegramBotClient BotClient;
 
-        protected List<(IStaticCommand, Type)> StaticCommands  { get; set; }
-        protected List<(IStaticCommand, Type)> OnStartCommands { get; set; }
-        protected IInjector                    CommandInjector { get; set; }
+        protected IReadOnlyList<(IStaticCommand, Type)> StaticCommands  { get; set; }
+        protected IReadOnlyList<(IStaticCommand, Type)> OnStartCommands { get; set; }
+        protected IInjector                             CommandInjector { get; set; }
 
         protected string Token      { get; }
         protected bool   UseWebhook { get; set; }
@@ -39,8 +40,10 @@ namespace BotFramework.Bot
             BotClient = new TelegramBotClient(Token);
 
             Logger.Debug("Loading static commands...");
-            StaticCommands  = configuration.StaticCommands.Select(t => (CommandInjector!.Create(t) as IStaticCommand, t)).ToList()!;
-            OnStartCommands  = configuration.StartCommands.Select(t => (CommandInjector!.Create(t) as IStaticCommand, t)).ToList()!;
+            StaticCommands = configuration.StaticCommands.Select(t => (CommandInjector!.Create(t) as IStaticCommand, t))
+                                          .ToList()!;
+            OnStartCommands = configuration.StartCommands.Select(t => (CommandInjector!.Create(t) as IStaticCommand, t))
+                                           .ToList()!;
             Logger.Debug("Loaded {StaticCommandsCount} commands.", StaticCommands.Count);
             Logger.Debug("{StaticCommands}",
                 string.Join(',', StaticCommands.Select(c => c.GetType().Name)));
@@ -164,20 +167,6 @@ namespace BotFramework.Bot
             return from;
         }
 
-        private Client InitClient(long id, Update update)
-        {
-            var currentCommand = OnStartCommands.Concat(StaticCommands)
-                                                .Where(t => t.Item1.Suitable(update))
-                                                .Select(t => CommandInjector.Create(t.Item2))
-                                                .Cast<IStaticCommand>()
-                                                .FirstOrDefault(t => t.Suitable(update));
-            var client = new Client(BotClient, id);
-            ClientStorage.SetClient(id, client);
-            if (currentCommand != null)
-                client.CurrentTask = currentCommand.Execute(client);
-            return client;
-        }
-
         private ICommand? TryFindPossible(Update update)
         {
             return StaticCommands.Where(t => t.Item1.Suitable(update))
@@ -200,26 +189,34 @@ namespace BotFramework.Bot
             });
         }
 
-        public void HandleUpdate(Update? update)
+        public void HandleUpdate(Update update)
         {
-            if (update == null)
-                return;
-
             var from = GetIdFromUpdate(update);
 
-            var client = ClientStorage.GetClient(from);
-            if (client == null)
+            var client = ClientStorage.GetOrAdd(from, from =>
             {
-                client = InitClient(@from, update);
+                var currentCommand = OnStartCommands.Concat(StaticCommands)
+                                                    .Where(t => t.Item1.Suitable(update))
+                                                    .Select(t => CommandInjector.Create(t.Item2))
+                                                    .Cast<IStaticCommand>()
+                                                    .FirstOrDefault(t => t.Suitable(update));
+                var client = new Client(BotClient, from);
+                if (currentCommand != null)
+                    client.CurrentTask = currentCommand.Execute(client);
                 SetOnCompleted(client);
-            }
-            if (client.CurrentTask == null)
+                return client;
+            });
+            lock (client)
             {
-                client.CurrentTask = TryFindPossible(update)?.Execute(client);
-                SetOnCompleted(client);
+                if (client.CurrentTask == null)
+                {
+                    client.CurrentTask = TryFindPossible(update)?.Execute(client);
+                    SetOnCompleted(client);
+                }
+
+                if (client.CurrentTask == null) return;
+                client.HandleUpdate(update);
             }
-            if (client.CurrentTask == null) return;
-            client.HandleUpdate(update);
         }
 
 
@@ -232,14 +229,18 @@ namespace BotFramework.Bot
         public void OnUpdateReceived(object sender, UpdateEventArgs e)
         {
             var update = e.Update;
-            try
+            if (update == null) return;
+            Task.Run(() =>
             {
-                HandleUpdate(update);
-            }
-            catch (Exception ex)
-            {
-                Logger.Error(ex, "Error handling command.");
-            }
+                try
+                {
+                    HandleUpdate(update);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error(ex, "Error handling command.");
+                }
+            });
         }
     }
 }
