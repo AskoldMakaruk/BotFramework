@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Reflection.Metadata.Ecma335;
 using System.Threading.Tasks;
 using BotFramework.Bot;
 using BotFramework.Clients;
 using BotFramework.Commands;
 using BotFramework.Responses;
+using Serilog;
+using Serilog.Core;
 using Telegram.Bot.Types;
 
 namespace EchoBot
@@ -12,35 +15,48 @@ namespace EchoBot
     {
         static void Main()
         {
-            new BotBuilder()
-            .UseAssembly(typeof(Program).Assembly)
-            .WithToken("547180886:AAGzSudnS64sVfN2h6hFZTqjkJsGELfEVKQ")
-            .WithInjector(new StupidInjector())
-            .UseConsoleLogger()
-            .Build()
-            .Run();
+            var logger = new LoggerConfiguration()
+                         .MinimumLevel.Debug()
+                         .WriteTo.Console()
+                         .Enrich.FromLogContext()
+                         .CreateLogger();
+            new HandlerBuilder(token: "547180886:AAGzSudnS64sVfN2h6hFZTqjkJsGELfEVKQ",
+                injector: new StupidInjector(),
+                assembly: typeof(Program).Assembly,
+                logger: logger)
+            .CreateAndRunDictionaryInMemoryHandler();
         }
     }
 
-    [StaticCommand]
-    public class EchoCommand : IOnStartCommand
+    public class EchoCommand : IStaticCommand
     {
         public async Task<Response> Execute(IClient client)
         {
-            await Task.Delay(10000);
+            //await Task.Delay(10000);
             var message = await client.GetTextMessageAsync();
             await client.SendTextMessageAsync($"Hello, here ypur last message {message.Text}, type somethinh again");
             message = await client.GetTextMessageAsync();
-            await client.SendTextMessageAsync($"And this is your new message {message.Text}, and now type only message with hello");
+            await client.SendTextMessageAsync(
+                $"And this is your new message {message.Text}, and now type only message with hello");
             var helloMessage = await client.GetMessageWithHelloTextAsync();
             await client.SendTextMessageAsync("Well done!");
             return Responses.Ok();
         }
 
 
-        public bool Suitable(Update message)
+        public bool SuitableLast(Update message) => true;
+    }
+    public class HelpCommand : IStaticCommand
+    {
+        public async Task<Response> Execute(IClient client)
         {
-            return true;
+            await client.SendTextMessageAsync("This is help text");
+            return Responses.Ok();
+        }
+
+        public bool SuitableFirst(Update message)
+        {
+            return message?.Message?.Text == "/help";
         }
     }
 
@@ -52,10 +68,13 @@ namespace EchoBot
             return res.Message;
         }
     }
+
     public class StupidInjector : IInjector
     {
         public ICommand Create(Type commandType)
         {
+            if(typeof(HelpCommand) == commandType)
+                return new HelpCommand();
             return new EchoCommand();
         }
 

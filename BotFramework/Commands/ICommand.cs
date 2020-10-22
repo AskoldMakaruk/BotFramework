@@ -13,12 +13,8 @@ namespace BotFramework.Commands
 
     public interface IStaticCommand : ICommand
     {
-        bool Suitable(Update message);
-    }
-
-    public interface IOnStartCommand : IStaticCommand
-    {
-        
+        bool SuitableFirst(Update message) => false;
+        bool SuitableLast(Update  message) => false;
     }
 
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface)]
