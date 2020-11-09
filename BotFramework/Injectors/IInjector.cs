@@ -1,7 +1,7 @@
 using System;
 using BotFramework.Commands;
 
-namespace BotFramework.Bot
+namespace BotFramework.Injectors
 {
     public interface IInjector
     {

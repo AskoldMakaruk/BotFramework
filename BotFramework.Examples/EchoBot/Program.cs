@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using BotFramework.Bot;
 using BotFramework.Clients;
 using BotFramework.Commands;
+using BotFramework.Injectors;
 using BotFramework.Responses;
 using Serilog;
 using Serilog.Core;
@@ -21,7 +22,6 @@ namespace EchoBot
                          .Enrich.FromLogContext()
                          .CreateLogger();
             new HandlerBuilder(token: "547180886:AAGzSudnS64sVfN2h6hFZTqjkJsGELfEVKQ",
-                injector: new StupidInjector(),
                 assembly: typeof(Program).Assembly,
                 logger: logger)
             .CreateAndRunDictionaryInMemoryHandler();
@@ -50,6 +50,7 @@ namespace EchoBot
     {
         public async Task<Response> Execute(IClient client)
         {
+            var _ = await client.GetTextMessageAsync();
             await client.SendTextMessageAsync("This is help text");
             return Responses.Ok();
         }
@@ -69,18 +70,4 @@ namespace EchoBot
         }
     }
 
-    public class StupidInjector : IInjector
-    {
-        public ICommand Create(Type commandType)
-        {
-            if(typeof(HelpCommand) == commandType)
-                return new HelpCommand();
-            return new EchoCommand();
-        }
-
-        public T Create<T>() where T : ICommand
-        {
-            throw new NotImplementedException();
-        }
-    }
 }

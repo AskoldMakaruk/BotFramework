@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using BotFramework.Bot;
 using BotFramework.Clients;
 using BotFramework.Commands;
+using BotFramework.Injectors;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Serilog;
@@ -53,6 +54,7 @@ namespace BotFramework.Storage
                         {
                             if (client.CurrentTask == null || client.CurrentTask.IsCompleted)
                             {
+                                client.CurrentBasicBotTask = null;
                                 client.CurrentTask = StaticCommands
                                                      .Where(t => t.Item1.SuitableLast(update))
                                                      .Select(t => CommandInjector.Create(t.Item2))
@@ -63,6 +65,7 @@ namespace BotFramework.Storage
                         }
                         else
                         {
+                            client.CurrentBasicBotTask = null;
                             client.CurrentTask = currentCommand.Execute(client);
                         }
 
