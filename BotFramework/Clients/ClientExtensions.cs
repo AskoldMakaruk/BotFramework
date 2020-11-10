@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Telegram.Bot.Requests;
@@ -33,6 +34,13 @@ namespace BotFramework.Clients
         public static async Task<Message> GetTextMessageAsync(this IClient client)
         {
             var update = await client.GetUpdateAsync(u => !string.IsNullOrEmpty(u.Message?.Text));
+            return update.Message;
+        }
+
+        public static async Task<Message> GetOnlyButtonResultAsync(this IClient client, ReplyKeyboardMarkup replyMarkup)
+        {
+            var update = await client.GetUpdateAsync(u =>
+                         replyMarkup.Keyboard.SelectMany(t => t).Any(t => t.Text == u?.Message?.Text));
             return update.Message;
         }
     }
