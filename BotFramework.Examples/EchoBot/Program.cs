@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Reflection.Metadata.Ecma335;
 using System.Threading.Tasks;
 using BotFramework.Bot;
@@ -6,6 +7,7 @@ using BotFramework.Clients;
 using BotFramework.Commands;
 using BotFramework.Injectors;
 using BotFramework.Responses;
+using Ninject.Modules;
 using Serilog;
 using Serilog.Core;
 using Telegram.Bot.Types;
@@ -23,6 +25,7 @@ namespace EchoBot
                          .CreateLogger();
             new HandlerBuilder(token: "547180886:AAGzSudnS64sVfN2h6hFZTqjkJsGELfEVKQ",
                 assembly: typeof(Program).Assembly,
+                withCustomModules: modules => modules.Add(new DumbModule()),
                 logger: logger)
             .CreateAndRunDictionaryInMemoryHandler();
         }
@@ -30,10 +33,17 @@ namespace EchoBot
 
     public class EchoCommand : IStaticCommand
     {
+        private readonly ILogger logger;
+        public EchoCommand(ILogger logger)
+        {
+            this.logger = logger;
+        }
+
         public async Task<Response> Execute(IClient client)
         {
             //await Task.Delay(10000);
             var message = await client.GetTextMessageAsync();
+            logger.Log("DI Works!");
             await client.SendTextMessageAsync($"Hello, here ypur last message {message.Text}, type somethinh again");
             message = await client.GetTextMessageAsync();
             await client.SendTextMessageAsync(
@@ -58,6 +68,26 @@ namespace EchoBot
         public bool SuitableFirst(Update message)
         {
             return message?.Message?.Text == "/help";
+        }
+    }
+
+    public class DumbModule : NinjectModule
+    {
+        public override void Load()
+        {
+            Bind<ILogger>().To<Logger>();
+        }
+    }
+
+    public interface ILogger
+    {
+        void Log(string text);
+    }
+    public class Logger : ILogger
+    {
+        public void Log(string text)
+        {
+            Console.WriteLine(text);
         }
     }
 

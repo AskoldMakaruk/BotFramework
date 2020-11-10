@@ -4,6 +4,8 @@ using System.Linq;
 using System.Reflection;
 using BotFramework.Commands;
 using Ninject;
+using Ninject.Modules;
+using Ninject.Planning.Bindings;
 
 namespace BotFramework.Injectors
 {
@@ -11,10 +13,13 @@ namespace BotFramework.Injectors
     {
         private IKernel kernel;
 
-        public NinjectInjector(IReadOnlyList<Type> commands)
+        public NinjectInjector(IReadOnlyList<Type> commands, IReadOnlyList<INinjectModule>? otherModules = null)
         {
             //assembly.GetTypes().Where(t => t.GetInterfaces().Contains(typeof(ICommand)) && !t.IsAbstract).ToList();
-            kernel = new StandardKernel(new CommandModule(commands));
+            var moduleList = new List<INinjectModule> {new CommandModule(commands)};
+            if(otherModules != null)
+                moduleList.AddRange(otherModules);
+            kernel = new StandardKernel(moduleList.ToArray());
         }
         public ICommand Create(Type commandType)
         {

@@ -9,6 +9,7 @@ using Akka.Routing;
 using BotFramework.Clients;
 using BotFramework.Commands;
 using BotFramework.Injectors;
+using Ninject.Modules;
 using Serilog;
 using Serilog.Core;
 using Telegram.Bot;
@@ -18,20 +19,23 @@ namespace BotFramework.Bot
     public class HandlerBuilder
     {
         public IReadOnlyList<(IStaticCommand, Type)> StaticCommands  { get; private set; } = null!;
-        public IReadOnlyList<Type>                   CommandTypes    { get; private set; } = null!;
+        public IReadOnlyList<Type>                   CommandTypes    { get; private set; }
         public IInjector                             CommandInjector { get; private set; }
         public ILogger                               Logger          { get; private set; }
         public TelegramBotClient                     BotClient       { get; private set; } = null!;
 
-        public HandlerBuilder(string     token,
-                              Assembly   assembly,
-                              IInjector? injector = null,
-                              ILogger?   logger   = null)
+        public HandlerBuilder(string                        token,
+                              Assembly                      assembly,
+                              Action<List<INinjectModule>>? withCustomModules = null,
+                              IInjector?                    injector          = null,
+                              ILogger?                      logger            = null)
         {
             InitClient(token);
             Logger = logger ?? Serilog.Core.Logger.None;
             CommandTypes = assembly.GetTypes().Where(t => t.GetInterfaces().Contains(typeof(ICommand)) && !t.IsAbstract).ToList();
-            CommandInjector = injector ?? new NinjectInjector(CommandTypes);
+            var otherModules = new List<INinjectModule>();
+            withCustomModules?.Invoke(otherModules);
+            CommandInjector = injector ?? new NinjectInjector(CommandTypes, otherModules);
             LoadStaticCommands(CommandTypes);
         }
 
