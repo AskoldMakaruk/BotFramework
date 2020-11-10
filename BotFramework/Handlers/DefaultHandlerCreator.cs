@@ -3,7 +3,6 @@ using System.Threading;
 using BotFramework.Storage;
 using Serilog;
 using Serilog.Context;
-using Serilog.Core;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 

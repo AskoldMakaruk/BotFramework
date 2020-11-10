@@ -1,15 +1,33 @@
+using System.Threading;
 using System.Threading.Tasks;
 using Telegram.Bot.Requests;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
+using Telegram.Bot.Types.ReplyMarkups;
 
 namespace BotFramework.Clients
 {
     public static class ClientExtensions
     {
-        public static Task<Message> SendTextMessageAsync(this IClient client, string text, long? userId = null)
+        public static Task<Message> SendTextMessageAsync(this IClient      client, string text,
+                                                         ChatId?           chatId                = null,
+                                                         ParseMode         parseMode             = default,
+                                                         bool              disableWebPagePreview = default,
+                                                         bool              disableNotification   = default,
+                                                         int               replyToMessageId      = default,
+                                                         IReplyMarkup?     replyMarkup           = default,
+                                                         CancellationToken cancellationToken     = default
+        )
         {
-            userId ??= client.UserId;
-            return client.MakeRequestAsync(new SendMessageRequest(userId.Value, text));
+            chatId ??= client.UserId;
+            return client.MakeRequestAsync(new SendMessageRequest(chatId, text)
+            {
+                ParseMode             = parseMode,
+                DisableWebPagePreview = disableWebPagePreview,
+                DisableNotification   = disableNotification,
+                ReplyToMessageId      = replyToMessageId,
+                ReplyMarkup           = replyMarkup
+            }, cancellationToken);
         }
 
         public static async Task<Message> GetTextMessageAsync(this IClient client)

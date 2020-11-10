@@ -1,15 +1,11 @@
 ﻿using System;
-using System.Collections;
-using System.Reflection.Metadata.Ecma335;
 using System.Threading.Tasks;
 using BotFramework.Bot;
 using BotFramework.Clients;
 using BotFramework.Commands;
-using BotFramework.Injectors;
 using BotFramework.Responses;
 using Ninject.Modules;
 using Serilog;
-using Serilog.Core;
 using Telegram.Bot.Types;
 
 namespace EchoBot

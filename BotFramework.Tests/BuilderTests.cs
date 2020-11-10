@@ -1,5 +1,4 @@
 using System.Reflection;
-using BotFramework.Bot;
 using BotFramework.Commands;
 using BotFramework.Responses;
 using NUnit.Framework;

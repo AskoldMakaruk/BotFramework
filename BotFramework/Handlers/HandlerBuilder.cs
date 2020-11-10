@@ -1,17 +1,12 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using Akka.Routing;
-using BotFramework.Clients;
 using BotFramework.Commands;
 using BotFramework.Injectors;
 using Ninject.Modules;
 using Serilog;
-using Serilog.Core;
 using Telegram.Bot;
 
 namespace BotFramework.Bot
