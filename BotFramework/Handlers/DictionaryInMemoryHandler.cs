@@ -24,7 +24,7 @@ namespace BotFramework.Storage
         public DictionaryInMemoryHandler(HandlerBuilder configuration)
         {
             Logger = configuration.Logger;
-            Logger.Information($"Constructing {nameof(DictionaryInMemoryHandler)} handler");
+            Logger.Information($"Using {nameof(DictionaryInMemoryHandler)} handler");
             Clients         = new ConcurrentDictionary<long, Client>();
             BotClient       = configuration.BotClient;
             CommandInjector = configuration.CommandInjector;
@@ -74,7 +74,7 @@ namespace BotFramework.Storage
                         {
                             if (task.Exception != null)
                             {
-                                Logger.Error("Error handling command", task.Exception);
+                                Logger.Error(task.Exception, "Error handling command");
                             }
 
                             client.CurrentTask = task.Result.NextCommand?.Execute(client);
