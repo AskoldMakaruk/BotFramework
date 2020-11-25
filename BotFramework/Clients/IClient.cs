@@ -8,11 +8,11 @@ namespace BotFramework.Clients
 {
     public interface IClient
     {
-        Task<TResponse> MakeRequestAsync<TResponse>(
+        Task<TResponse> MakeRequest<TResponse>(
             IRequest<TResponse> request,
             CancellationToken   cancellationToken = default(CancellationToken));
 
-        Task<Update> GetUpdateAsync(Func<Update, bool>? filter = null);
+        Task<Update> GetUpdate(Func<Update, bool>? filter = null);
         long         UserId { get; }
     }
 }

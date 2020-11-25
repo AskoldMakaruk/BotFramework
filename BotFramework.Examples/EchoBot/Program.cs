@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using BotFramework.Bot;
 using BotFramework.Clients;
+using BotFramework.Clients.ClientExtensions;
 using BotFramework.Commands;
 using BotFramework.Responses;
 using Ninject.Modules;
@@ -38,14 +39,14 @@ namespace EchoBot
         public async Task<Response> Execute(IClient client)
         {
             //await Task.Delay(10000);
-            var message = await client.GetTextMessageAsync();
+            var message = await client.GetTextMessage();
             logger.Log("DI Works!");
-            await client.SendTextMessageAsync($"Hello, here ypur last message {message.Text}, type somethinh again");
-            message = await client.GetTextMessageAsync();
-            await client.SendTextMessageAsync(
+            await client.SendTextMessage($"Hello, here ypur last message {message.Text}, type somethinh again");
+            message = await client.GetTextMessage();
+            await client.SendTextMessage(
                 $"And this is your new message {message.Text}, and now type only message with hello");
-            var helloMessage = await client.GetMessageWithHelloTextAsync();
-            await client.SendTextMessageAsync("Well done!");
+            var helloMessage = await client.GetMessageWithHelloText();
+            await client.SendTextMessage("Well done!");
             return Responses.Ok();
         }
 
@@ -56,8 +57,8 @@ namespace EchoBot
     {
         public async Task<Response> Execute(IClient client)
         {
-            var _ = await client.GetTextMessageAsync();
-            await client.SendTextMessageAsync("This is help text");
+            var _ = await client.GetTextMessage();
+            await client.SendTextMessage("This is help text");
             return Responses.Ok();
         }
 
@@ -89,9 +90,9 @@ namespace EchoBot
 
     public static class Shit
     {
-        public static async Task<Message> GetMessageWithHelloTextAsync(this IClient client)
+        public static async Task<Message> GetMessageWithHelloText(this IClient client)
         {
-            var res = await client.GetUpdateAsync(u => u?.Message?.Text?.Contains("Hello") == true);
+            var res = await client.GetUpdate(u => u?.Message?.Text?.Contains("Hello") == true);
             return res.Message;
         }
     }

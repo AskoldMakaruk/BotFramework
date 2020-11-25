@@ -18,7 +18,7 @@ namespace BotFramework.Clients
         public  IProducerConsumerCollection<Update> UpdatesToHandle = new ConcurrentQueue<Update>();
         public Client(TelegramBotClient client, long userId) => (_client, UserId) = (client, userId);
 
-        public Task<Update> GetUpdateAsync(Func<Update, bool>? filter = null)
+        public Task<Update> GetUpdate(Func<Update, bool>? filter = null)
         {
             CurrentBasicBotTask = new TaskCompletionSource<Update>();
             CurrentFilter       = filter;
@@ -42,7 +42,7 @@ namespace BotFramework.Clients
             }
         }
 
-        public Task<TResponse> MakeRequestAsync<TResponse>(IRequest<TResponse> request,
+        public Task<TResponse> MakeRequest<TResponse>(IRequest<TResponse> request,
                                                            CancellationToken   cancellationToken = default(CancellationToken)) =>
         _client.MakeRequestAsync(request, cancellationToken);
 

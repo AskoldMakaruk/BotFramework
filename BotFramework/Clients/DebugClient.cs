@@ -20,14 +20,14 @@ namespace BotFramework.Clients
         private int inputOffset  = 0;
         private int outputOffset = 0;
 
-        public Task<TResponse> MakeRequestAsync<TResponse>(IRequest<TResponse> request,
+        public Task<TResponse> MakeRequest<TResponse>(IRequest<TResponse> request,
                                                                  CancellationToken cancellationToken = default(CancellationToken))
         {
             var res = (TResponse) Resposes[outputOffset++];
             return Task.FromResult(res);
         }
 
-        public Task<Update> GetUpdateAsync(Func<Update, bool>? filter = null)
+        public Task<Update> GetUpdate(Func<Update, bool>? filter = null)
         {
             return Task.FromResult(UserInputs[inputOffset++]);
         }
