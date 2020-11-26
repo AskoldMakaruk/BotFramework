@@ -24,7 +24,7 @@ namespace BotFramework.Clients
             CurrentFilter       = filter;
             while (!CurrentBasicBotTask.Task.IsCompleted && UpdatesToHandle.TryTake(out var update))
             {
-                if (CurrentFilter?.Invoke(update) == true)
+                if (CurrentFilter == null || CurrentFilter(update))
                     CurrentBasicBotTask.SetResult(update);
             }
             return CurrentBasicBotTask.Task;
@@ -37,7 +37,7 @@ namespace BotFramework.Clients
                 return;
             while (!CurrentBasicBotTask.Task.IsCompleted && UpdatesToHandle.TryTake(out update))
             {
-                if (CurrentFilter?.Invoke(update) == true)
+                if (CurrentFilter == null || CurrentFilter(update))
                     CurrentBasicBotTask.SetResult(update);
             }
         }
