@@ -21,16 +21,16 @@ namespace BotFramework.Bot
 
         public HandlerBuilder(string                        token,
                               Assembly                      assembly,
-                              Action<List<INinjectModule>>? withCustomModules = null,
-                              IInjector?                    injector          = null,
-                              ILogger?                      logger            = null)
+                              Action<List<INinjectModule>>? withCustomModules  = null,
+                              Func<IReadOnlyList<Type>, IInjector>?  withCustomInjector = null,
+                              ILogger?                      logger             = null)
         {
             InitClient(token);
-            Logger = logger ?? Serilog.Core.Logger.None;
+            Logger       = logger ?? Serilog.Core.Logger.None;
             CommandTypes = assembly.GetTypes().Where(t => t.GetInterfaces().Contains(typeof(ICommand)) && !t.IsAbstract).ToList();
             var otherModules = new List<INinjectModule>();
             withCustomModules?.Invoke(otherModules);
-            CommandInjector = injector ?? new NinjectInjector(CommandTypes, otherModules);
+            CommandInjector = withCustomInjector?.Invoke(CommandTypes) ?? new NinjectInjector(CommandTypes, otherModules);
             LoadStaticCommands(CommandTypes);
         }
 
