@@ -24,7 +24,7 @@ namespace BotFramework.Clients
             Update? updateToReturn = null;
             while (UpdatesToHandle.TryTake(out var update))
             {
-                if (CurrentFilter == null || CurrentFilter(update))
+                if (CurrentFilter?.Invoke(update) != false)
                 {
                     updateToReturn = update;
                     break;
@@ -32,9 +32,7 @@ namespace BotFramework.Clients
             }
 
             if (updateToReturn is not null)
-            {
                 return ValueTask.FromResult(updateToReturn);
-            }
             CurrentBasicBotTask = new TaskCompletionSource<Update>();
             return new ValueTask<Update>(CurrentBasicBotTask.Task);
         }
@@ -42,11 +40,11 @@ namespace BotFramework.Clients
         public void HandleUpdate(Update update)
         {
             UpdatesToHandle.TryAdd(update);
-            if (CurrentBasicBotTask == null || CurrentBasicBotTask.Task.IsCompleted)
+            if (CurrentBasicBotTask?.Task.IsCompleted != false)
                 return;
             while (UpdatesToHandle.TryTake(out update))
             {
-                if (CurrentFilter == null || CurrentFilter(update))
+                if (CurrentFilter?.Invoke(update) != false)
                 {
                     CurrentBasicBotTask.SetResult(update);
                     break;
