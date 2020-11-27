@@ -27,9 +27,9 @@ namespace BotFramework.Clients
             return Task.FromResult(res);
         }
 
-        public Task<Update> GetUpdate(Func<Update, bool>? filter = null)
+        public ValueTask<Update> GetUpdate(Func<Update, bool>? filter = null)
         {
-            return Task.FromResult(UserInputs[inputOffset++]);
+            return ValueTask.FromResult(UserInputs[inputOffset++]);
         }
 
         public long UserId => 0;

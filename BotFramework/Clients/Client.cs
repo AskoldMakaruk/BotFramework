@@ -18,16 +18,25 @@ namespace BotFramework.Clients
         public  IProducerConsumerCollection<Update> UpdatesToHandle = new ConcurrentQueue<Update>();
         public Client(TelegramBotClient client, long userId) => (_client, UserId) = (client, userId);
 
-        public Task<Update> GetUpdate(Func<Update, bool>? filter = null)
+        public ValueTask<Update> GetUpdate(Func<Update, bool>? filter = null)
         {
-            CurrentBasicBotTask = new TaskCompletionSource<Update>();
             CurrentFilter       = filter;
-            while (!CurrentBasicBotTask.Task.IsCompleted && UpdatesToHandle.TryTake(out var update))
+            Update? updateToReturn = null;
+            while (UpdatesToHandle.TryTake(out var update))
             {
                 if (CurrentFilter == null || CurrentFilter(update))
-                    CurrentBasicBotTask.SetResult(update);
+                {
+                    updateToReturn = update;
+                    break;
+                }
             }
-            return CurrentBasicBotTask.Task;
+
+            if (updateToReturn is not null)
+            {
+                return ValueTask.FromResult(updateToReturn);
+            }
+            CurrentBasicBotTask = new TaskCompletionSource<Update>();
+            return new ValueTask<Update>(CurrentBasicBotTask.Task);
         }
 
         public void HandleUpdate(Update update)
@@ -35,10 +44,13 @@ namespace BotFramework.Clients
             UpdatesToHandle.TryAdd(update);
             if (CurrentBasicBotTask == null || CurrentBasicBotTask.Task.IsCompleted)
                 return;
-            while (!CurrentBasicBotTask.Task.IsCompleted && UpdatesToHandle.TryTake(out update))
+            while (UpdatesToHandle.TryTake(out update))
             {
                 if (CurrentFilter == null || CurrentFilter(update))
+                {
                     CurrentBasicBotTask.SetResult(update);
+                    break;
+                }
             }
         }
 

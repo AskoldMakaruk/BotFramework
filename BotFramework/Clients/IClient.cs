@@ -12,7 +12,7 @@ namespace BotFramework.Clients
             IRequest<TResponse> request,
             CancellationToken   cancellationToken = default(CancellationToken));
 
-        Task<Update> GetUpdate(Func<Update, bool>? filter = null);
+        ValueTask<Update> GetUpdate(Func<Update, bool>? filter = null);
         long         UserId { get; }
     }
 }
