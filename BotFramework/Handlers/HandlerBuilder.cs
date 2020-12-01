@@ -54,7 +54,11 @@ namespace BotFramework.Bot
                 throw new ArgumentNullException(nameof(token));
             if (!Regex.IsMatch(token, "\\d{9}:[0-9A-Za-z_-]{35}"))
                 throw new ArgumentException("Invalid telegram api token.");
+
             BotClient = new TelegramBotClient(token);
+            Logger.Information("Starting bot...");
+            var me = BotClient.GetMeAsync().Result;
+            Logger.Information("Name: {BotFirstName} UserName: @{BotName}", me.FirstName, me.Username);
         }
 
         private void LoadStaticCommands(IReadOnlyList<Type> commandTypes)
@@ -64,8 +68,7 @@ namespace BotFramework.Bot
                                          .Select(t => (CommandInjector.Create(t) as IStaticCommand, t))
                                          .ToList()!;
             Logger.Debug("Loaded {StaticCommandsCount} commands.", StaticCommands.Count);
-            Logger.Debug("{StaticCommands}",
-                string.Join(',', StaticCommands.Select(c => c.Item1.GetType().Name)));
+            Logger.Debug("{StaticCommands}", string.Join(',', StaticCommands.Select(c => c.Item1.GetType().Name)));
         }
     }
 }
