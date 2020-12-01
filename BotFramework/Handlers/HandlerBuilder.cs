@@ -19,14 +19,14 @@ namespace BotFramework.Bot
         public ILogger                               Logger          { get; private set; }
         public TelegramBotClient                     BotClient       { get; private set; } = null!;
 
-        public HandlerBuilder(string                        token,
-                              Assembly                      assembly,
-                              Action<List<INinjectModule>>? withCustomModules  = null,
-                              Func<IReadOnlyList<Type>, IInjector>?  withCustomInjector = null,
-                              ILogger?                      logger             = null)
+        public HandlerBuilder(string                                token,
+                              Assembly                              assembly,
+                              Action<List<INinjectModule>>?         withCustomModules  = null,
+                              Func<IReadOnlyList<Type>, IInjector>? withCustomInjector = null,
+                              ILogger?                              logger             = null)
         {
+            Logger = logger ?? Serilog.Core.Logger.None;
             InitClient(token);
-            Logger       = logger ?? Serilog.Core.Logger.None;
             CommandTypes = assembly.GetTypes().Where(t => t.GetInterfaces().Contains(typeof(ICommand)) && !t.IsAbstract).ToList();
             var otherModules = new List<INinjectModule>();
             withCustomModules?.Invoke(otherModules);
