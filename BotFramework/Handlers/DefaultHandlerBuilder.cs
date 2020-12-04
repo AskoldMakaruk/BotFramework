@@ -1,25 +1,24 @@
 using System;
 using System.Threading;
-using BotFramework.Storage;
 using Serilog;
 using Serilog.Context;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
-namespace BotFramework.Bot
+namespace BotFramework.Handlers
 {
     public static class DefaultHandlerCreator
     {
-        public static DictionaryInMemoryHandler CreateDictionaryInMemoryHandler(this HandlerBuilder builder)
+        public static DictionaryInMemoryHandler BuildDictionaryInMemoryHandler(this HandlerConfiguration configuration)
         {
-            return new DictionaryInMemoryHandler(builder);
+            return new DictionaryInMemoryHandler(configuration);
         }
 
-        public static void CreateAndRunDictionaryInMemoryHandler(this HandlerBuilder builder)
+        public static void BuildAndRunDictionaryInMemoryHandler(this HandlerConfiguration configuration)
         {
-            var handler = new DictionaryInMemoryHandler(builder);
-            builder.BotClient.OnUpdate += (sender, args) => handler.Handle(args.Update);
-            builder.BotClient.StartReceiving();
+            var handler = new DictionaryInMemoryHandler(configuration);
+            configuration.BotClient.OnUpdate += (sender, args) => handler.Handle(args.Update);
+            configuration.BotClient.StartReceiving();
             new ManualResetEvent(false).WaitOne();
         }
         

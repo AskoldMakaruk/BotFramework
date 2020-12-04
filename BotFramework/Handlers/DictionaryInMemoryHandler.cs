@@ -3,15 +3,14 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using BotFramework.Bot;
 using BotFramework.Clients;
 using BotFramework.Commands;
 using BotFramework.Injectors;
+using Serilog;
 using Telegram.Bot;
 using Telegram.Bot.Types;
-using Serilog;
 
-namespace BotFramework.Storage
+namespace BotFramework.Handlers
 {
     public class DictionaryInMemoryHandler : IUpdateHandler
     {
@@ -21,7 +20,7 @@ namespace BotFramework.Storage
         private IInjector                             CommandInjector;
         private ILogger                               Logger;
 
-        public DictionaryInMemoryHandler(HandlerBuilder configuration)
+        public DictionaryInMemoryHandler(HandlerConfiguration configuration)
         {
             Logger = configuration.Logger;
             Logger.Information($"Using {nameof(DictionaryInMemoryHandler)} handler");

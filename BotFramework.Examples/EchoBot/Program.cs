@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Threading.Tasks;
-using BotFramework.Bot;
 using BotFramework.Clients;
 using BotFramework.Clients.ClientExtensions;
 using BotFramework.Commands;
+using BotFramework.Handlers;
 using BotFramework.Responses;
 using Ninject.Modules;
 using Serilog;
@@ -20,17 +20,18 @@ namespace EchoBot
                          .WriteTo.Console()
                          .Enrich.FromLogContext()
                          .CreateLogger();
-            new HandlerBuilder(token: "547180886:AAGzSudnS64sVfN2h6hFZTqjkJsGELfEVKQ",
-                assembly: typeof(Program).Assembly,
-                withCustomModules: modules => modules.Add(new DumbModule()),
-                logger: logger)
-            .CreateAndRunDictionaryInMemoryHandler();
+            new HandlerConfigurationBuilder(token: "547180886:AAGzSudnS64sVfN2h6hFZTqjkJsGELfEVKQ",
+                assembly: typeof(Program).Assembly).WithLogger(logger)
+                                                   .WithCustomNinjectModules(new DumbModule())
+                                                   .Build()
+                                                   .BuildAndRunDictionaryInMemoryHandler();
         }
     }
 
     public class EchoCommand : IStaticCommand
     {
         private readonly ILogger logger;
+
         public EchoCommand(ILogger logger)
         {
             this.logger = logger;
@@ -53,6 +54,7 @@ namespace EchoBot
 
         public bool SuitableLast(Update message) => true;
     }
+
     public class HelpCommand : IStaticCommand
     {
         public async Task<Response> Execute(IClient client)
@@ -80,6 +82,7 @@ namespace EchoBot
     {
         void Log(string text);
     }
+
     public class Logger : ILogger
     {
         public void Log(string text)
@@ -96,5 +99,4 @@ namespace EchoBot
             return res.Message;
         }
     }
-
 }
