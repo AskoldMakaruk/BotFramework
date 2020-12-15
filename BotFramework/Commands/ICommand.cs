@@ -17,9 +17,4 @@ namespace BotFramework.Commands
         bool SuitableLast(Update  message) => false;
     }
 
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface)]
-    public class StaticCommandAttribute : Attribute { }
-
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface)]
-    public class OnStartCommand : Attribute { }
 }

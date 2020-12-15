@@ -9,6 +9,7 @@ using Telegram.Bot.Types;
 
 namespace BotFramework.Clients
 {
+    /// <inheritdoc cref="IClient"/>>
     public class Client : IClient
     {
         private TelegramBotClient                   _client;

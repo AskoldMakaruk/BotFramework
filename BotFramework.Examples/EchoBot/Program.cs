@@ -51,7 +51,6 @@ namespace EchoBot
             return Responses.Ok();
         }
 
-
         public bool SuitableLast(Update message) => true;
     }
 
