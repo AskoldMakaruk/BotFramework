@@ -1,3 +1,5 @@
+#nullable disable
+#pragma warning disable 8632
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -1046,3 +1048,4 @@ namespace BotFramework.Clients.ClientExtensions
 #endregion
     }
 }
+#pragma warning restore 8632
