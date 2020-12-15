@@ -16,9 +16,8 @@ namespace BotFramework.Handlers
     {
         private TelegramBotClient BotClient;
 
-        private IReadOnlyList<(IStaticCommand, Type)> StaticCommands;
-        private IInjector                             CommandInjector;
-        private ILogger                               Logger;
+        private CommandSearcher CommandSearcher;
+        private ILogger         Logger;
 
         public DictionaryInMemoryHandler(HandlerConfiguration configuration)
         {
@@ -26,8 +25,7 @@ namespace BotFramework.Handlers
             Logger.Information($"Using {nameof(DictionaryInMemoryHandler)} handler");
             Clients         = new ConcurrentDictionary<long, Client>();
             BotClient       = configuration.BotClient;
-            CommandInjector = configuration.CommandInjector;
-            StaticCommands  = configuration.StaticCommands;
+            CommandSearcher = new CommandSearcher(configuration.StaticCommands, configuration.CommandInjector);
         }
 
         private ConcurrentDictionary<long, Client> Clients { get; }
@@ -43,28 +41,19 @@ namespace BotFramework.Handlers
                     var client = Clients.GetOrAdd(from, from => new Client(BotClient, @from));
                     lock (client)
                     {
-                        var currentCommand = StaticCommands
-                                             .Where(t => t.Item1.SuitableFirst(update))
-                                             .Select(t => CommandInjector.Create(t.Item2))
-                                             .Cast<IStaticCommand>()
-                                             .FirstOrDefault(t => t.SuitableFirst(update));
+                        var currentCommand = CommandSearcher.FindSuitableFirst(update);
                         if (currentCommand == null)
                         {
                             if (client.CurrentTask == null || client.CurrentTask.IsCompleted)
                             {
                                 client.CurrentBasicBotTask = null;
-                                client.CurrentTask = StaticCommands
-                                                     .Where(t => t.Item1.SuitableLast(update))
-                                                     .Select(t => CommandInjector.Create(t.Item2))
-                                                     .Cast<IStaticCommand>()
-                                                     .FirstOrDefault(t => t.SuitableLast(update))
-                                                     ?.Execute(client);
+                                client.CurrentTask         = CommandSearcher.FindSuitableLast(update)?.Execute(client);
                             }
                         }
                         else
                         {
                             client.CurrentBasicBotTask = null;
-                            client.CurrentTask = currentCommand.Execute(client);
+                            client.CurrentTask         = currentCommand.Execute(client);
                         }
 
                         var task = client.CurrentTask;

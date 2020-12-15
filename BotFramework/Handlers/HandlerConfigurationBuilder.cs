@@ -16,14 +16,13 @@ namespace BotFramework.Handlers
     {
         public string Token { get; set; }
 
-        //public  IReadOnlyList<(IStaticCommand, Type)> StaticCommands  { get; set; }
         public  IReadOnlyList<Type>?                  CommandTypes     { get; set; }
         public  IInjector?                            CommandInjector  { get; set; }
         public  ILogger?                              Logger           { get; set; }
         public  TelegramBotClient?                    BotClient        { get; set; }
         public  HttpClient?                           CustomHttpClient { get; set; }
         private Assembly?                             assembly;
-        private INinjectModule[]                      ninjectModules;
+        private INinjectModule[]                      ninjectModules = null!;
         private Func<IReadOnlyList<Type>, IInjector>? injectorCreator;
 
         public HandlerConfigurationBuilder(string token, Assembly assembly)
@@ -82,7 +81,6 @@ namespace BotFramework.Handlers
 
             CommandInjector ??= injectorCreator?.Invoke(CommandTypes);
             CommandInjector ??= new NinjectInjector(CommandTypes, ninjectModules);
-            LoadStaticCommands(CommandTypes);
             Logger.Debug("Loading static commands...");
             var staticCommands = CommandTypes.Where(t => t.GetInterfaces().Contains(typeof(IStaticCommand)) && !t.IsAbstract)
                                          .Select(t => (CommandInjector.Create(t) as IStaticCommand, t))
@@ -99,9 +97,5 @@ namespace BotFramework.Handlers
             };
         }
 
-
-        private void LoadStaticCommands(IReadOnlyList<Type> commandTypes)
-        {
-        }
     }
 }
