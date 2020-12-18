@@ -1,6 +1,6 @@
 ﻿using Telegram.Bot.Types;
 
-namespace BotFramework.Storage
+namespace BotFramework.Handlers
 {
     public interface IUpdateHandler
     {

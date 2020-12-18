@@ -9,18 +9,21 @@ using Telegram.Bot.Types;
 
 namespace BotFramework.Clients
 {
+    /// <inheritdoc cref="IClient"/>>
     public class Client : IClient
     {
         private TelegramBotClient                   _client;
         public  TaskCompletionSource<Update>?       CurrentBasicBotTask;
         public  Task<Response>?                     CurrentTask;
         private Func<Update, bool>?                 CurrentFilter;
+        private Action<Update>?                     OnFilterFail;
         private IProducerConsumerCollection<Update> UpdatesToHandle = new ConcurrentQueue<Update>();
         public Client(TelegramBotClient client, long userId) => (_client, UserId) = (client, userId);
 
-        public ValueTask<Update> GetUpdate(Func<Update, bool>? filter = null)
+        public ValueTask<Update> GetUpdate(Func<Update, bool>? filter = null, Action<Update>? onFilterFail = null)
         {
             CurrentFilter = filter;
+            OnFilterFail = onFilterFail;
             Update? updateToReturn = null;
             while (UpdatesToHandle.TryTake(out var update))
             {
@@ -29,6 +32,7 @@ namespace BotFramework.Clients
                     updateToReturn = update;
                     break;
                 }
+                onFilterFail?.Invoke(update);
             }
 
             if (updateToReturn is not null)
@@ -49,6 +53,7 @@ namespace BotFramework.Clients
                     CurrentBasicBotTask.SetResult(update);
                     break;
                 }
+                OnFilterFail?.Invoke(update);
             }
         }
 
