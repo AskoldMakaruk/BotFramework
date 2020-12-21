@@ -6,7 +6,6 @@ using BotFramework.Commands;
 using BotFramework.Handlers;
 using BotFramework.Responses;
 using Ninject.Modules;
-using Serilog;
 using Telegram.Bot.Types;
 
 namespace EchoBot
@@ -15,16 +14,11 @@ namespace EchoBot
     {
         static void Main()
         {
-            var logger = new LoggerConfiguration()
-                         .MinimumLevel.Debug()
-                         .WriteTo.Console()
-                         .Enrich.FromLogContext()
-                         .CreateLogger();
-            new HandlerConfigurationBuilder(token: "547180886:AAGzSudnS64sVfN2h6hFZTqjkJsGELfEVKQ",
-                assembly: typeof(Program).Assembly).WithLogger(logger)
-                                                   .WithCustomNinjectModules(new DumbModule())
-                                                   .Build()
-                                                   .BuildAndRunDictionaryInMemoryHandler();
+            new HandlerConfigurationBuilder(token: "547180886:AAGzSudnS64sVfN2h6hFZTqjkJsGELfEVKQ")
+            .WithCustomNinjectModules(new DumbModule())
+            .UseConsoleDefaultLogger()
+            .Build()
+            .RunInMemoryHandler();
         }
     }
 
@@ -39,15 +33,19 @@ namespace EchoBot
 
         public async Task<Response> Execute(IClient client)
         {
-            //await Task.Delay(10000);
             var message = await client.GetTextMessage();
+
             logger.Log("DI Works!");
+
             await client.SendTextMessage($"Hello, here ypur last message {message.Text}, type somethinh again");
+
             message = await client.GetTextMessage();
-            await client.SendTextMessage(
-                $"And this is your new message {message.Text}, and now type only message with hello");
+
+            await client.SendTextMessage($"And this is your new message {message.Text}, and now type only message with hello");
+
             var helloMessage = await client.GetMessageWithHelloText();
             await client.SendTextMessage("Well done!");
+
             return Responses.Ok();
         }
 
@@ -94,8 +92,7 @@ namespace EchoBot
     {
         public static async Task<Message> GetMessageWithHelloText(this IClient client)
         {
-            var res = await client.GetUpdate(u => u?.Message?.Text?.Contains("Hello") == true);
-            return res.Message;
+            return (await client.GetUpdate(u => u?.Message?.Text?.Contains("Hello") == true)).Message;
         }
     }
 }
