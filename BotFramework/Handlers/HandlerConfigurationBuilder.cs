@@ -89,6 +89,10 @@ namespace BotFramework.Handlers
             BotClient ??= new TelegramBotClient(Token, CustomHttpClient);
             Logger    ??= Serilog.Core.Logger.None;
 
+            Logger.Information("Starting bot...");
+            var me = BotClient.GetMeAsync().Result;
+            Logger.Information("Name: {BotFirstName} UserName: @{BotName}", me.FirstName, me.Username);
+
             if (CommandTypes is null)
             {
                 if (Assembly is null) throw new ArgumentNullException(nameof(Assembly));
@@ -109,7 +113,7 @@ namespace BotFramework.Handlers
                                                                    .ToList()!;
 
             Logger.Debug("Loaded {StaticCommandsCount} commands.", staticCommands.Count);
-            Logger.Debug("{StaticCommands}", string.Join(',', staticCommands.Select(c => c.Item1.GetType().Name)));
+            Logger.Debug("{StaticCommands}", string.Join(", ", staticCommands.Select(c => c.Item1.GetType().Name)));
 
             return new HandlerConfiguration
             {
