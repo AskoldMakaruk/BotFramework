@@ -16,24 +16,34 @@ namespace BotFramework.Handlers
     {
         public string Token { get; set; }
 
-        public  IReadOnlyList<Type>?                  CommandTypes     { get; set; }
-        public  IInjector?                            CommandInjector  { get; set; }
-        public  ILogger?                              Logger           { get; set; }
-        public  TelegramBotClient?                    BotClient        { get; set; }
-        public  HttpClient?                           CustomHttpClient { get; set; }
-        private Assembly?                             assembly;
-        private INinjectModule[]                      ninjectModules = null!;
-        private Func<IReadOnlyList<Type>, IInjector>? injectorCreator;
+        public IReadOnlyList<Type>? CommandTypes     { get; set; }
+        public IInjector?           CommandInjector  { get; set; }
+        public ILogger?             Logger           { get; set; }
+        public TelegramBotClient?   BotClient        { get; set; }
+        public HttpClient?          CustomHttpClient { get; set; }
 
-        public HandlerConfigurationBuilder(string token, Assembly assembly)
+        private Assembly?                             Assembly;
+        private Func<IReadOnlyList<Type>, IInjector>? InjectorCreator;
+
+        private readonly List<INinjectModule> NinjectModules = new List<INinjectModule>();
+
+        /// <summary>
+        /// Initializes builder.
+        /// </summary>
+        /// <param name="token">Telegram bot token.</param>
+        /// <param name="assembly">Assembly with all needed commands.</param>
+        public HandlerConfigurationBuilder(string token, Assembly? assembly = null)
         {
-            this.Token    = token;
-            this.assembly = assembly ?? throw new ArgumentNullException(nameof(assembly));
+            Token = token;
+            Assembly = assembly
+                       ?? AppDomain.CurrentDomain.GetAssemblies()
+                                   .FirstOrDefault(a => a.GetTypes().Any(t => t.Name == "Program"))
+                       ?? throw new ArgumentNullException(nameof(assembly));
         }
 
         public HandlerConfigurationBuilder(string token, IReadOnlyList<Type> allCommands)
         {
-            this.Token   = token;
+            Token        = token;
             CommandTypes = allCommands ?? throw new ArgumentNullException(nameof(allCommands));
         }
 
@@ -45,7 +55,7 @@ namespace BotFramework.Handlers
 
         public HandlerConfigurationBuilder WithCustomNinjectModules(params INinjectModule[] modules)
         {
-            ninjectModules = modules;
+            NinjectModules.AddRange(modules);
             return this;
         }
 
@@ -57,45 +67,57 @@ namespace BotFramework.Handlers
 
         public HandlerConfigurationBuilder WithInjector(Func<IReadOnlyList<Type>, IInjector> injectorCreator)
         {
-            this.injectorCreator = injectorCreator;
+            InjectorCreator = injectorCreator;
+            return this;
+        }
+
+        public HandlerConfigurationBuilder UseConsoleDefaultLogger()
+        {
+            Logger = new LoggerConfiguration()
+                     .MinimumLevel.Debug()
+                     .WriteTo.Console()
+                     .Enrich.FromLogContext()
+                     .CreateLogger();
             return this;
         }
 
         public HandlerConfiguration Build()
         {
-            {
-                if (Token is null)
-                    throw new ArgumentNullException(nameof(Token));
-                if (!Regex.IsMatch(Token, "\\d{9}:[0-9A-Za-z_-]{35}"))
-                    throw new ArgumentException("Invalid telegram api token.");
-                BotClient ??= new TelegramBotClient(Token, CustomHttpClient);
-            }
-            Logger ??= Serilog.Core.Logger.None;
+            if (!Regex.IsMatch(Token, "\\d{9}:[0-9A-Za-z_-]{35}"))
+                throw new ArgumentException("Invalid telegram api token.");
+
+            BotClient ??= new TelegramBotClient(Token, CustomHttpClient);
+            Logger    ??= Serilog.Core.Logger.None;
+
             if (CommandTypes is null)
             {
-                if (assembly is null) throw new ArgumentNullException(nameof(assembly));
-                CommandTypes = assembly.GetTypes()
+                if (Assembly is null) throw new ArgumentNullException(nameof(Assembly));
+                CommandTypes = Assembly.GetTypes()
                                        .Where(t => t.GetInterfaces().Contains(typeof(ICommand)) && !t.IsAbstract)
                                        .ToList();
             }
+            
+            CommandInjector ??= InjectorCreator?.Invoke(CommandTypes);
+            CommandInjector ??= new NinjectInjector(CommandTypes, NinjectModules);
 
-            CommandInjector ??= injectorCreator?.Invoke(CommandTypes);
-            CommandInjector ??= new NinjectInjector(CommandTypes, ninjectModules);
             Logger.Debug("Loading static commands...");
-            var staticCommands = CommandTypes.Where(t => t.GetInterfaces().Contains(typeof(IStaticCommand)) && !t.IsAbstract)
-                                         .Select(t => (CommandInjector.Create(t) as IStaticCommand, t))
-                                         .ToList()!;
+
+            IReadOnlyList<(IStaticCommand, Type)> staticCommands = CommandTypes
+                                                                   .Where(t => t.GetInterfaces().Contains(typeof(IStaticCommand))
+                                                                               && !t.IsAbstract)
+                                                                   .Select(t => (CommandInjector.Create(t) as IStaticCommand, t))
+                                                                   .ToList()!;
+
             Logger.Debug("Loaded {StaticCommandsCount} commands.", staticCommands.Count);
-            Logger.Debug("{StaticCommands}",
-                string.Join(',', staticCommands.Select(c => c.Item1!.GetType().Name)));
-            return new HandlerConfiguration()
+            Logger.Debug("{StaticCommands}", string.Join(',', staticCommands.Select(c => c.Item1.GetType().Name)));
+
+            return new HandlerConfiguration
             {
-                StaticCommands  = staticCommands!,
+                StaticCommands  = staticCommands,
                 CommandInjector = CommandInjector,
                 Logger          = Logger,
                 BotClient       = BotClient
             };
         }
-
     }
 }

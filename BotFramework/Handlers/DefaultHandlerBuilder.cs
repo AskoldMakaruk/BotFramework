@@ -14,7 +14,7 @@ namespace BotFramework.Handlers
             return new DictionaryInMemoryHandler(configuration);
         }
 
-        public static void BuildAndRunDictionaryInMemoryHandler(this HandlerConfiguration configuration)
+        public static void RunInMemoryHandler(this HandlerConfiguration configuration)
         {
             var handler = new DictionaryInMemoryHandler(configuration);
             configuration.BotClient.OnUpdate += (_, args) => handler.Handle(args.Update);
