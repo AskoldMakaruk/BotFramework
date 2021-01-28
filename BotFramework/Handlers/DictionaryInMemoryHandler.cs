@@ -2,7 +2,9 @@
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using BotFramework.Clients;
+using BotFramework.Helpers;
 using Serilog;
+using Serilog.Context;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
@@ -10,15 +12,15 @@ namespace BotFramework.Handlers
 {
     public class DictionaryInMemoryHandler : IUpdateHandler
     {
-        private TelegramBotClient BotClient;
+        private readonly TelegramBotClient BotClient;
 
-        private CommandSearcher CommandSearcher;
-        private ILogger         Logger;
+        private readonly CommandSearcher CommandSearcher;
+        private readonly ILogger         _logger;
 
         public DictionaryInMemoryHandler(HandlerConfiguration configuration)
         {
-            Logger = configuration.Logger;
-            Logger.Information($"Using {nameof(DictionaryInMemoryHandler)} handler");
+            _logger = configuration.Logger;
+            _logger.Information($"Using {nameof(DictionaryInMemoryHandler)} handler");
             Clients         = new ConcurrentDictionary<long, Client>();
             BotClient       = configuration.BotClient;
             CommandSearcher = new CommandSearcher(configuration.StaticCommands, configuration.CommandInjector);
@@ -32,9 +34,10 @@ namespace BotFramework.Handlers
             {
                 try
                 {
-                    var from = DefaultHandlerCreator.GetIdFromUpdate(update, Logger);
+                    var parsedUpdate = update.GetInfoFromUpdate();
 
-                    var client = Clients.GetOrAdd(from, from => new Client(BotClient, @from));
+                    long from   = parsedUpdate.From.Id;
+                    var  client = Clients.GetOrAdd(from, from => new Client(BotClient, @from));
                     lock (client)
                     {
                         var currentCommand = CommandSearcher.FindSuitableFirst(update);
@@ -53,12 +56,25 @@ namespace BotFramework.Handlers
                         }
 
                         var task = client.CurrentTask;
-                        if (task == null) return;
+
+                        using (LogContext.PushProperty("UpdateType", update.Type))
+                        using (LogContext.PushProperty("MessageType", update.Message?.Type))
+                        using (LogContext.PushProperty("From", parsedUpdate.FromName))
+                        using (LogContext.PushProperty("Contents", parsedUpdate.Contents))
+                        {
+                            _logger.Debug("{UpdateType} {MessageType} | {From} {Contents}");
+                        }
+                        if (task == null)
+                        {
+                            _logger.Debug("No command matched update."); 
+                            return;
+                        }
+
                         task.ContinueWith(_ =>
                         {
                             if (task.Exception != null)
                             {
-                                Logger.Error(task.Exception, "Error handling command");
+                                _logger.Error(task.Exception, "Error handling command");
                             }
 
                             client.CurrentTask = task.Result.NextCommand?.Execute(client);
@@ -68,7 +84,7 @@ namespace BotFramework.Handlers
                 }
                 catch (Exception ex)
                 {
-                    Logger.Error(ex, "Error handling command.");
+                    _logger.Error(ex, "Error handling command.");
                 }
             });
         }

@@ -1,3 +1,6 @@
+using System;
+using Serilog;
+using Serilog.Context;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
@@ -5,45 +8,107 @@ namespace BotFramework.Helpers
 {
     public static class UpdateExtensions
     {
-        public static User? GetUser(this Update update)
+        public static User GetUser(this Update update) => GetInfoFromUpdate(update).From;
+
+        public static string ToLogString(this Update update) => GetInfoFromUpdate(update).ToString();
+
+        public static ParsedUpdate GetInfoFromUpdate(this Update update)
         {
-            User from;
+            User   from;
+            string fromName, contents = "";
             switch (update.Type)
             {
                 case UpdateType.Message:
                     var message = update.Message;
-                    from = message.From;
+                    from     = message.From;
+                    fromName = message.From.Username;
+                    switch (update.Message.Type)
+                    {
+                        case MessageType.Text:
+                            contents = message.Text;
+                            break;
+                        case MessageType.Sticker:
+                            contents = message.Sticker.SetName;
+                            break;
+                        case MessageType.Photo:
+                        case MessageType.Audio:
+                        case MessageType.Video:
+                        case MessageType.Document:
+                            //Logger.Debug("{UpdateType}.{MessageType} | {From} {Caption}", update.Type, update.Message.Type, fromName, message.Caption);
+                            //return from;
+                            contents = message.Caption;
+                            break;
+                        case MessageType.Poll:
+                            contents = message.Poll.Question;
+                            break;
+                        case MessageType.ChatTitleChanged:
+                            contents = message.Chat.Title;
+                            break;
+                        case MessageType.Contact:
+                            contents = $"{message.Contact.FirstName} {message.Contact.LastName} {message.Contact.PhoneNumber}";
+                            break;
+                        //default:
+                        //      Logger.Debug("{UpdateType}.{MessageType} | {From}", update.Type, message.Type, fromName);
+                        //    return from;
+                        //   break;
+                    }
+
+                    //Logger.Debug("{UpdateType}.{MessageType} | {From}: {Contents}", update.Type, message.Type, fromName, contents);
                     break;
                 case UpdateType.InlineQuery:
-                    from = update.InlineQuery.From;
+                    from     = update.InlineQuery.From;
+                    fromName = update.InlineQuery.From.Username;
+                    contents = update.InlineQuery.Query;
                     break;
                 case UpdateType.ChosenInlineResult:
-                    from = update.ChosenInlineResult.From;
+                    from     = update.ChosenInlineResult.From;
+                    fromName = update.ChosenInlineResult.From.Username;
+                    contents = update.ChosenInlineResult.Query;
                     break;
                 case UpdateType.CallbackQuery:
-                    from = update.CallbackQuery.From;
+                    from     = update.CallbackQuery.From;
+                    fromName = update.CallbackQuery.From.Username;
+                    contents = update.CallbackQuery.Data;
                     break;
                 case UpdateType.EditedMessage:
-                    from = update.EditedMessage.From;
+                    from     = update.EditedMessage.From;
+                    fromName = update.EditedMessage.From.Username;
+                    contents = update.EditedMessage.Text;
                     break;
                 case UpdateType.ChannelPost:
-                    from = update.ChannelPost.From;
+                    from     = update.ChannelPost.From;
+                    fromName = update.ChannelPost.From.Username;
+                    contents = update.ChannelPost.Text;
                     break;
                 case UpdateType.EditedChannelPost:
-                    from = update.EditedChannelPost.From;
+                    from     = update.EditedChannelPost.From;
+                    fromName = update.EditedChannelPost.From.Username;
+                    contents = update.EditedChannelPost.Text;
                     break;
                 case UpdateType.ShippingQuery:
-                    from = update.ShippingQuery.From;
+                    from     = update.ShippingQuery.From;
+                    fromName = update.ShippingQuery.From.Username;
+                    contents = update.ShippingQuery.InvoicePayload;
                     break;
                 case UpdateType.PreCheckoutQuery:
-                    from = update.PreCheckoutQuery.From;
+                    from     = update.PreCheckoutQuery.From;
+                    fromName = update.PreCheckoutQuery.From.Username;
+                    contents = "";
                     break;
                 default:
-                    return null;
+                    var ex = new NotImplementedException($"We don't support {update.Type} right now");
+                    throw ex;
             }
 
+            return new ParsedUpdate(from, update.Type, update.Message?.Type, fromName, contents);
+        }
 
-            return from;
+        public record ParsedUpdate(User From, UpdateType UpdateType, MessageType? MessageType, string FromName, string Contents)
+        {
+            public override string ToString()
+            {
+                return $"{UpdateType} {MessageType} | {FromName} {Contents}";
+            }
         }
     }
 }
