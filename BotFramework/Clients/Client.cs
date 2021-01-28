@@ -46,14 +46,14 @@ namespace BotFramework.Clients
             UpdatesToHandle.TryAdd(update);
             if (CurrentBasicBotTask?.Task.IsCompleted != false)
                 return;
-            while (UpdatesToHandle.TryTake(out update))
+            while (UpdatesToHandle.TryTake(out var u))
             {
-                if (CurrentFilter?.Invoke(update) != false)
+                if (CurrentFilter?.Invoke(u) != false)
                 {
-                    CurrentBasicBotTask.SetResult(update);
+                    CurrentBasicBotTask.SetResult(u);
                     break;
                 }
-                OnFilterFail?.Invoke(update);
+                OnFilterFail?.Invoke(u);
             }
         }
 

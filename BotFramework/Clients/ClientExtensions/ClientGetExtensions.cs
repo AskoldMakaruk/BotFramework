@@ -15,7 +15,7 @@ namespace BotFramework.Clients.ClientExtensions
         public static async ValueTask<Message> GetOnlyButtonResult(this IClient client, ReplyKeyboardMarkup replyMarkup)
         {
             var update = await client.GetUpdate(u =>
-                         replyMarkup.Keyboard.SelectMany(t => t).Any(t => t.Text == u?.Message?.Text));
+                         replyMarkup.Keyboard.SelectMany(t => t).Any(t => t.Text == u.Message?.Text));
             return update.Message;
         }
     }

@@ -8,11 +8,11 @@ using Telegram.Bot;
 namespace BotFramework.Handlers
 {
     //todo record
-    public class HandlerConfiguration
+    public record HandlerConfiguration
     {
-    public IReadOnlyList<(IStaticCommand, Type)> StaticCommands;
-    public IInjector                             CommandInjector;
-    public ILogger                               Logger;
-    public TelegramBotClient                     BotClient;
+        public IReadOnlyList<(IStaticCommand, Type)> StaticCommands;
+        public IInjector                             CommandInjector;
+        public ILogger                               Logger;
+        public TelegramBotClient                     BotClient;
     }
 }

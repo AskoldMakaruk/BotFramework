@@ -1,4 +1,3 @@
-using System;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
@@ -39,9 +38,6 @@ namespace BotFramework.Helpers
                 case UpdateType.PreCheckoutQuery:
                     from = update.PreCheckoutQuery.From;
                     break;
-                case UpdateType.Poll:
-                case UpdateType.PollAnswer: 
-                case UpdateType.Unknown:
                 default:
                     return null;
             }

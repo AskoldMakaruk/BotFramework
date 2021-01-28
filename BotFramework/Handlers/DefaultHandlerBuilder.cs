@@ -17,7 +17,7 @@ namespace BotFramework.Handlers
         public static void BuildAndRunDictionaryInMemoryHandler(this HandlerConfiguration configuration)
         {
             var handler = new DictionaryInMemoryHandler(configuration);
-            configuration.BotClient.OnUpdate += (sender, args) => handler.Handle(args.Update);
+            configuration.BotClient.OnUpdate += (_, args) => handler.Handle(args.Update);
             configuration.BotClient.StartReceiving();
             new ManualResetEvent(false).WaitOne();
         }
@@ -57,10 +57,10 @@ namespace BotFramework.Handlers
                         case MessageType.Contact:
                             contents = $"{message.Contact.FirstName} {message.Contact.LastName} {message.Contact.PhoneNumber}";
                             break;
-                        default:
+                        //default:
                             //      Logger.Debug("{UpdateType}.{MessageType} | {From}", update.Type, message.Type, fromName);
                             //    return from;
-                            break;
+                         //   break;
                     }
 
                     //Logger.Debug("{UpdateType}.{MessageType} | {From}: {Contents}", update.Type, message.Type, fromName, contents);

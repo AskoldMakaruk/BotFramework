@@ -28,7 +28,7 @@ namespace BotFramework.Injectors
             return kernel.Get<T>();
         }
 
-        class CommandModule : Ninject.Modules.NinjectModule
+        class CommandModule : NinjectModule
         {
             private readonly IReadOnlyList<Type> commands;
 

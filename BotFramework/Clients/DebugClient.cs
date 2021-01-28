@@ -17,8 +17,8 @@ namespace BotFramework.Clients
             UserInputs = userInputs;
         }
 
-        private int inputOffset  = 0;
-        private int outputOffset = 0;
+        private int inputOffset;
+        private int outputOffset;
 
         public Task<TResponse> MakeRequest<TResponse>(IRequest<TResponse> request,
                                                                  CancellationToken cancellationToken = default(CancellationToken))
