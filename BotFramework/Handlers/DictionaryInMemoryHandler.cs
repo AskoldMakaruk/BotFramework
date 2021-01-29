@@ -8,6 +8,7 @@ using Serilog.Context;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
+#nullable enable
 namespace BotFramework.Handlers
 {
     public class DictionaryInMemoryHandler : IUpdateHandler
@@ -36,8 +37,19 @@ namespace BotFramework.Handlers
                 {
                     var parsedUpdate = update.GetInfoFromUpdate();
 
-                    long from   = parsedUpdate.From.Id;
-                    var  client = Clients.GetOrAdd(from, from => new Client(BotClient, @from));
+                    var fromNullanble = parsedUpdate.From?.Id ?? parsedUpdate.Chat?.Id;
+                    if (fromNullanble == null)
+                    {
+                        //todo handle messages with no user idk
+                        CommandSearcher.FindSuitableFirst(update)?.Execute(new Client(BotClient, default));
+                        CommandSearcher.FindSuitableLast(update)?.Execute(new Client(BotClient,  default));
+                        _logger.Information("User Id cannot be parsed.");
+                        return;
+                    }
+
+                    var from = (long) fromNullanble;
+
+                    var client = Clients.GetOrAdd(from, from => new Client(BotClient, from));
                     lock (client)
                     {
                         var currentCommand = CommandSearcher.FindSuitableFirst(update);
@@ -64,9 +76,10 @@ namespace BotFramework.Handlers
                         {
                             _logger.Debug("{UpdateType} {MessageType} | {From} {Contents}");
                         }
+
                         if (task == null)
                         {
-                            _logger.Debug("No command matched update."); 
+                            _logger.Debug("No command matched update.");
                             return;
                         }
 
