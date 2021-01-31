@@ -100,17 +100,17 @@ namespace BotFramework.Handlers
                                        .Where(t => t.GetInterfaces().Contains(typeof(ICommand)) && !t.IsAbstract)
                                        .ToList();
             }
-            
+
             CommandInjector ??= InjectorCreator?.Invoke(CommandTypes);
             CommandInjector ??= new NinjectInjector(CommandTypes, NinjectModules);
 
             Logger.Debug("Loading static commands...");
 
-            IReadOnlyList<(IStaticCommand, Type)> staticCommands = CommandTypes
-                                                                   .Where(t => t.GetInterfaces().Contains(typeof(IStaticCommand))
-                                                                               && !t.IsAbstract)
-                                                                   .Select(t => (CommandInjector.Create(t) as IStaticCommand, t))
-                                                                   .ToList()!;
+            IReadOnlyList<(StaticCommand, Type)> staticCommands = CommandTypes
+                                                                  .Where(t => t.IsSubclassOf(typeof(StaticCommand))
+                                                                              && !t.IsAbstract)
+                                                                  .Select(t => (CommandInjector.Create(t) as StaticCommand, t))
+                                                                  .ToList()!;
 
             Logger.Debug("Loaded {StaticCommandsCount} commands.", staticCommands.Count);
             Logger.Debug("{StaticCommands}", string.Join(", ", staticCommands.Select(c => c.Item1.GetType().Name)));

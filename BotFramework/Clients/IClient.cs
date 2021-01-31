@@ -11,11 +11,11 @@ namespace BotFramework.Clients
     {
         Task<TResponse> MakeRequest<TResponse>(
             IRequest<TResponse> request,
-            CancellationToken   cancellationToken = default(CancellationToken));
+            CancellationToken   cancellationToken = default);
 
         /// <summary>
         /// Get next <see cref="Update"/> for user with this <see cref="UserId"/>.
-        /// If invoked in <see cref="IStaticCommand"/> first <see cref="Update"/> will be the same as in <see cref="IStaticCommand.SuitableFirst"/> or <see cref="IStaticCommand.SuitableLast"/> methods.
+        /// If invoked in <see cref="StaticCommand"/> first <see cref="Update"/> will be the same as in <see cref="StaticCommand.SuitableFirst"/> or <see cref="StaticCommand.SuitableLast"/> methods.
         /// </summary>
         /// <param name="filter">
         /// If not <c>null</c>, returned <see cref="ValueTask"/> will be completed only when incoming <see cref="Update"/> will satisfy <see cref="filter"/> predicate.
@@ -25,9 +25,10 @@ namespace BotFramework.Clients
         /// </param>
         /// <returns>A <see cref="ValueTask"/> with <see cref="Update"/> related to user with this <see cref="UserId"/></returns>
         ValueTask<Update> GetUpdate(Func<Update, bool>? filter = null, Action<Update>? onFilterFail = null);
+
         /// <summary>
         /// Identifier of user. Each user has his/her own <see cref="IClient"/>
         /// </summary>
-        long         UserId { get; }
+        long UserId { get; }
     }
 }

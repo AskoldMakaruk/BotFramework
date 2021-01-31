@@ -10,9 +10,9 @@ namespace BotFramework.Handlers
     //todo record
     public record HandlerConfiguration
     {
-        public IReadOnlyList<(IStaticCommand, Type)> StaticCommands;
-        public IInjector                             CommandInjector;
-        public ILogger                               Logger;
-        public TelegramBotClient                     BotClient;
+        public IReadOnlyList<(StaticCommand, Type)> StaticCommands  = null!;
+        public IInjector                            CommandInjector = null!;
+        public ILogger                              Logger          = null!;
+        public TelegramBotClient                    BotClient       = null!;
     }
 }

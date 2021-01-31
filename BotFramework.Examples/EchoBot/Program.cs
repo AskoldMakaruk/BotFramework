@@ -22,7 +22,7 @@ namespace EchoBot
         }
     }
 
-    public class EchoCommand : IStaticCommand
+    public class EchoCommand : StaticCommand
     {
         private readonly ILogger logger;
 
@@ -52,7 +52,7 @@ namespace EchoBot
         public bool SuitableLast(Update message) => true;
     }
 
-    public class HelpCommand : IStaticCommand
+    public class HelpCommand : StaticCommand
     {
         public async Task<Response> Execute(IClient client)
         {

@@ -9,26 +9,26 @@ namespace BotFramework.Handlers
 {
     public class CommandSearcher
     {
-        private IReadOnlyList<(IStaticCommand, Type)> StaticCommands;
-        private readonly IInjector                    IInjector;
-        public CommandSearcher(IReadOnlyList<(IStaticCommand, Type)> staticCommands, IInjector injector)
+        private readonly IReadOnlyList<(StaticCommand, Type)> StaticCommands;
+        private readonly IInjector                            IInjector;
+        public CommandSearcher(IReadOnlyList<(StaticCommand, Type)> staticCommands, IInjector injector)
         {
             StaticCommands = staticCommands;
             IInjector      = injector;
         }
 
-        public IStaticCommand? FindSuitableFirst(Update update)
+        public StaticCommand? FindSuitableFirst(Update update)
         {
             var commandType = StaticCommands.Where(t => t.Item1.SuitableFirst(update)).Select(t => t.Item2).FirstOrDefault();
             if (commandType is not null)
-                return (IStaticCommand?) IInjector.Create(commandType);
+                return (StaticCommand?) IInjector.Create(commandType);
             return null;
         }
-        public IStaticCommand? FindSuitableLast(Update update)
+        public StaticCommand? FindSuitableLast(Update update)
         {
             var commandType = StaticCommands.Where(t => t.Item1.SuitableLast(update)).Select(t => t.Item2).FirstOrDefault();
             if (commandType is not null)
-                return (IStaticCommand?) IInjector.Create(commandType);
+                return (StaticCommand?) IInjector.Create(commandType);
             return null;
         }
     }

@@ -79,7 +79,7 @@ namespace BotFramework.Helpers
                     break;
                 case UpdateType.ChannelPost:
                     chat     = update?.ChannelPost?.Chat;
-                    fromName = update?.ChannelPost?.Chat.Title;
+                    fromName = update?.ChannelPost?.Chat?.Title;
                     contents = update?.ChannelPost?.Text;
                     break;
                 case UpdateType.EditedChannelPost:
