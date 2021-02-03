@@ -2,7 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
-using BotFramework.Responses;
+using BotFramework.Commands;
 using Telegram.Bot;
 using Telegram.Bot.Requests.Abstractions;
 using Telegram.Bot.Types;
@@ -10,15 +10,22 @@ using Telegram.Bot.Types;
 namespace BotFramework.Clients
 {
     /// <inheritdoc cref="IClient"/>>
-    public class Client : IClient
+    public class Client<T> : IClient, IUpdateConsumer where T: IBotContext
     {
-        private TelegramBotClient                   _client;
-        public  TaskCompletionSource<Update>?       CurrentBasicBotTask;
-        public  Task<Response>?                     CurrentTask;
+        private ITelegramBotClient                   _client;
+        private  TaskCompletionSource<Update>?       CurrentBasicBotTask;
+        private  readonly Task                     CurrentTask;
         private Func<Update, bool>?                 CurrentFilter;
         private Action<Update>?                     OnFilterFail;
         private IProducerConsumerCollection<Update> UpdatesToHandle = new ConcurrentQueue<Update>();
-        public Client(TelegramBotClient client, long userId) => (_client, UserId) = (client, userId);
+
+        public Client(ICommand<T> command, T context, ITelegramBotClient client)
+        {
+          _client           = client;
+          UserId            = context.ChatId.Id;
+          HandleUpdate(context.CurrentUpdate);
+          CurrentTask       = command.Execute(this, context);
+        } 
 
         public ValueTask<Update> GetUpdate(Func<Update, bool>? filter = null, Action<Update>? onFilterFail = null)
         {
@@ -61,6 +68,9 @@ namespace BotFramework.Clients
                                                       CancellationToken   cancellationToken = default(CancellationToken)) =>
         _client.MakeRequestAsync(request, cancellationToken);
 
-        public long UserId { get; }
+        public long UserId                 { get; }
+        public bool IsDone                 => CurrentTask.IsCompleted;
+        public bool IsWaitingForUpdate     => CurrentBasicBotTask?.Task.IsCompleted == false;
+        public void Consume(Update update) => HandleUpdate(update);
     }
 }
