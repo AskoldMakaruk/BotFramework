@@ -12,6 +12,7 @@ namespace BotFramework.Clients.ClientExtensions
             var update = await client.GetUpdate(u => !string.IsNullOrEmpty(u.Message?.Text));
             return update.Message;
         }
+
         public static async ValueTask<Message> GetOnlyButtonResult(this IClient client, ReplyKeyboardMarkup replyMarkup)
         {
             var update = await client.GetUpdate(u =>
