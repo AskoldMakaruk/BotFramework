@@ -21,7 +21,7 @@ namespace EchoBot
             .RunInMemoryHandler();
         }
     }
-
+    
     public class EchoCommand : StaticCommand
     {
         private readonly ILogger logger;
@@ -31,7 +31,7 @@ namespace EchoBot
             this.logger = logger;
         }
 
-        public async Task<Response> Execute(IClient client)
+        public override async Task<Response> Execute(IClient client)
         {
             var message = await client.GetTextMessage();
 
@@ -49,19 +49,19 @@ namespace EchoBot
             return Responses.Ok();
         }
 
-        public bool SuitableLast(Update message) => true;
+        public override bool SuitableLast(Update message) => true;
     }
 
     public class HelpCommand : StaticCommand
     {
-        public async Task<Response> Execute(IClient client)
+        public override async Task<Response> Execute(IClient client)
         {
             var _ = await client.GetTextMessage();
             await client.SendTextMessage("This is help text");
             return Responses.Ok();
         }
 
-        public bool SuitableFirst(Update message)
+        public override bool SuitableFirst(Update message)
         {
             return message?.Message?.Text == "/help";
         }
