@@ -8,10 +8,11 @@ namespace BotFramework
 {
     public class AppBuilder<T> : IAppBuilder<T> where T : IBotContext
     {
-        private          Func<Update, T>  contextCreator = null!;
-        private readonly IInjectorBuilder InjectorBuilder;
-        private readonly List<Type>       midllewares  = new();
         private readonly HashSet<Type>    AlreadyAdded = new();
+        private readonly IInjectorBuilder InjectorBuilder;
+        private readonly List<Type>       midllewares    = new();
+        private          Func<Update, T>  contextCreator = null!;
+
         public AppBuilder(IInjectorBuilder injectorBuilder)
         {
             InjectorBuilder = injectorBuilder;
@@ -29,6 +30,7 @@ namespace BotFramework
                 AlreadyAdded.Add(typeof(M));
                 InjectorBuilder.AddScoped<M>();
             }
+
             midllewares.Add(typeof(M));
         }
 
@@ -39,6 +41,7 @@ namespace BotFramework
                 AlreadyAdded.Add(typeof(M));
                 InjectorBuilder.AddSingleton<M>();
             }
+
             midllewares.Add(typeof(M));
         }
 
@@ -46,13 +49,15 @@ namespace BotFramework
         {
             return new App<T>(new WrappedInjector(InjectorBuilder.Build()), midllewares, contextCreator);
         }
-
     }
-    public class App<T> : IApp where T: IBotContext
+
+    public class App<T> : IApp where T : IBotContext
     {
-        private readonly IInjector       injector;
-        private readonly List<Type>      middlewares;
-        private readonly Func<Update, T> contextCreator;
+        private static readonly EndPoint        endPoint = new();
+        private readonly        Func<Update, T> contextCreator;
+        private readonly        IInjector       injector;
+        private readonly        List<Type>      middlewares;
+
         public App(IInjector injector, List<Type> middlewares, Func<Update, T> contextCreator)
         {
             this.injector       = injector;
@@ -60,14 +65,12 @@ namespace BotFramework
             this.contextCreator = contextCreator;
         }
 
-        private static readonly EndPoint endPoint = new ();
-
         public Task Run(Update update)
         {
             var scope   = injector.UseScope();
             var first   = (IMiddleware<T>) scope.Get(middlewares[0]);
             var current = first;
-            for (int i = 1; i < middlewares.Count; i++)
+            for (var i = 1; i < middlewares.Count; i++)
             {
                 var next = (IMiddleware<T>) scope.Get(middlewares[i]);
                 current.Next = next;
@@ -78,10 +81,15 @@ namespace BotFramework
             var context = contextCreator(update);
             return first.Invoke(context);
         }
+
         private class EndPoint : IMiddleware<T>
         {
-            public IMiddleware<T> Next              { get; set; } = null!;
-            public Task           Invoke(T context) => Task.CompletedTask;
+            public IMiddleware<T> Next { get; set; } = null!;
+
+            public Task Invoke(T context)
+            {
+                return Task.CompletedTask;
+            }
         }
     }
 }

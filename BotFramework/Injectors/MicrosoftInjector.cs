@@ -6,18 +6,19 @@ namespace BotFramework.Injectors
     public class MicrosoftInjectorBuilder : IInjectorBuilder
     {
         private readonly IServiceCollection services;
+
         public MicrosoftInjectorBuilder(IServiceCollection services)
         {
             this.services = services;
         }
 
-        public void      AddSingleton<T>() where T : class
+        public void AddSingleton<T>() where T : class
         {
             services.AddSingleton<T>();
         }
 
 
-        public void      AddScoped<T>() where T : class
+        public void AddScoped<T>() where T : class
         {
             services.AddScoped<T>();
         }
@@ -31,6 +32,7 @@ namespace BotFramework.Injectors
     public class MicrosoftInjector : IInjector, IInjectorScope
     {
         private readonly IServiceProvider _provider;
+
         public MicrosoftInjector(IServiceProvider provider)
         {
             _provider = provider;
@@ -41,11 +43,14 @@ namespace BotFramework.Injectors
             return new MicrosoftInjector(_provider.CreateScope().ServiceProvider);
         }
 
-        public T      Get<T>()
+        public T Get<T>()
         {
             var res = _provider.GetService<T>();
             if (res is null)
+            {
                 throw new Exception($"Cannot find service {nameof(T)}");
+            }
+
             return res;
         }
 
@@ -53,7 +58,10 @@ namespace BotFramework.Injectors
         {
             var res = _provider.GetService(type);
             if (res is null)
+            {
                 throw new Exception($"Cannot find service {type.Name}");
+            }
+
             return res;
         }
     }

@@ -5,11 +5,11 @@ using Telegram.Bot.Types;
 
 namespace BotFramework
 {
-    public interface IAppBuilder<T> where T:IBotContext
+    public interface IAppBuilder<T> where T : IBotContext
     {
         void AddContextCreator(Func<Update, T> creator);
-        void UseScoped<M>() where M: class, IMiddleware<T>;
-        void UseSingleton<M>() where M: class, IMiddleware<T>;
+        void UseScoped<M>() where M : class, IMiddleware<T>;
+        void UseSingleton<M>() where M : class, IMiddleware<T>;
         IApp Build();
     }
 
@@ -17,23 +17,24 @@ namespace BotFramework
     {
         Task Run(Update update);
     }
+
     public interface IBotContext
     {
-       User    ChatId        { get; } 
-       Update CurrentUpdate { get; }
+        User   ChatId        { get; }
+        Update CurrentUpdate { get; }
     }
 
     public interface IDictionaryContext : IBotContext
     {
-       /// <summary>
-       /// First not done handler will handle CurrentUpdate
-       /// </summary>
-       LinkedList<IUpdateConsumer> Handlers { get; set; }
+        /// <summary>
+        ///     First not done handler will handle CurrentUpdate
+        /// </summary>
+        LinkedList<IUpdateConsumer> Handlers { get; set; }
     }
 
     public interface IStaticCommandsContext : IDictionaryContext
     {
-       List<Type> StaticCommands { get; }
+        List<Type> StaticCommands { get; }
     }
 
     public interface IUpdateConsumer
@@ -43,7 +44,7 @@ namespace BotFramework
         void Consume(Update update);
     }
 
-    public interface IMiddleware<T> where T: IBotContext
+    public interface IMiddleware<T> where T : IBotContext
     {
         IMiddleware<T> Next { get; set; }
         Task           Invoke(T context);
