@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 
 //todo migrate IBotContext to IContextCollection
 namespace BotFramework.Middleware
@@ -20,7 +21,7 @@ namespace BotFramework.Middleware
     {
         public static AppBuilder<IBotContext> UseExceptionMiddleware(this AppBuilder<IBotContext> builder)
         {
-            builder.UseSingletonMiddleware<ExceptionNotifierMiddleware<IBotContext>>();
+            builder.UseMiddleware<ExceptionNotifierMiddleware<IBotContext>>(collection => collection.AddSingleton<ExceptionNotifierMiddleware<IBotContext>>());
             return builder;
         }
     }

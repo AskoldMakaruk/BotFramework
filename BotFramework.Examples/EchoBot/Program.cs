@@ -31,12 +31,12 @@ namespace EchoBot
                                      services.AddScoped<HelpCommand>();
                                      services.AddSingleton<ILogger, Logger>();
                                      services.AddSingleton<IInjector, MicrosoftInjector>();
-                                     var builder = new AppBuilder<MyContext>(new MicrosoftInjectorBuilder(services));
+                                     var builder = new AppBuilder<MyContext>(services, services => new MicrosoftInjector(services.BuildServiceProvider()));
 
-                                     builder.UseSingletonMiddleware<DictionaryCreatorMiddleware<MyContext>>();
-                                     builder.UseSingletonMiddleware<SuitableFirstMiddleware<MyContext>>();
-                                     builder.UseSingletonMiddleware<SuitableLastMiddleware<MyContext>>();
-                                     builder.UseSingletonMiddleware<EndPointMiddleware<MyContext>>();
+                                     builder.UseMiddleware<DictionaryCreatorMiddleware<MyContext>>(services => services.AddSingleton<DictionaryCreatorMiddleware<MyContext>>());
+                                     builder.UseMiddleware<SuitableFirstMiddleware<MyContext>>(services => services.AddSingleton<SuitableFirstMiddleware<MyContext>>());
+                                     builder.UseMiddleware<SuitableLastMiddleware<MyContext>>(services => services.AddSingleton<SuitableLastMiddleware<MyContext>>());
+                                     builder.UseMiddleware<EndPointMiddleware<MyContext>>(services => services.AddSingleton<EndPointMiddleware<MyContext>>());
 
                                      builder.AddContextCreator(update => new MyContext()
                                      {

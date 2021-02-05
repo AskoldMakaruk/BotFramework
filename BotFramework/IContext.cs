@@ -1,15 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using Telegram.Bot.Types;
 
 namespace BotFramework
 {
     public interface IAppBuilder<T> where T : IBotContext
     {
-        void AddContextCreator(Func<Update, T> creator);
-        void UseScopedMiddleware<M>() where M : class, IMiddleware<T>;
-        void UseSingletonMiddleware<M>() where M : class, IMiddleware<T>;
+        void UseMiddleware<M>(Action<IServiceCollection> services) where M : class, IMiddleware<T>;
         IApp Build();
     }
 

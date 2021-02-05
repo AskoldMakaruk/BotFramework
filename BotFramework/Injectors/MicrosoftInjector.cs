@@ -3,31 +3,6 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace BotFramework.Injectors
 {
-    public class MicrosoftInjectorBuilder : IInjectorBuilder
-    {
-        private readonly IServiceCollection services;
-
-        public MicrosoftInjectorBuilder(IServiceCollection services)
-        {
-            this.services = services;
-        }
-
-        public void AddSingleton<T>() where T : class
-        {
-            services.AddSingleton<T>();
-        }
-
-
-        public void AddScoped<T>() where T : class
-        {
-            services.AddScoped<T>();
-        }
-
-        public IInjector Build()
-        {
-            return new MicrosoftInjector(services.BuildServiceProvider());
-        }
-    }
 
     public class MicrosoftInjector : IInjector, IInjectorScope
     {

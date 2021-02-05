@@ -2,20 +2,23 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using BotFramework.Injectors;
+using Microsoft.Extensions.DependencyInjection;
 using Telegram.Bot.Types;
 
 namespace BotFramework
 {
     public class AppBuilder<T> : IAppBuilder<T> where T : IBotContext
     {
-        private readonly HashSet<Type>    AlreadyAdded = new();
-        private readonly IInjectorBuilder InjectorBuilder;
-        private readonly List<Type>       midllewares    = new();
-        private          Func<Update, T>  contextCreator = null!;
+        private readonly HashSet<Type>                       AlreadyAdded = new();
+        private readonly IServiceCollection                  Services;
+        private readonly Func<IServiceCollection, IInjector> builder;
+        private readonly List<Type>                          midllewares    = new();
+        private          Func<Update, T>                     contextCreator = null!;
 
-        public AppBuilder(IInjectorBuilder injectorBuilder)
+        public AppBuilder(IServiceCollection services, Func<IServiceCollection, IInjector> builder)
         {
-            InjectorBuilder = injectorBuilder;
+            Services     = services;
+            this.builder = builder;
         }
 
         public void AddContextCreator(Func<Update, T> creator)
@@ -23,23 +26,12 @@ namespace BotFramework
             contextCreator = creator;
         }
 
-        public void UseScopedMiddleware<M>() where M : class, IMiddleware<T>
+        public void UseMiddleware<M>(Action<IServiceCollection> builder) where M : class, IMiddleware<T>
         {
             if (!AlreadyAdded.Contains(typeof(M)))
             {
                 AlreadyAdded.Add(typeof(M));
-                InjectorBuilder.AddScoped<M>();
-            }
-
-            midllewares.Add(typeof(M));
-        }
-
-        public void UseSingletonMiddleware<M>() where M : class, IMiddleware<T>
-        {
-            if (!AlreadyAdded.Contains(typeof(M)))
-            {
-                AlreadyAdded.Add(typeof(M));
-                InjectorBuilder.AddSingleton<M>();
+                builder(Services);
             }
 
             midllewares.Add(typeof(M));
@@ -47,7 +39,7 @@ namespace BotFramework
 
         public IApp Build()
         {
-            return new App<T>(InjectorBuilder.Build(), midllewares, contextCreator);
+            return new App<T>(builder(Services), midllewares, contextCreator);
         }
     }
 
