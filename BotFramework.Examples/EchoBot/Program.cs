@@ -43,6 +43,7 @@ namespace EchoBot
                                      });
                                      var app = builder.Build();
                                      services.AddSingleton(_ => app);
+
                                  })
                                  .Build();
             var app = host.Services.GetService<IApp>()!;
@@ -53,7 +54,8 @@ namespace EchoBot
 
         }
     }
-
+    
+    //generic context list with posibility do get value based on context type
     public class MyContext : IStaticCommandsContext
     {
         public User                        ChatId         { get; init; }

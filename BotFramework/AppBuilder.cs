@@ -47,7 +47,7 @@ namespace BotFramework
 
         public IApp Build()
         {
-            return new App<T>(new WrappedInjector(InjectorBuilder.Build()), midllewares, contextCreator);
+            return new App<T>(InjectorBuilder.Build(), midllewares, contextCreator);
         }
     }
 
@@ -73,6 +73,7 @@ namespace BotFramework
             for (var i = 1; i < middlewares.Count; i++)
             {
                 var next = (IMiddleware<T>) scope.Get(middlewares[i]);
+                
                 current.Next = next;
                 current      = next;
             }
