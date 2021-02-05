@@ -22,7 +22,7 @@ namespace BotFramework.Helpers
             User?   from = default;
             Chat?   chat = default;
             string? fromName;
-            var     contents = "";
+            var     contents = string.Empty;
 
             switch (update.Type)
             {
@@ -30,6 +30,7 @@ namespace BotFramework.Helpers
                     var message = update.Message;
                     from     = message?.From;
                     fromName = message?.From?.Username;
+                    chat     = message?.Chat;
                     switch (update.Message.Type)
                     {
                         case MessageType.Text:
@@ -71,11 +72,13 @@ namespace BotFramework.Helpers
                     from     = update?.CallbackQuery?.From;
                     fromName = update?.CallbackQuery?.From?.Username;
                     contents = update?.CallbackQuery?.Data;
+                    chat     = update?.CallbackQuery?.Message?.Chat;
                     break;
                 case UpdateType.EditedMessage:
                     from     = update?.EditedMessage?.From;
                     fromName = update?.EditedMessage?.From?.Username;
                     contents = update?.EditedMessage?.Text;
+                    chat     = update?.EditedMessage?.Chat;
                     break;
                 case UpdateType.ChannelPost:
                     chat     = update?.ChannelPost?.Chat;
@@ -83,9 +86,10 @@ namespace BotFramework.Helpers
                     contents = update?.ChannelPost?.Text;
                     break;
                 case UpdateType.EditedChannelPost:
-                    from     = update.EditedChannelPost?.From;
-                    fromName = update.EditedChannelPost?.From?.Username;
-                    contents = update.EditedChannelPost?.Text;
+                    from     = update?.EditedChannelPost?.From;
+                    fromName = update?.EditedChannelPost?.From?.Username;
+                    contents = update?.EditedChannelPost?.Text;
+                    chat     = update?.EditedChannelPost?.Chat;
                     break;
                 case UpdateType.ShippingQuery:
                     from     = update.ShippingQuery?.From;
@@ -95,7 +99,6 @@ namespace BotFramework.Helpers
                 case UpdateType.PreCheckoutQuery:
                     from     = update.PreCheckoutQuery?.From;
                     fromName = update.PreCheckoutQuery?.From?.Username;
-                    contents = "";
                     break;
                 default:
                     var ex = new NotImplementedException($"We don't support {update.Type} right now");

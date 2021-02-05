@@ -37,8 +37,8 @@ namespace BotFramework.Handlers
                 {
                     var parsedUpdate = update.GetInfoFromUpdate();
 
-                    var fromNullanble = parsedUpdate.From?.Id ?? parsedUpdate.Chat?.Id;
-                    if (fromNullanble == null)
+                    var chatId = parsedUpdate.Chat?.Id ?? parsedUpdate.From?.Id;
+                    if (chatId == null)
                     {
                         //todo handle messages with no user idk
                         CommandSearcher.FindSuitableFirst(update)?.Execute(new Client(BotClient, default));
@@ -47,7 +47,7 @@ namespace BotFramework.Handlers
                         return;
                     }
 
-                    var from = (long) fromNullanble;
+                    var from = (long) chatId;
 
                     var client = Clients.GetOrAdd(from, from => new Client(BotClient, from));
                     lock (client)
