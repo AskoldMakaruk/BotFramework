@@ -8,8 +8,8 @@ namespace BotFramework
     public interface IAppBuilder<T> where T : IBotContext
     {
         void AddContextCreator(Func<Update, T> creator);
-        void UseScoped<M>() where M : class, IMiddleware<T>;
-        void UseSingleton<M>() where M : class, IMiddleware<T>;
+        void UseScopedMiddleware<M>() where M : class, IMiddleware<T>;
+        void UseSingletonMiddleware<M>() where M : class, IMiddleware<T>;
         IApp Build();
     }
 

@@ -23,7 +23,7 @@ namespace BotFramework
             contextCreator = creator;
         }
 
-        public void UseScoped<M>() where M : class, IMiddleware<T>
+        public void UseScopedMiddleware<M>() where M : class, IMiddleware<T>
         {
             if (!AlreadyAdded.Contains(typeof(M)))
             {
@@ -34,7 +34,7 @@ namespace BotFramework
             midllewares.Add(typeof(M));
         }
 
-        public void UseSingleton<M>() where M : class, IMiddleware<T>
+        public void UseSingletonMiddleware<M>() where M : class, IMiddleware<T>
         {
             if (!AlreadyAdded.Contains(typeof(M)))
             {

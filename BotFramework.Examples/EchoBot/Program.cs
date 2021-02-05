@@ -8,6 +8,7 @@ using BotFramework.Clients.ClientExtensions;
 using BotFramework.Commands;
 using BotFramework.Helpers;
 using BotFramework.Injectors;
+using BotFramework.Middleware;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -31,10 +32,12 @@ namespace EchoBot
                                      services.AddSingleton<ILogger, Logger>();
                                      services.AddSingleton<IInjector, MicrosoftInjector>();
                                      var builder = new AppBuilder<MyContext>(new MicrosoftInjectorBuilder(services));
-                                     builder.UseSingleton<DictionaryCreatorMiddleware<MyContext>>();
-                                     builder.UseSingleton<SuitableFirstMiddleware<MyContext>>();
-                                     builder.UseSingleton<SuitableLastMiddleware<MyContext>>();
-                                     builder.UseSingleton<EndPointMiddleware<MyContext>>();
+
+                                     builder.UseSingletonMiddleware<DictionaryCreatorMiddleware<MyContext>>();
+                                     builder.UseSingletonMiddleware<SuitableFirstMiddleware<MyContext>>();
+                                     builder.UseSingletonMiddleware<SuitableLastMiddleware<MyContext>>();
+                                     builder.UseSingletonMiddleware<EndPointMiddleware<MyContext>>();
+
                                      builder.AddContextCreator(update => new MyContext()
                                      {
                                          ChatId = update.GetUser(),
