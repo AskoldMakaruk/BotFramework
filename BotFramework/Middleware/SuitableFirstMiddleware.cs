@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using BotFramework.Abstractions;
 using BotFramework.Clients;
 using BotFramework.Commands;
 using Microsoft.Extensions.DependencyInjection;
