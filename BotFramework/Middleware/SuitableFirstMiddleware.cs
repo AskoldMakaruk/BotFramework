@@ -1,43 +1,62 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using BotFramework.Clients;
 using BotFramework.Commands;
-using BotFramework.Injectors;
+using Microsoft.Extensions.DependencyInjection;
 using Telegram.Bot;
+using Telegram.Bot.Types;
 
 namespace BotFramework.Middleware
 {
-    public class SuitableFirstMiddleware<T> : IMiddleware<T> where T : IStaticCommandsContext
+    public record StaticCommandsList(List<Type> StaticCommandsTypes);
+    public class StaticCommandsMiddleware
     {
-        private readonly IInjector               injector;
-        private          List<IStaticCommand<T>> commands = null!;
-        private          bool                    IsConfigured;
+        private readonly IServiceProvider     _services;
+        private readonly List<IStaticCommand> commands;
+        private readonly UpdateDelegate       _next;
 
-        public SuitableFirstMiddleware(IInjector injector)
+
+        public StaticCommandsMiddleware(IServiceProvider services, UpdateDelegate next, StaticCommandsList staticCommands)
         {
-            this.injector = injector;
+            _services    = services;
+            _next        = next;
+            var scope = _services.CreateScope();
+            commands     = staticCommands.StaticCommandsTypes.Select(scope.ServiceProvider.GetService).Cast<IStaticCommand>().ToList();
         }
 
-        public IMiddleware<T> Next { get; set; } = null!;
-
-        public Task Invoke(T context)
+        public Task Invoke(Update update, DictionaryContext dictionaryContext)
         {
-            if (!IsConfigured)
-            {
-                var scope = injector.UseScope();
-                commands     = context.StaticCommands.Select(scope.Get).Cast<IStaticCommand<T>>().ToList();
-                IsConfigured = true;
-            }
-
-            var command = commands.FirstOrDefault(t => t.SuitableFirst(context));
+            var command = commands.FirstOrDefault(t => t.SuitableFirst(update));
             if (command is not null)
             {
-                command = (IStaticCommand<T>) injector.UseScope().Get(command.GetType());
-                context.Handlers.AddFirst(new Client<T>(command, context, injector.Get<ITelegramBotClient>()));
+                command = (IStaticCommand) _services.GetService(command.GetType())!;
+                dictionaryContext.Handlers.AddFirst(new Client(command, _services.GetService<ITelegramBotClient>()!, update));
+                return Task.CompletedTask;
             }
+            var currentCommand = dictionaryContext.Handlers.FirstOrDefault(t => !t.IsDone);
+            if (currentCommand is not null)
+            {
+                currentCommand.Consume(update);
+                return Task.CompletedTask;
+            }
+            command = commands.FirstOrDefault(t => t.SuitableLast(update));
+            if (command is not null)
+            {
+                command = (IStaticCommand) _services.GetService(command.GetType())!;
+                dictionaryContext.Handlers.AddFirst(new Client(command, _services.GetService<ITelegramBotClient>()!, update));
+                return Task.CompletedTask;
+            }
+            return _next(update);
+        }
+    }
 
-            return Next.Invoke(context);
+    public static class StaticCommandsEndpoint
+    {
+        public static void UseStaticCommands(this IAppBuilder builder, StaticCommandsList staticCommands)
+        {
+            builder.UseMiddleware<StaticCommandsMiddleware>(staticCommands);
         }
     }
 }

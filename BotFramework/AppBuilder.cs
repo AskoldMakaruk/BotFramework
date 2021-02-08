@@ -1,88 +1,52 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using BotFramework.Injectors;
-using Microsoft.Extensions.DependencyInjection;
-using Telegram.Bot.Types;
 
 namespace BotFramework
 {
-    public class AppBuilder<T> : IAppBuilder<T> where T : IBotContext
+    public class AppBuilder : IAppBuilder
     {
-        private readonly HashSet<Type>                       AlreadyAdded = new();
-        private readonly IServiceCollection                  Services;
-        private readonly Func<IServiceCollection, IInjector> builder;
-        private readonly List<Type>                          midllewares    = new();
-        private          Func<Update, T>                     contextCreator = null!;
+        private readonly List<Func<UpdateDelegate, UpdateDelegate>> _components = new();
 
-        public AppBuilder(IServiceCollection services, Func<IServiceCollection, IInjector> builder)
+        /// <summary>
+        /// Initializes a new instance of <see cref="ApplicationBuilder"/>.
+        /// </summary>
+        /// <param name="serviceProvider">The <see cref="IServiceProvider"/> for application services.</param>
+        public AppBuilder(IServiceProvider serviceProvider)
         {
-            Services     = services;
-            this.builder = builder;
+            ApplicationServices = serviceProvider;
         }
 
-        public void AddContextCreator(Func<Update, T> creator)
+        /// <summary>
+        /// Gets the <see cref="IServiceProvider"/> for application services.
+        /// </summary>
+        public IServiceProvider ApplicationServices { get; set; }
+
+        /// <summary>
+        /// Adds the middleware to the application request pipeline.
+        /// </summary>
+        /// <param name="middleware">The middleware.</param>
+        /// <returns>An instance of <see cref="IApplicationBuilder"/> after the operation has completed.</returns>
+        public IAppBuilder Use(Func<UpdateDelegate, UpdateDelegate> middleware)
         {
-            contextCreator = creator;
+            _components.Add(middleware);
+            return this;
         }
 
-        public void UseMiddleware<M>(Action<IServiceCollection> builder) where M : class, IMiddleware<T>
+        /// <summary>
+        /// Produces a <see cref="RequestDelegate"/> that executes added middlewares.
+        /// </summary>
+        /// <returns>The <see cref="RequestDelegate"/>.</returns>
+        public UpdateDelegate Build()
         {
-            if (!AlreadyAdded.Contains(typeof(M)))
+            UpdateDelegate app = context => Task.CompletedTask;
+
+            for (var c = _components.Count - 1; c >= 0; c--)
             {
-                AlreadyAdded.Add(typeof(M));
-                builder(Services);
+                app = _components[c](app);
             }
 
-            midllewares.Add(typeof(M));
-        }
-
-        public IApp Build()
-        {
-            return new App<T>(builder(Services), midllewares, contextCreator);
-        }
-    }
-
-    public class App<T> : IApp where T : IBotContext
-    {
-        private static readonly EndPoint        endPoint = new();
-        private readonly        Func<Update, T> contextCreator;
-        private readonly        IInjector       injector;
-        private readonly        List<Type>      middlewares;
-
-        public App(IInjector injector, List<Type> middlewares, Func<Update, T> contextCreator)
-        {
-            this.injector       = injector;
-            this.middlewares    = middlewares;
-            this.contextCreator = contextCreator;
-        }
-
-        public Task Run(Update update)
-        {
-            var scope   = injector.UseScope();
-            var first   = (IMiddleware<T>) scope.Get(middlewares[0]);
-            var current = first;
-            for (var i = 1; i < middlewares.Count; i++)
-            {
-                var next = (IMiddleware<T>) scope.Get(middlewares[i]);
-                
-                current.Next = next;
-                current      = next;
-            }
-
-            current.Next = endPoint;
-            var context = contextCreator(update);
-            return first.Invoke(context);
-        }
-
-        private class EndPoint : IMiddleware<T>
-        {
-            public IMiddleware<T> Next { get; set; } = null!;
-
-            public Task Invoke(T context)
-            {
-                return Task.CompletedTask;
-            }
+            return app;
         }
     }
 }

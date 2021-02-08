@@ -11,7 +11,7 @@ namespace BotFramework.Clients
 {
     /// <inheritdoc cref="IClient" />
     /// >
-    public class Client<T> : IClient, IUpdateConsumer where T : IBotContext
+    public class Client: IClient, IUpdateConsumer
     {
         private readonly ITelegramBotClient                  _client;
         private readonly Task                                CurrentTask;
@@ -20,12 +20,12 @@ namespace BotFramework.Clients
         private          Func<Update, bool>?                 CurrentFilter;
         private          Action<Update>?                     OnFilterFail;
 
-        public Client(ICommand<T> command, T context, ITelegramBotClient client)
+        public Client(ICommand command, ITelegramBotClient client, Update update)
         {
             _client = client;
-            UserId  = context.ChatId.Id;
-            HandleUpdate(context.CurrentUpdate);
-            CurrentTask = command.Execute(this, context);
+            UserId  = update.Message.Chat.Id;
+            HandleUpdate(update);
+            CurrentTask = command.Execute(this);
         }
 
         public ValueTask<Update> GetUpdate(Func<Update, bool>? filter = null, Action<Update>? onFilterFail = null)

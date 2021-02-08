@@ -1,14 +1,15 @@
 ﻿using System.Threading.Tasks;
 using BotFramework.Clients;
+using Telegram.Bot.Types;
 
 namespace BotFramework.Commands
 {
-    public interface ICommand<T> where T : IBotContext
+    public interface ICommand
     {
-        Task Execute(IClient client, T context);
+        Task Execute(IClient client);
     }
 
-    public interface IStaticCommand<T> : ICommand<T> where T : IBotContext
+    public interface IStaticCommand : ICommand
     {
         /// <summary>
         ///     If returns <c>true</c>, instance of this command will be created, executed and any other <see cref="ICommand" />
@@ -17,7 +18,7 @@ namespace BotFramework.Commands
         /// <remarks>
         ///     It must not use any non-static context.
         /// </remarks>
-        bool SuitableFirst(T context) => false;
+        bool SuitableFirst(Update update) => false;
 
         /// <summary>
         ///     If there is no current command nor any <see cref="SuitableFirst" /> command and this returns <c>true</c>, instance
@@ -26,6 +27,6 @@ namespace BotFramework.Commands
         /// <remarks>
         ///     It must not use any non-static context.
         /// </remarks>
-        bool SuitableLast(T context) => false;
+        bool SuitableLast(Update update) => false;
     }
 }

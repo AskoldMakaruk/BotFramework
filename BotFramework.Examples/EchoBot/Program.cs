@@ -1,13 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
 using BotFramework;
 using BotFramework.Clients;
 using BotFramework.Clients.ClientExtensions;
 using BotFramework.Commands;
-using BotFramework.Helpers;
-using BotFramework.Injectors;
 using BotFramework.Middleware;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,7 +17,8 @@ namespace EchoBot
     {
         static void Main(string[] args)
         {
-            var token = "1136669023:AAGujpEe6BmJgi5Wh3r_ncWE5ZX3nPK1WuE";
+            var            token = "1136669023:AAGujpEe6BmJgi5Wh3r_ncWE5ZX3nPK1WuE";
+            UpdateDelegate app = null;
             using var host = Host.CreateDefaultBuilder(args)
                                  .ConfigureHostConfiguration(builder => builder.AddEnvironmentVariables())
                                  .ConfigureServices(services =>
@@ -30,44 +27,23 @@ namespace EchoBot
                                      services.AddScoped<EchoCommand>();
                                      services.AddScoped<HelpCommand>();
                                      services.AddSingleton<ILogger, Logger>();
-                                     services.AddSingleton<IInjector, MicrosoftInjector>();
-                                     var builder = new AppBuilder<MyContext>(services, services => new MicrosoftInjector(services.BuildServiceProvider()));
+                                     services.AddScoped<DictionaryContext>();
+                                     var builder = new AppBuilder(services.BuildServiceProvider());
 
-                                     builder.UseMiddleware<DictionaryCreatorMiddleware<MyContext>>(services => services.AddSingleton<DictionaryCreatorMiddleware<MyContext>>());
-                                     builder.UseMiddleware<SuitableFirstMiddleware<MyContext>>(services => services.AddSingleton<SuitableFirstMiddleware<MyContext>>());
-                                     builder.UseMiddleware<SuitableLastMiddleware<MyContext>>(services => services.AddSingleton<SuitableLastMiddleware<MyContext>>());
-                                     builder.UseMiddleware<EndPointMiddleware<MyContext>>(services => services.AddSingleton<EndPointMiddleware<MyContext>>());
 
-                                     builder.AddContextCreator(update => new MyContext()
-                                     {
-                                         ChatId = update.GetUser(),
-                                         StaticCommands = new () {typeof(EchoCommand), typeof(HelpCommand)},
-                                         CurrentUpdate = update
-                                     });
-                                     var app = builder.Build();
-                                     services.AddSingleton(_ => app);
-
+                                     builder.UseStaticCommands(new StaticCommandsList(new () {typeof(EchoCommand), typeof(HelpCommand)}));
+                                     app = builder.Build();
                                  })
                                  .Build();
-            var app = host.Services.GetService<IApp>()!;
             var bot = host.Services.GetService<ITelegramBotClient>()!;
-            bot!.OnUpdate += (sender, eventArgs) => app!.Run(eventArgs.Update);
+            bot!.OnUpdate += (sender, eventArgs) => app(eventArgs.Update);
             bot.StartReceiving();
             Console.ReadLine();
 
         }
     }
     
-    //generic context list with posibility do get value based on context type
-    public class MyContext : IStaticCommandsContext
-    {
-        public User                        ChatId         { get; init; }
-        public Update                      CurrentUpdate  { get; init; }
-        public LinkedList<IUpdateConsumer> Handlers       { get; set; }
-        public List<Type>                  StaticCommands { get; init; }
-    }
-
-    public class EchoCommand : IStaticCommand<MyContext>
+    public class EchoCommand : IStaticCommand
     {
         private readonly ILogger logger;
 
@@ -76,7 +52,7 @@ namespace EchoBot
             this.logger = logger;
         }
 
-        public async Task Execute(IClient client, MyContext _)
+        public async Task Execute(IClient client)
         {
             var message = await client.GetTextMessage();
 
@@ -92,20 +68,20 @@ namespace EchoBot
             await client.SendTextMessage("Well done!");
         }
 
-        public bool SuitableLast(MyContext context) => true;
+        public bool SuitableLast(Update context) => true;
     }
 
-    public class HelpCommand : IStaticCommand<MyContext>
+    public class HelpCommand : IStaticCommand
     {
-        public async Task Execute(IClient client, MyContext ctx)
+        public async Task Execute(IClient client)
         {
             var _ = await client.GetTextMessage();
             await client.SendTextMessage("This is help text");
         }
 
-        public bool SuitableFirst(MyContext ctx)
+        public bool SuitableFirst(Update ctx)
         {
-            return ctx.CurrentUpdate?.Message?.Text == "/help";
+            return ctx.Message?.Text == "/help";
         }
     }
 

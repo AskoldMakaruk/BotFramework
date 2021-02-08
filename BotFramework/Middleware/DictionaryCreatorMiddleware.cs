@@ -6,18 +6,32 @@ using Telegram.Bot.Types;
 
 namespace BotFramework.Middleware
 {
-    public class DictionaryCreatorMiddleware<T> : IMiddleware<T> where T : IDictionaryContext
+    public class DictionaryContext
     {
-        private readonly ConcurrentDictionary<User, LinkedList<IUpdateConsumer>> dictionary = new();
+        /// <summary>
+        ///     First not done handler will handle CurrentUpdate
+        /// </summary>
+        public LinkedList<IUpdateConsumer> Handlers { get; set; } = new();
+    }
 
-        public IMiddleware<T> Next { get; set; } = null!;
+    public class DictionaryCreatorMiddleware
+    {
+        private readonly ConcurrentDictionary<long, LinkedList<IUpdateConsumer>> dictionary = new();
 
-        public Task Invoke(T context)
+
+        private readonly UpdateDelegate _next;
+
+        public DictionaryCreatorMiddleware(UpdateDelegate next)
         {
-            dictionary.AddOrUpdate(context.ChatId, _ => new LinkedList<IUpdateConsumer>(),
+            _next = next;
+        }
+
+        public Task Invoke(Update update, DictionaryContext dictionaryContext)
+        {
+            dictionary.AddOrUpdate(update.Message.Chat.Id, _ => new LinkedList<IUpdateConsumer>(),
                 (_, list) => new LinkedList<IUpdateConsumer>(list.Where(t => !t.IsDone)));
-            context.Handlers = dictionary[context.ChatId];
-            return Next.Invoke(context);
+            dictionaryContext.Handlers = dictionary[update.Message.Chat.Id];
+            return _next.Invoke(update);
         }
     }
 }

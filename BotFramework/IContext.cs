@@ -6,34 +6,10 @@ using Telegram.Bot.Types;
 
 namespace BotFramework
 {
-    public interface IAppBuilder<T> where T : IBotContext
-    {
-        void UseMiddleware<M>(Action<IServiceCollection> services) where M : class, IMiddleware<T>;
-        IApp Build();
-    }
-
-    public interface IApp
-    {
-        Task Run(Update update);
-    }
-
     public interface IBotContext
     {
         User   ChatId        { get; }
         Update CurrentUpdate { get; }
-    }
-
-    public interface IDictionaryContext : IBotContext
-    {
-        /// <summary>
-        ///     First not done handler will handle CurrentUpdate
-        /// </summary>
-        LinkedList<IUpdateConsumer> Handlers { get; set; }
-    }
-
-    public interface IStaticCommandsContext : IDictionaryContext
-    {
-        List<Type> StaticCommands { get; }
     }
 
     public interface IUpdateConsumer
@@ -43,9 +19,9 @@ namespace BotFramework
         void Consume(Update update);
     }
 
-    public interface IMiddleware<T> where T : IBotContext
+    public interface IMiddleware
     {
-        IMiddleware<T> Next { get; set; }
-        Task           Invoke(T context);
+        IMiddleware Next { get; set; }
+        Task           Invoke(Update update, UpdateDelegate next);
     }
 }
