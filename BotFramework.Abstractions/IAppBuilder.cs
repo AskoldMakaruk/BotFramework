@@ -1,11 +1,7 @@
 using System;
-using System.Threading.Tasks;
-using Telegram.Bot.Types;
 
 namespace BotFramework.Abstractions
 {
-    public delegate Task UpdateDelegate(Update update);
-
     public interface IAppBuilder
     {
         IServiceProvider ApplicationServices { get; set; }
