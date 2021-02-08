@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using BotFramework.Abstractions;
 using BotFramework.Clients;
-using BotFramework.Commands;
 using Microsoft.Extensions.DependencyInjection;
 using Telegram.Bot;
 using Telegram.Bot.Types;
