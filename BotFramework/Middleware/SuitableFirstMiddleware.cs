@@ -11,6 +11,7 @@ using Telegram.Bot.Types;
 namespace BotFramework.Middleware
 {
     public record StaticCommandsList(List<Type> StaticCommandsTypes);
+
     public class StaticCommandsMiddleware
     {
         private readonly IServiceProvider     _services;
@@ -20,10 +21,12 @@ namespace BotFramework.Middleware
 
         public StaticCommandsMiddleware(IServiceProvider services, UpdateDelegate next, StaticCommandsList staticCommands)
         {
-            _services    = services;
-            _next        = next;
+            _services = services;
+            _next     = next;
             var scope = _services.CreateScope();
-            commands     = staticCommands.StaticCommandsTypes.Select(scope.ServiceProvider.GetService).Cast<IStaticCommand>().ToList();
+            commands = staticCommands.StaticCommandsTypes.Select(scope.ServiceProvider.GetService)
+                                     .Cast<IStaticCommand>()
+                                     .ToList();
         }
 
         public Task Invoke(Update update, DictionaryContext dictionaryContext)
@@ -35,12 +38,14 @@ namespace BotFramework.Middleware
                 dictionaryContext.Handlers.AddFirst(new Client(command, _services.GetService<ITelegramBotClient>()!, update));
                 return Task.CompletedTask;
             }
+
             var currentCommand = dictionaryContext.Handlers.FirstOrDefault(t => !t.IsDone);
             if (currentCommand is not null)
             {
                 currentCommand.Consume(update);
                 return Task.CompletedTask;
             }
+
             command = commands.FirstOrDefault(t => t.SuitableLast(update));
             if (command is not null)
             {
@@ -48,6 +53,7 @@ namespace BotFramework.Middleware
                 dictionaryContext.Handlers.AddFirst(new Client(command, _services.GetService<ITelegramBotClient>()!, update));
                 return Task.CompletedTask;
             }
+
             return _next(update);
         }
     }

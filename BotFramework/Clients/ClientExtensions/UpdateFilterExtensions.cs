@@ -1,4 +1,5 @@
 using System;
+using BotFramework.Abstractions;
 using Telegram.Bot.Types;
 
 namespace BotFramework.Clients.ClientExtensions

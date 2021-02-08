@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using BotFramework.Abstractions;
 using Telegram.Bot.Types;
 
 namespace BotFramework.Clients.ClientExtensions

@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
 using BotFramework;
-using BotFramework.Clients;
+using BotFramework.Abstractions;
 using BotFramework.Clients.ClientExtensions;
-using BotFramework.Commands;
 using BotFramework.Middleware;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,11 +12,12 @@ using Telegram.Bot.Types;
 
 namespace EchoBot
 {
-    class Program
+    internal class Program
     {
-        static void Main(string[] args)
+        private const string token = "1136669023:AAGujpEe6BmJgi5Wh3r_ncWE5ZX3nPK1WuE";
+
+        private static void Main(string[] args)
         {
-            var            token = "1136669023:AAGujpEe6BmJgi5Wh3r_ncWE5ZX3nPK1WuE";
             UpdateDelegate app = null;
             using var host = Host.CreateDefaultBuilder(args)
                                  .ConfigureHostConfiguration(builder => builder.AddEnvironmentVariables())
@@ -31,7 +31,8 @@ namespace EchoBot
                                      var builder = new AppBuilder(services.BuildServiceProvider());
 
 
-                                     builder.UseStaticCommands(new StaticCommandsList(new () {typeof(EchoCommand), typeof(HelpCommand)}));
+                                     builder.UseStaticCommands(new StaticCommandsList(new()
+                                     {typeof(EchoCommand), typeof(HelpCommand)}));
                                      app = builder.Build();
                                  })
                                  .Build();
@@ -39,10 +40,9 @@ namespace EchoBot
             bot!.OnUpdate += (sender, eventArgs) => app(eventArgs.Update);
             bot.StartReceiving();
             Console.ReadLine();
-
         }
     }
-    
+
     public class EchoCommand : IStaticCommand
     {
         private readonly ILogger logger;

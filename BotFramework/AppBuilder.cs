@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using Ninject.Infrastructure.Language;
 
 namespace BotFramework
 {
@@ -9,7 +11,7 @@ namespace BotFramework
         private readonly List<Func<UpdateDelegate, UpdateDelegate>> _components = new();
 
         /// <summary>
-        /// Initializes a new instance of <see cref="ApplicationBuilder"/>.
+        /// Initializes a new instance of <see cref="IAppBuilder"/>.
         /// </summary>
         /// <param name="serviceProvider">The <see cref="IServiceProvider"/> for application services.</param>
         public AppBuilder(IServiceProvider serviceProvider)
@@ -26,7 +28,7 @@ namespace BotFramework
         /// Adds the middleware to the application request pipeline.
         /// </summary>
         /// <param name="middleware">The middleware.</param>
-        /// <returns>An instance of <see cref="IApplicationBuilder"/> after the operation has completed.</returns>
+        /// <returns>An instance of <see cref="IAppBuilder"/> after the operation has completed.</returns>
         public IAppBuilder Use(Func<UpdateDelegate, UpdateDelegate> middleware)
         {
             _components.Add(middleware);
@@ -34,18 +36,16 @@ namespace BotFramework
         }
 
         /// <summary>
-        /// Produces a <see cref="RequestDelegate"/> that executes added middlewares.
+        /// Produces a <see cref="UpdateDelegate"/> that executes added middlewares.
         /// </summary>
-        /// <returns>The <see cref="RequestDelegate"/>.</returns>
+        /// <returns>The <see cref="UpdateDelegate"/>.</returns>
         public UpdateDelegate Build()
         {
             UpdateDelegate app = context => Task.CompletedTask;
 
-            for (var c = _components.Count - 1; c >= 0; c--)
-            {
-                app = _components[c](app);
-            }
-
+            app = _components.ToEnumerable()
+                             .Reverse()
+                             .Aggregate(app, (current, component) => component(current));
             return app;
         }
     }

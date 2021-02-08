@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Telegram.Bot.Requests.Abstractions;
 using Telegram.Bot.Types;
 
-namespace BotFramework.Clients
+namespace BotFramework.Abstractions
 {
     public interface IClient
     {

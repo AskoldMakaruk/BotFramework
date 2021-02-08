@@ -1,14 +1,7 @@
-﻿using System.Threading.Tasks;
-using BotFramework.Clients;
-using Telegram.Bot.Types;
+﻿using Telegram.Bot.Types;
 
-namespace BotFramework.Commands
+namespace BotFramework.Abstractions
 {
-    public interface ICommand
-    {
-        Task Execute(IClient client);
-    }
-
     public interface IStaticCommand : ICommand
     {
         /// <summary>

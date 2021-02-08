@@ -11,22 +11,25 @@ namespace BotFramework
 {
     public static class UseMiddlewareExtensions
     {
-        internal const string InvokeMethodName = "Invoke";
+        internal const string InvokeMethodName      = "Invoke";
         internal const string InvokeAsyncMethodName = "InvokeAsync";
 
-        private static readonly MethodInfo GetServiceInfo = typeof(UseMiddlewareExtensions).GetMethod(nameof(GetService), BindingFlags.NonPublic | BindingFlags.Static)!;
+        private static readonly MethodInfo GetServiceInfo =
+        typeof(UseMiddlewareExtensions).GetMethod(nameof(GetService), BindingFlags.NonPublic | BindingFlags.Static)!;
 
         // We're going to keep all public constructors and public methods on middleware
-        private const DynamicallyAccessedMemberTypes MiddlewareAccessibility = DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicMethods;
+        private const DynamicallyAccessedMemberTypes MiddlewareAccessibility =
+        DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicMethods;
 
         /// <summary>
         /// Adds a middleware type to the application's request pipeline.
         /// </summary>
         /// <typeparam name="TMiddleware">The middleware type.</typeparam>
-        /// <param name="app">The <see cref="IApplicationBuilder"/> instance.</param>
+        /// <param name="app">The <see cref="IAppBuilder"/> instance.</param>
         /// <param name="args">The arguments to pass to the middleware type instance's constructor.</param>
-        /// <returns>The <see cref="IApplicationBuilder"/> instance.</returns>
-        public static IAppBuilder UseMiddleware<[DynamicallyAccessedMembers(MiddlewareAccessibility)]TMiddleware>(this IAppBuilder app, params object[] args)
+        /// <returns>The <see cref="IAppBuilder"/> instance.</returns>
+        public static IAppBuilder UseMiddleware<[DynamicallyAccessedMembers(MiddlewareAccessibility)]
+            TMiddleware>(this IAppBuilder app, params object[] args)
         {
             return app.UseMiddleware(typeof(TMiddleware), args);
         }
@@ -34,41 +37,50 @@ namespace BotFramework
         /// <summary>
         /// Adds a middleware type to the application's request pipeline.
         /// </summary>
-        /// <param name="app">The <see cref="IApplicationBuilder"/> instance.</param>
+        /// <param name="app">The <see cref="IAppBuilder"/> instance.</param>
         /// <param name="middleware">The middleware type.</param>
         /// <param name="args">The arguments to pass to the middleware type instance's constructor.</param>
-        /// <returns>The <see cref="IApplicationBuilder"/> instance.</returns>
-        public static IAppBuilder UseMiddleware(this IAppBuilder app, [DynamicallyAccessedMembers(MiddlewareAccessibility)] Type middleware, params object[] args)
+        /// <returns>The <see cref="IAppBuilder"/> instance.</returns>
+        public static IAppBuilder UseMiddleware(this IAppBuilder app, [DynamicallyAccessedMembers(MiddlewareAccessibility)]
+                                                Type middleware,      params object[] args)
         {
             var applicationServices = app.ApplicationServices;
             return app.Use(next =>
             {
                 var methods = middleware.GetMethods(BindingFlags.Instance | BindingFlags.Public);
                 var invokeMethods = methods.Where(m =>
-                    string.Equals(m.Name, InvokeMethodName, StringComparison.Ordinal)
-                    || string.Equals(m.Name, InvokeAsyncMethodName, StringComparison.Ordinal)
-                    ).ToArray();
+                                           string.Equals(m.Name,    InvokeMethodName,      StringComparison.Ordinal)
+                                           || string.Equals(m.Name, InvokeAsyncMethodName, StringComparison.Ordinal)
+                                           )
+                                           .ToArray();
 
                 if (invokeMethods.Length > 1)
                 {
-                    throw new InvalidOperationException(Resources.FormatException_UseMiddleMutlipleInvokes(InvokeMethodName, InvokeAsyncMethodName));
+                    throw new InvalidOperationException(
+                        Resources.FormatException_UseMiddleMutlipleInvokes(InvokeMethodName, InvokeAsyncMethodName));
                 }
 
                 if (invokeMethods.Length == 0)
                 {
-                    throw new InvalidOperationException(Resources.FormatException_UseMiddlewareNoInvokeMethod(InvokeMethodName, InvokeAsyncMethodName, middleware));
+                    throw new InvalidOperationException(
+                        Resources.FormatException_UseMiddlewareNoInvokeMethod(InvokeMethodName, InvokeAsyncMethodName,
+                            middleware));
                 }
 
                 var methodInfo = invokeMethods[0];
                 if (!typeof(Task).IsAssignableFrom(methodInfo.ReturnType))
                 {
-                    throw new InvalidOperationException(Resources.FormatException_UseMiddlewareNonTaskReturnType(InvokeMethodName, InvokeAsyncMethodName, nameof(Task)));
+                    throw new InvalidOperationException(
+                        Resources.FormatException_UseMiddlewareNonTaskReturnType(InvokeMethodName, InvokeAsyncMethodName,
+                            nameof(Task)));
                 }
 
                 var parameters = methodInfo.GetParameters();
                 if (parameters.Length == 0 || parameters[0].ParameterType != typeof(Update))
                 {
-                    throw new InvalidOperationException(Resources.FormatException_UseMiddlewareNoParameters(InvokeMethodName, InvokeAsyncMethodName, nameof(Update)));
+                    throw new InvalidOperationException(
+                        Resources.FormatException_UseMiddlewareNoParameters(InvokeMethodName, InvokeAsyncMethodName,
+                            nameof(Update)));
                 }
 
                 var ctorArgs = new object[args.Length + 1];
@@ -77,7 +89,7 @@ namespace BotFramework
                 var instance = ActivatorUtilities.CreateInstance(app.ApplicationServices, middleware, ctorArgs);
                 if (parameters.Length == 1)
                 {
-                    return (UpdateDelegate)methodInfo.CreateDelegate(typeof(UpdateDelegate), instance);
+                    return (UpdateDelegate) methodInfo.CreateDelegate(typeof(UpdateDelegate), instance);
                 }
 
                 var factory = Compile<object>(methodInfo, parameters);
@@ -87,7 +99,8 @@ namespace BotFramework
                     var serviceProvider = applicationServices; //sosat
                     if (serviceProvider == null)
                     {
-                        throw new InvalidOperationException(Resources.FormatException_UseMiddlewareIServiceProviderNotAvailable(nameof(IServiceProvider)));
+                        throw new InvalidOperationException(
+                            Resources.FormatException_UseMiddlewareIServiceProviderNotAvailable(nameof(IServiceProvider)));
                     }
 
                     return factory(instance, context, serviceProvider);
@@ -125,9 +138,9 @@ namespace BotFramework
 
             var middleware = typeof(T);
 
-            var httpContextArg = Expression.Parameter(typeof(Update), "httpContext");
-            var providerArg = Expression.Parameter(typeof(IServiceProvider), "serviceProvider");
-            var instanceArg = Expression.Parameter(middleware, "middleware");
+            var httpContextArg = Expression.Parameter(typeof(Update),           "httpContext");
+            var providerArg    = Expression.Parameter(typeof(IServiceProvider), "serviceProvider");
+            var instanceArg    = Expression.Parameter(middleware,               "middleware");
 
             var methodArguments = new Expression[parameters.Length];
             methodArguments[0] = httpContextArg;
@@ -136,13 +149,14 @@ namespace BotFramework
                 var parameterType = parameters[i].ParameterType;
                 if (parameterType.IsByRef)
                 {
-                    throw new NotSupportedException(Resources.FormatException_InvokeDoesNotSupportRefOrOutParams(InvokeMethodName));
+                    throw new NotSupportedException(
+                        Resources.FormatException_InvokeDoesNotSupportRefOrOutParams(InvokeMethodName));
                 }
 
                 var parameterTypeExpression = new Expression[]
                 {
                     providerArg,
-                    Expression.Constant(parameterType, typeof(Type)),
+                    Expression.Constant(parameterType,            typeof(Type)),
                     Expression.Constant(methodInfo.DeclaringType, typeof(Type))
                 };
 
@@ -158,7 +172,8 @@ namespace BotFramework
 
             var body = Expression.Call(middlewareInstanceArg, methodInfo, methodArguments);
 
-            var lambda = Expression.Lambda<Func<T, Update, IServiceProvider, Task>>(body, instanceArg, httpContextArg, providerArg);
+            var lambda = Expression.Lambda<Func<T, Update, IServiceProvider, Task>>(body, instanceArg, httpContextArg,
+                providerArg);
 
             return lambda.Compile();
         }

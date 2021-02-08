@@ -2,7 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
-using BotFramework.Commands;
+using BotFramework.Abstractions;
 using Telegram.Bot;
 using Telegram.Bot.Requests.Abstractions;
 using Telegram.Bot.Types;
@@ -11,7 +11,7 @@ namespace BotFramework.Clients
 {
     /// <inheritdoc cref="IClient" />
     /// >
-    public class Client: IClient, IUpdateConsumer
+    public class Client : IClient, IUpdateConsumer
     {
         private readonly ITelegramBotClient                  _client;
         private readonly Task                                CurrentTask;
@@ -63,10 +63,7 @@ namespace BotFramework.Clients
         public bool IsDone             => CurrentTask.IsCompleted;
         public bool IsWaitingForUpdate => CurrentBasicBotTask?.Task.IsCompleted == false;
 
-        public void Consume(Update update)
-        {
-            HandleUpdate(update);
-        }
+        public void Consume(Update update) => HandleUpdate(update);
 
         public void HandleUpdate(Update update)
         {
