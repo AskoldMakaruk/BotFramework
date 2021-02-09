@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using BotFramework.Abstractions;
-using BotFramework.Clients;
 using Microsoft.Extensions.DependencyInjection;
-using Telegram.Bot;
 using Telegram.Bot.Types;
 
 namespace BotFramework.Middleware
@@ -31,11 +29,13 @@ namespace BotFramework.Middleware
 
         public Task Invoke(Update update, DictionaryContext dictionaryContext)
         {
-            var command = commands.FirstOrDefault(t => t.SuitableFirst(update));
-            if (command is not null)
+            if (_services.GetService<IUpdateConsumer>() is not { } client)
             {
-                command = (IStaticCommand) _services.GetService(command.GetType())!;
-                dictionaryContext.Handlers.AddFirst(new Client(command, _services.GetService<ITelegramBotClient>()!, update));
+                throw new Exception("Client not found");
+            }
+
+            if (Initialize(commands.FirstOrDefault(t => t.SuitableFirst(update))))
+            {
                 return Task.CompletedTask;
             }
 
@@ -46,12 +46,23 @@ namespace BotFramework.Middleware
                 return Task.CompletedTask;
             }
 
-            command = commands.FirstOrDefault(t => t.SuitableLast(update));
-            if (command is not null)
+            if (Initialize(commands.FirstOrDefault(t => t.SuitableLast(update))))
             {
-                command = (IStaticCommand) _services.GetService(command.GetType())!;
-                dictionaryContext.Handlers.AddFirst(new Client(command, _services.GetService<ITelegramBotClient>()!, update));
                 return Task.CompletedTask;
+            }
+
+            bool Initialize(ICommand? command)
+            {
+                if (command is null)
+                {
+                    return false;
+                }
+
+                command = (IStaticCommand) _services.GetService(command.GetType())!;
+                client.Initialize(command, update);
+
+                dictionaryContext.Handlers.AddFirst(client);
+                return true;
             }
 
             return _next(update);
@@ -63,6 +74,21 @@ namespace BotFramework.Middleware
         public static void UseStaticCommands(this IAppBuilder builder, StaticCommandsList staticCommands)
         {
             builder.UseMiddleware<StaticCommandsMiddleware>(staticCommands);
+        }
+
+        public static void UseStaticCommands(this IAppBuilder builder)
+        {
+            var assembly = AppDomain.CurrentDomain.GetAssemblies()
+                                    .FirstOrDefault(a => a.GetTypes().Any(t => t.Name == "Program"));
+            if (assembly == null)
+            {
+                throw new Exception("AAAAAAA WHAT THE FUCK!!!");
+            }
+            var staticCommands = assembly.GetTypes()
+                                         .Where(t => t.GetInterfaces().Contains(typeof(ICommand)) && !t.IsAbstract)
+                                         .ToList();
+
+            builder.UseMiddleware<StaticCommandsMiddleware>(new StaticCommandsList(staticCommands));
         }
     }
 }

@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using BotFramework;
 using BotFramework.Abstractions;
+using BotFramework.Clients;
 using BotFramework.Clients.ClientExtensions;
 using BotFramework.Middleware;
 using Microsoft.Extensions.Configuration;
@@ -24,15 +25,16 @@ namespace EchoBot
                                  .ConfigureServices(services =>
                                  {
                                      services.AddSingleton<ITelegramBotClient>(_ => new TelegramBotClient(token));
+                                     services.AddTransient<IUpdateConsumer, Client>();
                                      services.AddScoped<EchoCommand>();
                                      services.AddScoped<HelpCommand>();
                                      services.AddSingleton<ILogger, Logger>();
                                      services.AddScoped<DictionaryContext>();
+
                                      var builder = new AppBuilder(services.BuildServiceProvider());
+                                     
+                                     builder.UseStaticCommands();
 
-
-                                     builder.UseStaticCommands(new StaticCommandsList(new()
-                                     {typeof(EchoCommand), typeof(HelpCommand)}));
                                      app = builder.Build();
                                  })
                                  .Build();
