@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using BotFramework.Abstractions;
 using Telegram.Bot.Requests;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -186,7 +187,7 @@ namespace BotFramework.Clients.ClientExtensions
             ParseMode           = parseMode,
             DisableNotification = disableNotification,
             ReplyToMessageId    = replyToMessageId,
-            ReplyMarkup         = replyMarkup,
+            ReplyMarkup         = replyMarkup
         }, cancellationToken);
 
         public static Task<Message> SendVoice(this IClient      client,
@@ -247,7 +248,7 @@ namespace BotFramework.Clients.ClientExtensions
             return client.MakeRequest(new SendMediaGroupRequest(chatId ?? client.UserId, inputMedia)
             {
                 DisableNotification = disableNotification,
-                ReplyToMessageId    = replyToMessageId,
+                ReplyToMessageId    = replyToMessageId
             }, cancellationToken);
         }
 
@@ -261,7 +262,7 @@ namespace BotFramework.Clients.ClientExtensions
         client.MakeRequest(new SendMediaGroupRequest(chatId ?? client.UserId, inputMedia)
         {
             DisableNotification = disableNotification,
-            ReplyToMessageId    = replyToMessageId,
+            ReplyToMessageId    = replyToMessageId
         }, cancellationToken);
 
         public static Task<Message> SendLocation(this IClient      client,
@@ -551,6 +552,29 @@ namespace BotFramework.Clients.ClientExtensions
             ReplyMarkup = replyMarkup
         }, cancellationToken);
 
+#region Inline mode
+
+        public static Task AnswerInlineQuery(this IClient                       client,
+                                             string                             inlineQueryId,
+                                             IEnumerable<InlineQueryResultBase> results,
+                                             int?                               cacheTime         = default,
+                                             bool                               isPersonal        = default,
+                                             string                             nextOffset        = default,
+                                             string                             switchPmText      = default,
+                                             string                             switchPmParameter = default,
+                                             CancellationToken                  cancellationToken = default
+        ) =>
+        client.MakeRequest(new AnswerInlineQueryRequest(inlineQueryId, results)
+        {
+            CacheTime         = cacheTime,
+            IsPersonal        = isPersonal,
+            NextOffset        = nextOffset,
+            SwitchPmText      = switchPmText,
+            SwitchPmParameter = switchPmParameter
+        }, cancellationToken);
+
+# endregion Inline mode
+
         //#endregion Available methods
 
 #region Updating messages
@@ -699,29 +723,6 @@ namespace BotFramework.Clients.ClientExtensions
         client.MakeRequest(new DeleteMessageRequest(chatId ?? client.UserId, messageId), cancellationToken);
 
 #endregion Updating messages
-
-#region Inline mode
-
-        public static Task AnswerInlineQuery(this IClient                       client,
-                                             string                             inlineQueryId,
-                                             IEnumerable<InlineQueryResultBase> results,
-                                             int?                               cacheTime         = default,
-                                             bool                               isPersonal        = default,
-                                             string                             nextOffset        = default,
-                                             string                             switchPmText      = default,
-                                             string                             switchPmParameter = default,
-                                             CancellationToken                  cancellationToken = default
-        ) =>
-        client.MakeRequest(new AnswerInlineQueryRequest(inlineQueryId, results)
-        {
-            CacheTime         = cacheTime,
-            IsPersonal        = isPersonal,
-            NextOffset        = nextOffset,
-            SwitchPmText      = switchPmText,
-            SwitchPmParameter = switchPmParameter
-        }, cancellationToken);
-
-# endregion Inline mode
 
 #region Payments
 

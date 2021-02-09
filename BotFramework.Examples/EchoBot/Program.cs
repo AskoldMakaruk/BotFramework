@@ -1,24 +1,45 @@
 ﻿using System;
 using System.Threading.Tasks;
-using BotFramework.Clients;
+using BotFramework;
+using BotFramework.Abstractions;
 using BotFramework.Clients.ClientExtensions;
-using BotFramework.Commands;
-using BotFramework.Handlers;
-using BotFramework.Responses;
-using Ninject.Modules;
+using BotFramework.Middleware;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Telegram.Bot;
 using Telegram.Bot.Types;
 
 namespace EchoBot
 {
-    class Program
+    internal class Program
     {
-        static void Main()
+        private const string token = "1136669023:AAGujpEe6BmJgi5Wh3r_ncWE5ZX3nPK1WuE";
+
+        private static void Main(string[] args)
         {
-            new HandlerConfigurationBuilder(token: "547180886:AAGzSudnS64sVfN2h6hFZTqjkJsGELfEVKQ")
-            .WithCustomNinjectModules(new DumbModule())
-            .UseConsoleDefaultLogger()
-            .Build()
-            .RunInMemoryHandler();
+            UpdateDelegate app = null;
+            using var host = Host.CreateDefaultBuilder(args)
+                                 .ConfigureHostConfiguration(builder => builder.AddEnvironmentVariables())
+                                 .ConfigureServices(services =>
+                                 {
+                                     services.AddSingleton<ITelegramBotClient>(_ => new TelegramBotClient(token));
+                                     services.AddScoped<EchoCommand>();
+                                     services.AddScoped<HelpCommand>();
+                                     services.AddSingleton<ILogger, Logger>();
+                                     services.AddScoped<DictionaryContext>();
+                                     var builder = new AppBuilder(services.BuildServiceProvider());
+
+
+                                     builder.UseStaticCommands(new StaticCommandsList(new()
+                                     {typeof(EchoCommand), typeof(HelpCommand)}));
+                                     app = builder.Build();
+                                 })
+                                 .Build();
+            var bot = host.Services.GetService<ITelegramBotClient>()!;
+            bot!.OnUpdate += (sender, eventArgs) => app(eventArgs.Update);
+            bot.StartReceiving();
+            Console.ReadLine();
         }
     }
     
@@ -31,7 +52,7 @@ namespace EchoBot
             this.logger = logger;
         }
 
-        public override async Task<Response> Execute(IClient client)
+        public async Task Execute(IClient client)
         {
             var message = await client.GetTextMessage();
 
@@ -45,33 +66,22 @@ namespace EchoBot
 
             var helloMessage = await client.GetMessageWithHelloText();
             await client.SendTextMessage("Well done!");
-
-            return Responses.Ok();
         }
 
-        public override bool SuitableLast(Update message) => true;
+        public bool SuitableLast(Update context) => true;
     }
 
-    public class HelpCommand : StaticCommand
+    public class HelpCommand : IStaticCommand
     {
-        public override async Task<Response> Execute(IClient client)
+        public async Task Execute(IClient client)
         {
             var _ = await client.GetTextMessage();
             await client.SendTextMessage("This is help text");
-            return Responses.Ok();
         }
 
-        public override bool SuitableFirst(Update message)
+        public bool SuitableFirst(Update ctx)
         {
-            return message?.Message?.Text == "/help";
-        }
-    }
-
-    public class DumbModule : NinjectModule
-    {
-        public override void Load()
-        {
-            Bind<ILogger>().To<Logger>();
+            return ctx.Message?.Text == "/help";
         }
     }
 

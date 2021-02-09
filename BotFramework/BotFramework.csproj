@@ -4,16 +4,16 @@
     <TargetFramework>net5.0</TargetFramework>
     <Authors />
     <Company>BotFramework</Company>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <AssemblyVersion>0.0.3.1</AssemblyVersion>
-    <FileVersion>0.0.3.2</FileVersion>
-    <Version>0.5.0-dev-7</Version>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <AssemblyVersion>0.1.0.0</AssemblyVersion>
+    <FileVersion>0.1.0.0</FileVersion>
+    <Version>1.0.0-alpha-0</Version>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/AskoldMakaruk/BotFramework</PackageProjectUrl>
     <RepositoryUrl>https://github.com/AskoldMakaruk/BotFramework</RepositoryUrl>
     <RepositoryType>Open</RepositoryType>
     <PackageTags>telegram bot</PackageTags>
-    <PackageReleaseNotes>Changed default chat id to be from Update.ChatId property</PackageReleaseNotes>
+    <PackageReleaseNotes>Middleware</PackageReleaseNotes>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
@@ -23,6 +23,10 @@
     <PackageReference Include="Serilog" Version="2.9.0" />
     <PackageReference Include="Serilog.Sinks.Console" Version="3.1.1" />
     <PackageReference Include="Telegram.Bot" Version="15.7.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BotFramework.Abstractions\BotFramework.Abstractions.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using BotFramework.Abstractions;
 using Telegram.Bot.Requests.Abstractions;
 using Telegram.Bot.Types;
 
@@ -8,8 +9,10 @@ namespace BotFramework.Clients
 {
     public class DebugClient : IClient
     {
-        public Update[] UserInputs;
-        public object[] Resposes;
+        private int      inputOffset;
+        private int      outputOffset;
+        public  object[] Resposes;
+        public  Update[] UserInputs;
 
         public DebugClient(Update[] userInputs, object[] resposes)
         {
@@ -17,11 +20,8 @@ namespace BotFramework.Clients
             UserInputs = userInputs;
         }
 
-        private int inputOffset;
-        private int outputOffset;
-
         public Task<TResponse> MakeRequest<TResponse>(IRequest<TResponse> request,
-                                                                 CancellationToken cancellationToken = default(CancellationToken))
+                                                      CancellationToken   cancellationToken = default)
         {
             var res = (TResponse) Resposes[outputOffset++];
             return Task.FromResult(res);
