@@ -43,12 +43,12 @@ namespace BotFramework.Clients
             return task.Task;
         }
 
-        public ValueTask<IRequest<TResponse>> GetRequest<TResponse>(Func<IRequest<TResponse>, bool>? filter = null)
+        public ValueTask<TResponse> GetRequest<TResponse>(Func<TResponse, bool>? filter = null)
         {
-            IRequest<TResponse>? updateToReturn = null;
+            TResponse? updateToReturn = default;
             while (RequestToSend.TryTake(out var update))
             {
-                if (update is not IRequest<TResponse> item || filter?.Invoke(item) == false)
+                if (update is not TResponse item || filter?.Invoke(item) == false)
                 {
                     continue;
                 }
@@ -62,7 +62,7 @@ namespace BotFramework.Clients
                 return ValueTask.FromResult(updateToReturn);
             }
 
-            return new ValueTask<IRequest<TResponse>>(new TaskCompletionSource<IRequest<TResponse>>().Task);
+            return new ValueTask<TResponse>(new TaskCompletionSource<TResponse>().Task);
         }
 
         public ValueTask<Update> GetUpdate(Func<Update, bool>? filter = null, Action<Update>? onFilterFail = null)

@@ -78,15 +78,10 @@ namespace BotFramework.Middleware
 
         public static void UseStaticCommands(this IAppBuilder builder)
         {
-            var assembly = AppDomain.CurrentDomain.GetAssemblies()
-                                    .FirstOrDefault(a => a.GetTypes().Any(t => t.Name == "Program"));
-            if (assembly == null)
-            {
-                throw new Exception("AAAAAAA WHAT THE FUCK!!!");
-            }
-            var staticCommands = assembly.GetTypes()
-                                         .Where(t => t.GetInterfaces().Contains(typeof(ICommand)) && !t.IsAbstract)
-                                         .ToList();
+            var staticCommands = AppDomain.CurrentDomain.GetAssemblies()
+                                          .SelectMany(s => s.GetTypes())
+                                          .Where(p => typeof(ICommand).IsAssignableFrom(p) && !p.IsAbstract)
+                                          .ToList();
 
             builder.UseMiddleware<StaticCommandsMiddleware>(new StaticCommandsList(staticCommands));
         }

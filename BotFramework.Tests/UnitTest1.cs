@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using BotFramework.Abstractions;
 using NUnit.Framework;
 using BotFramework.Clients;
@@ -6,6 +7,7 @@ using EchoBot;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Telegram.Bot.Requests;
 using Telegram.Bot.Types;
 
 namespace BotFramework.Tests
@@ -13,15 +15,17 @@ namespace BotFramework.Tests
     public class Tests
     {
         private UpdateDelegate app = null;
+        private DebugClient    client;
 
         [SetUp]
         public void Setup()
         {
+            client = new DebugClient();
             using var host = Host.CreateDefaultBuilder()
                                  .ConfigureHostConfiguration(builder => builder.AddEnvironmentVariables())
                                  .ConfigureServices(services =>
                                  {
-                                     services.AddTransient<IUpdateConsumer, DebugClient>();
+                                     services.AddTransient<IUpdateConsumer, DebugClient>(_ => client);
 
                                      services.AddScoped<EchoCommand>();
                                      services.AddScoped<HelpCommand>();
@@ -38,15 +42,31 @@ namespace BotFramework.Tests
         }
 
         [Test]
-        public void Test1()
+        public async Task Test1()
         {
-            app(new()
+            var text = "test text";
+            await app(new()
             {
                 Message = new()
                 {
-                    From = From
+                    From = From,
+                    Text = text
                 }
             });
+            var message = await client.GetRequest<SendMessageRequest>();
+            Assert.AreEqual($"Hello, here ypur last message {text}, type somethinh again", message.Text);
+
+            await app(new()
+            {
+                Message = new()
+                {
+                    From = From,
+                    Text = text
+                }
+            });
+
+            message = await client.GetRequest<SendMessageRequest>();
+            Assert.AreEqual($"And this is your new message {text}, and now type only message with hello", message.Text);
         }
 
         public static User From => new()
