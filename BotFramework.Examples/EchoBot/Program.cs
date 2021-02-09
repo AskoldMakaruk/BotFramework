@@ -43,7 +43,7 @@ namespace EchoBot
         }
     }
     
-    public class EchoCommand : StaticCommand
+    public class EchoCommand : IStaticCommand
     {
         private readonly ILogger logger;
 
