@@ -6,8 +6,8 @@
     <Company>BotFramework</Company>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <AssemblyVersion>0.1.0.0</AssemblyVersion>
-    <FileVersion>0.1.0.0</FileVersion>
-    <Version>1.0.0-alpha-0</Version>
+    <FileVersion>0.1.0.1</FileVersion>
+    <Version>0.1.1-alpha</Version>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/AskoldMakaruk/BotFramework</PackageProjectUrl>
     <RepositoryUrl>https://github.com/AskoldMakaruk/BotFramework</RepositoryUrl>
@@ -15,6 +15,19 @@
     <PackageTags>telegram bot</PackageTags>
     <PackageReleaseNotes>Middleware</PackageReleaseNotes>
     <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <ShouldCreateLogs>True</ShouldCreateLogs>
+    <AdvancedSettingsExpanded>False</AdvancedSettingsExpanded>
+    <UpdateAssemblyVersion>False</UpdateAssemblyVersion>
+    <UpdateAssemblyFileVersion>True</UpdateAssemblyFileVersion>
+    <UpdateAssemblyInfoVersion>False</UpdateAssemblyInfoVersion>
+    <AssemblyFileVersionSettings>None.IncrementOnDemand.IncrementOnDemand.Increment</AssemblyFileVersionSettings>
+    <UpdatePackageVersion>True</UpdatePackageVersion>
+    <AssemblyInfoVersionType>SettingsVersion</AssemblyInfoVersionType>
+    <InheritWinAppVersionFrom>None</InheritWinAppVersionFrom>
+    <PackageVersionSettings>AssemblyFileVersion.NoneWithAutoReset.Alpha</PackageVersionSettings>
   </PropertyGroup>
 
   <ItemGroup>
