@@ -14,16 +14,20 @@ namespace BotFramework.Clients
     public class Client : IClient, IUpdateConsumer
     {
         private readonly ITelegramBotClient                  _client;
-        private readonly Task                                CurrentTask;
+        private          Task?                               CurrentTask;
         private readonly IProducerConsumerCollection<Update> UpdatesToHandle = new ConcurrentQueue<Update>();
         private          TaskCompletionSource<Update>?       CurrentBasicBotTask;
         private          Func<Update, bool>?                 CurrentFilter;
         private          Action<Update>?                     OnFilterFail;
 
-        public Client(ICommand command, ITelegramBotClient client, Update update)
+        public Client(ITelegramBotClient client)
         {
             _client = client;
-            UserId  = update.Message.Chat.Id;
+        }
+
+        public void Initialize(ICommand command, Update update)
+        {
+            UserId = update.Message.Chat.Id;
             HandleUpdate(update);
             CurrentTask = command.Execute(this);
         }
@@ -59,11 +63,12 @@ namespace BotFramework.Clients
             return _client.MakeRequestAsync(request, cancellationToken);
         }
 
-        public long UserId             { get; }
+        public long UserId             { get; private set; }
         public bool IsDone             => CurrentTask.IsCompleted;
         public bool IsWaitingForUpdate => CurrentBasicBotTask?.Task.IsCompleted == false;
 
         public void Consume(Update update) => HandleUpdate(update);
+
 
         public void HandleUpdate(Update update)
         {
