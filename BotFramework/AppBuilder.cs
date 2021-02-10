@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using BotFramework.Abstractions;
-using Ninject.Infrastructure.Language;
 
 namespace BotFramework
 {
@@ -44,7 +43,7 @@ namespace BotFramework
         {
             UpdateDelegate app = context => Task.CompletedTask;
 
-            app = _components.ToEnumerable()
+            app = _components.AsEnumerable()
                              .Reverse()
                              .Aggregate(app, (current, component) => component(current));
             return app;
