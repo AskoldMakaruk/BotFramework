@@ -10,6 +10,23 @@ using Telegram.Bot.Types;
 
 namespace BotFramework
 {
+    public static class ServicesExtensions
+    {
+        public static IServiceCollection AddCommands(this IServiceCollection collection)
+        {
+            var staticCommands = AppDomain.CurrentDomain.GetAssemblies()
+                                          .SelectMany(s => s.GetTypes())
+                                          .Where(p => typeof(ICommand).IsAssignableFrom(p) && !p.IsAbstract)
+                                          .ToList();
+            foreach (var command in staticCommands)
+            {
+                collection.AddScoped(command);
+            }
+
+            return collection;
+        }
+    }
+
     public static class UseMiddlewareExtensions
     {
         internal const string InvokeMethodName      = "Invoke";

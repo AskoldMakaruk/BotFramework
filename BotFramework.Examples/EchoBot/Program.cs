@@ -26,8 +26,9 @@ namespace EchoBot
                                  {
                                      services.AddSingleton<ITelegramBotClient>(_ => new TelegramBotClient(token));
                                      services.AddTransient<IUpdateConsumer, Client>();
-                                     services.AddScoped<EchoCommand>();
-                                     services.AddScoped<HelpCommand>();
+
+                                     services.AddCommands();
+
                                      services.AddSingleton<ILogger, Logger>();
                                      services.AddScoped<DictionaryContext>();
 
