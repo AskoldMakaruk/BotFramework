@@ -1,11 +1,12 @@
 using System;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace BotFramework.Abstractions
 {
     public interface IAppBuilder
     {
-        IServiceProvider ApplicationServices { get; set; }
-        IAppBuilder    Use(Func<UpdateDelegate, UpdateDelegate> middleware);
-        UpdateDelegate Build();
+        IServiceCollection ApplicationServicesBuilder { get; set; }
+        IAppBuilder    Use(Func<IServiceProvider, Func<UpdateDelegate, UpdateDelegate>> middleware);
+        (IServiceProvider, UpdateDelegate) Build();
     }
 }

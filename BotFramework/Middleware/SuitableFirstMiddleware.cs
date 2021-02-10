@@ -73,6 +73,7 @@ namespace BotFramework.Middleware
     {
         public static void UseStaticCommands(this IAppBuilder builder, StaticCommandsList staticCommands)
         {
+            builder.ApplicationServicesBuilder.AddSingleton(staticCommands);
             builder.UseMiddleware<StaticCommandsMiddleware>(staticCommands);
         }
 
@@ -82,7 +83,9 @@ namespace BotFramework.Middleware
                                           .SelectMany(s => s.GetTypes())
                                           .Where(p => typeof(ICommand).IsAssignableFrom(p) && !p.IsAbstract)
                                           .ToList();
-
+            foreach (var command in staticCommands)
+                builder.ApplicationServicesBuilder.AddScoped(command);
+            builder.ApplicationServicesBuilder.AddSingleton(new StaticCommandsList(staticCommands));
             builder.UseMiddleware<StaticCommandsMiddleware>(new StaticCommandsList(staticCommands));
         }
     }

@@ -24,19 +24,17 @@ namespace EchoBot
                                  .ConfigureHostConfiguration(builder => builder.AddEnvironmentVariables())
                                  .ConfigureServices(services =>
                                  {
+                                     var builder = new AppBuilder(services);
                                      services.AddSingleton<ITelegramBotClient>(_ => new TelegramBotClient(token));
                                      services.AddTransient<IUpdateConsumer, Client>();
-
-                                     services.AddCommands();
-
                                      services.AddSingleton<ILogger, Logger>();
-                                     services.AddScoped<DictionaryContext>();
 
-                                     var builder = new AppBuilder(services.BuildServiceProvider());
                                      
+                                     builder.UseHandlers();
                                      builder.UseStaticCommands();
 
-                                     app = builder.Build();
+                                     var (injector, app1) = builder.Build();
+                                     app                  = app1;
                                  })
                                  .Build();
             var bot = host.Services.GetService<ITelegramBotClient>()!;

@@ -10,23 +10,6 @@ using Telegram.Bot.Types;
 
 namespace BotFramework
 {
-    public static class ServicesExtensions
-    {
-        public static IServiceCollection AddCommands(this IServiceCollection collection)
-        {
-            var staticCommands = AppDomain.CurrentDomain.GetAssemblies()
-                                          .SelectMany(s => s.GetTypes())
-                                          .Where(p => typeof(ICommand).IsAssignableFrom(p) && !p.IsAbstract)
-                                          .ToList();
-            foreach (var command in staticCommands)
-            {
-                collection.AddScoped(command);
-            }
-
-            return collection;
-        }
-    }
-
     public static class UseMiddlewareExtensions
     {
         internal const string InvokeMethodName      = "Invoke";
@@ -62,8 +45,7 @@ namespace BotFramework
         public static IAppBuilder UseMiddleware(this IAppBuilder app, [DynamicallyAccessedMembers(MiddlewareAccessibility)]
                                                 Type middleware,      params object[] args)
         {
-            var applicationServices = app.ApplicationServices;
-            return app.Use(next =>
+            return app.Use(applicationServices => next =>
             {
                 var methods = middleware.GetMethods(BindingFlags.Instance | BindingFlags.Public);
                 var invokeMethods = methods.Where(m =>
@@ -104,7 +86,7 @@ namespace BotFramework
                 var ctorArgs = new object[args.Length + 1];
                 ctorArgs[0] = next;
                 Array.Copy(args, 0, ctorArgs, 1, args.Length);
-                var instance = ActivatorUtilities.CreateInstance(app.ApplicationServices, middleware, ctorArgs);
+                var instance = ActivatorUtilities.CreateInstance(applicationServices, middleware, ctorArgs);
                 if (parameters.Length == 1)
                 {
                     return (UpdateDelegate) methodInfo.CreateDelegate(typeof(UpdateDelegate), instance);

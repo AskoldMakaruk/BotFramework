@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using BotFramework.Abstractions;
 using BotFramework.Helpers;
+using Microsoft.Extensions.DependencyInjection;
 using Telegram.Bot.Types;
 
 namespace BotFramework.Middleware
@@ -39,6 +40,15 @@ namespace BotFramework.Middleware
             dictionaryContext.Handlers = dictionary[id];
 
             return _next.Invoke(update);
+        }
+    }
+
+    public static class UseHandlersMiddleware
+    {
+        public static void UseHandlers(this IAppBuilder builder)
+        {
+            builder.ApplicationServicesBuilder.AddScoped<DictionaryContext>();
+            builder.UseMiddleware<DictionaryCreatorMiddleware>();
         }
     }
 }
