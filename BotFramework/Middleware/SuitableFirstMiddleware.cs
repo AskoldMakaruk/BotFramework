@@ -75,6 +75,8 @@ namespace BotFramework.Middleware
         {
             builder.ApplicationServicesBuilder.AddSingleton(staticCommands);
             builder.UseMiddleware<StaticCommandsMiddleware>(staticCommands);
+            foreach (var command in staticCommands.StaticCommandsTypes)
+                builder.ApplicationServicesBuilder.AddScoped(command);
         }
 
         public static void UseStaticCommands(this IAppBuilder builder)

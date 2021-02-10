@@ -26,17 +26,14 @@ namespace BotFramework.Tests
                                  .ConfigureServices(services =>
                                  {
                                      services.AddTransient<IUpdateConsumer, DebugClient>(_ => client);
-
-                                     services.AddScoped<EchoCommand>();
-                                     services.AddScoped<HelpCommand>();
-
                                      services.AddSingleton<ILogger, Logger>();
-                                     services.AddScoped<DictionaryContext>();
-
-                                     var builder = new AppBuilder(services.BuildServiceProvider());
-
+                                     var builder = new AppBuilder(services);
+                                     builder.UseStaticCommands(new StaticCommandsList(new()
+                                     {typeof(EchoCommand), typeof(HelpCommand)}));
+                                     builder.UseHandlers();
                                      builder.UseStaticCommands();
-                                     app = builder.Build();
+                                     var tuple = builder.Build();
+                                     app = tuple.Item2;
                                  })
                                  .Build();
         }
