@@ -14,8 +14,8 @@ namespace BotFramework.Clients
         //out requests 
         //telegram replies to those requests
         //user messages
-
-        //todo use TaskCompletionSource with GetRequest
+        private TaskCompletionSource<object>? GetRequestTask;
+        
         private readonly IProducerConsumerCollection<object> RequestToSend   = new ConcurrentQueue<object>();
         private readonly IProducerConsumerCollection<object> TelegramReplies = new ConcurrentQueue<object>();
         private readonly IProducerConsumerCollection<Update> UpdatesToHandle = new ConcurrentQueue<Update>();
@@ -38,6 +38,10 @@ namespace BotFramework.Clients
         {
             RequestToSend.TryAdd(request);
             TelegramReplies.TryTake(out var reply);
+            if (GetRequestTask?.Task.IsCompleted == false)
+            {
+                GetRequestTask.SetResult(request);
+            }
 
             return Task<TResponse>.FromResult((TResponse) (reply));
         }
@@ -61,7 +65,8 @@ namespace BotFramework.Clients
                 return ValueTask.FromResult(updateToReturn);
             }
 
-            return new ValueTask<TResponse>(new TaskCompletionSource<TResponse>().Task);
+            GetRequestTask = new TaskCompletionSource<object>();
+            return new ValueTask<TResponse>(GetRequestTask?.Task.ContinueWith(a=>(TResponse)a.GetAwaiter().GetResult()) ?? default);
         }
 
         public ValueTask<Update> GetUpdate(Func<Update, bool>? filter = null, Action<Update>? onFilterFail = null)
