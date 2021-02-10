@@ -16,12 +16,21 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 5.0.x
+        
     - name: Restore dependencies
       run: dotnet restore
+      
     - name: Build
       run: dotnet build --no-restore --configuration Release
-    - name: Publish
+      
+    - name: Publish BotFramework
       uses: brandedoutcast/publish-nuget@v2.5.5
       with:
         PROJECT_FILE_PATH: BotFramework/BotFramework.csproj
+        NUGET_KEY: ${{secrets.NUGET_API_KEY}}
+                
+    - name: Publish Abstractions
+      uses: brandedoutcast/publish-nuget@v2.5.5
+      with:
+        PROJECT_FILE_PATH: BotFramework.Abstractions/BotFramework.Abstractions.csproj
         NUGET_KEY: ${{secrets.NUGET_API_KEY}}

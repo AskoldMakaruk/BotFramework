@@ -6,8 +6,8 @@
     <Company>BotFramework</Company>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
-    <FileVersion>1.0.0.17</FileVersion>
-    <Version>1.0.0-alpha-17</Version>
+    <FileVersion>1.0.0.18</FileVersion>
+    <Version>1.0.0-alpha-18</Version>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/AskoldMakaruk/BotFramework</PackageProjectUrl>
     <RepositoryUrl>https://github.com/AskoldMakaruk/BotFramework</RepositoryUrl>
@@ -21,9 +21,8 @@
     <ShouldCreateLogs>True</ShouldCreateLogs>
     <AdvancedSettingsExpanded>False</AdvancedSettingsExpanded>
     <UpdateAssemblyVersion>False</UpdateAssemblyVersion>
-    <UpdateAssemblyFileVersion>True</UpdateAssemblyFileVersion>
+    <UpdateAssemblyFileVersion>False</UpdateAssemblyFileVersion>
     <UpdateAssemblyInfoVersion>False</UpdateAssemblyInfoVersion>
-    <AssemblyFileVersionSettings>IncrementOnDemand.IncrementOnDemand.IncrementOnDemand.Increment</AssemblyFileVersionSettings>
     <UpdatePackageVersion>True</UpdatePackageVersion>
     <AssemblyInfoVersionType>SettingsVersion</AssemblyInfoVersionType>
     <InheritWinAppVersionFrom>None</InheritWinAppVersionFrom>

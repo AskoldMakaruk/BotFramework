@@ -1,12 +1,24 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>netstandard2.1</TargetFramework>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
+    <PropertyGroup>
+        <TargetFramework>netstandard2.1</TargetFramework>
+        <Authors />
+        <Company>BotFramework</Company>
+        <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+        <AssemblyVersion>1.0.0.0</AssemblyVersion>
+        <FileVersion>1.0.0.18</FileVersion>
+        <Version>1.0.0-alpha-17</Version>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageProjectUrl>https://github.com/AskoldMakaruk/BotFramework</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/AskoldMakaruk/BotFramework</RepositoryUrl>
+        <RepositoryType>Open</RepositoryType>
+        <PackageTags>telegram bot</PackageTags>
+        <PackageReleaseNotes>Middleware</PackageReleaseNotes>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Telegram.Bot" Version="15.7.1" />
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Telegram.Bot" Version="15.7.1" />
+    </ItemGroup>
 
 </Project>
