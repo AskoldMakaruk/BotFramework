@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using BotFramework.Abstractions;
+using BotFramework.Helpers;
 using Telegram.Bot.Types;
 
 namespace BotFramework.Middleware
@@ -27,10 +28,15 @@ namespace BotFramework.Middleware
 
         public Task Invoke(Update update, DictionaryContext dictionaryContext)
         {
+            if (update.GetId() is not { } id)
+            {
+                return _next.Invoke(update);
+            }
+
             dictionary.AddOrUpdate(
-                update.Message.Chat.Id, _ => new LinkedList<IUpdateConsumer>(),
+                id, _ => new LinkedList<IUpdateConsumer>(),
                 (_, list) => new LinkedList<IUpdateConsumer>(list.Where(t => !t.IsDone)));
-            dictionaryContext.Handlers = dictionary[update.Message.Chat.Id];
+            dictionaryContext.Handlers = dictionary[id];
 
             return _next.Invoke(update);
         }

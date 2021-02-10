@@ -7,10 +7,15 @@ namespace BotFramework.Helpers
 {
     public static class UpdateExtensions
     {
-        public static long? GetFromsId(this Update update)
+        /// <summary>
+        /// Returns ChatId if it isn't null, if it is, returns FromId.
+        /// </summary>
+        /// <param name="update">Message received from user.</param>
+        /// <returns>Unique id of update's sender.</returns>
+        public static long? GetId(this Update update)
         {
             var info = GetInfoFromUpdate(update);
-            return info?.From?.Id ?? info?.Chat?.Id;
+            return info?.Chat?.Id ?? info?.From?.Id;
         }
 
         public static User? GetUser(this Update update) => GetInfoFromUpdate(update)?.From;
@@ -55,6 +60,7 @@ namespace BotFramework.Helpers
                             contents =
                             $"{message?.Contact?.FirstName} {message?.Contact?.LastName} {message?.Contact?.PhoneNumber}";
                             break;
+                        default: throw new ArgumentOutOfRangeException();
                     }
 
                     break;
