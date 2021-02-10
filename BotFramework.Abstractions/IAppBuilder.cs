@@ -7,6 +7,6 @@ namespace BotFramework.Abstractions
     {
         IServiceCollection ApplicationServicesBuilder { get; set; }
         IAppBuilder    Use(Func<IServiceProvider, Func<UpdateDelegate, UpdateDelegate>> middleware);
-        (IServiceProvider, UpdateDelegate) Build();
+        (IServiceProvider services, UpdateDelegate app) Build();
     }
 }

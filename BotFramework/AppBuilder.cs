@@ -15,7 +15,7 @@ namespace BotFramework
         /// <summary>
         /// Initializes a new instance of <see cref="IAppBuilder"/>.
         /// </summary>
-        /// <param name="serviceProvider">The <see cref="IServiceProvider"/> for application services.</param>
+        /// <param name="applicationServicesBuider">The <see cref="IServiceCollection"/> for application services.</param>
         public AppBuilder(IServiceCollection applicationServicesBuider)
         {
             ApplicationServicesBuilder = applicationServicesBuider;
@@ -39,9 +39,10 @@ namespace BotFramework
 
         /// <summary>
         /// Produces a <see cref="UpdateDelegate"/> that executes added middlewares.
+        /// Also builds <see cref="IServiceProvider"/>
         /// </summary>
-        /// <returns>The <see cref="UpdateDelegate"/>.</returns>
-        public (IServiceProvider, UpdateDelegate) Build()
+        /// <returns>The <see cref="IServiceProvider"/> and <see cref="UpdateDelegate"/>.</returns>
+        public (IServiceProvider services, UpdateDelegate app) Build()
         {
             var            provider = ApplicationServicesBuilder.BuildServiceProvider();
             UpdateDelegate app      = context => Task.CompletedTask;

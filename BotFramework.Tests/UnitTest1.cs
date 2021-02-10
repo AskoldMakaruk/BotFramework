@@ -33,7 +33,7 @@ namespace BotFramework.Tests
                                      builder.UseHandlers();
                                      builder.UseStaticCommands();
                                      var tuple = builder.Build();
-                                     app = tuple.Item2;
+                                     app = tuple.app;
                                  })
                                  .Build();
         }
