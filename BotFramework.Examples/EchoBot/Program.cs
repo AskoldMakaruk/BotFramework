@@ -16,15 +16,13 @@ namespace EchoBot
 {
     internal class Program
     {
-        private const string token = "1136669023:AAGujpEe6BmJgi5Wh3r_ncWE5ZX3nPK1WuE";
-
         private static void Main(string[] args)
         {
             using var host = Host.CreateDefaultBuilder(args)
-                                 .ConfigureHostConfiguration(builder => builder.AddEnvironmentVariables())
-                                 .ConfigureApp(app =>
+                                 .UseConfigurationWithEnvironment()
+                                 .ConfigureApp((app, context) =>
                                  {
-                                     app.Services.AddSingleton<ITelegramBotClient>(_ => new TelegramBotClient(token));
+                                     app.Services.AddSingleton<ITelegramBotClient>(_ => new TelegramBotClient(context.Configuration["BotToken"]));
                                      app.Services.AddTransient<IUpdateConsumer, Client>();
                                      app.Services.AddSingleton<ILogger, Logger>();
                                      app.UseHandlers();

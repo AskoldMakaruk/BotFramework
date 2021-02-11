@@ -10,13 +10,13 @@ namespace BotFramework.HostServices
     {
         internal const string AppKostyl = "UniqueAppKostyl";
 
-        public static IHostBuilder ConfigureApp(this IHostBuilder builder, Action<IAppBuilder> appConfigurator)
+        public static IHostBuilder ConfigureApp(this IHostBuilder builder, Action<IAppBuilder, HostBuilderContext> appConfigurator)
         {
             return builder
                    .UseServiceProviderFactory(context => new AppBuilderFactory(context))
                    .ConfigureContainer<AppBuilder>((context, appBuilder) =>
                    {
-                       appConfigurator(appBuilder);
+                       appConfigurator(appBuilder, context);
                        appBuilder.Services.AddHostedService(provider =>
                        new AppRunnerService((UpdateDelegate) context.Properties[AppKostyl],
                            provider.GetService<ITelegramBotClient>()!));
@@ -32,7 +32,7 @@ namespace BotFramework.HostServices
                           .ConfigureContainer<AppBuilder>((context, appBuilder) =>
                           {
                               appConfigurator(appBuilder);
-                              appBuilder.Services.AddSingleton(provider =>
+                              appBuilder.Services.AddSingleton(_ =>
                               new DebugDelegateWrapper((UpdateDelegate) context.Properties[AppKostyl]));
                           });
         }
