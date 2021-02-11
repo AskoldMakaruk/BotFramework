@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using BotFramework.Abstractions;
 using NUnit.Framework;
 using BotFramework.Clients;
+using BotFramework.HostServices;
 using BotFramework.Middleware;
 using EchoBot;
 using Microsoft.Extensions.Configuration;
@@ -21,21 +22,18 @@ namespace BotFramework.Tests
         public void Setup()
         {
             client = new DebugClient();
-            using var host = Host.CreateDefaultBuilder()
-                                 .ConfigureHostConfiguration(builder => builder.AddEnvironmentVariables())
-                                 .ConfigureServices(services =>
-                                 {
-                                     services.AddTransient<IUpdateConsumer, DebugClient>(_ => client);
-                                     services.AddSingleton<ILogger, Logger>();
-                                     var builder = new AppBuilder(services);
-                                     builder.UseStaticCommands(new StaticCommandsList(new()
-                                     {typeof(EchoCommand), typeof(HelpCommand)}));
-                                     builder.UseHandlers();
-                                     builder.UseStaticCommands();
-                                     var tuple = builder.Build();
-                                     app = tuple.app;
-                                 })
-                                 .Build();
+            app = Host.CreateDefaultBuilder()
+                      .ConfigureHostConfiguration(builder => builder.AddEnvironmentVariables())
+                      .ConfigureAppDebug(app =>
+                      {
+                          app.Services.AddTransient<IUpdateConsumer, DebugClient>(_ => client);
+                          app.Services.AddSingleton<ILogger, Logger>();
+                          app.UseStaticCommands(new StaticCommandsList(new()
+                          {typeof(EchoCommand), typeof(HelpCommand)}));
+                          app.UseHandlers();
+                      })
+                      .Build()
+                      .Services.GetService<AppRunnerServiceExtensions.DebugDelegateWrapper>()!.App;
         }
 
         [Test]

@@ -4,6 +4,7 @@ using BotFramework;
 using BotFramework.Abstractions;
 using BotFramework.Clients;
 using BotFramework.Clients.ClientExtensions;
+using BotFramework.HostServices;
 using BotFramework.Middleware;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
