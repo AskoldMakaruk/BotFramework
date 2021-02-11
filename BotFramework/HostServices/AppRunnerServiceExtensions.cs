@@ -8,7 +8,7 @@ namespace BotFramework.HostServices
 {
     public static class AppRunnerServiceExtensions
     {
-        private const string AppKostyl = "UniqueAppKostyl";
+        internal const string AppKostyl = "UniqueAppKostyl";
 
         public static IHostBuilder ConfigureApp(this IHostBuilder builder, Action<IAppBuilder> appConfigurator)
         {

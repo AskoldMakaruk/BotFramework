@@ -21,7 +21,7 @@ namespace BotFramework.HostServices
         public IServiceProvider CreateServiceProvider(AppBuilder containerBuilder)
         {
             var (services, app)                    = containerBuilder.Build();
-            _context.Properties["UniqueAppKostyl"] = app;
+            _context.Properties[AppRunnerServiceExtensions.AppKostyl] = app;
             return services;
         }
     }
