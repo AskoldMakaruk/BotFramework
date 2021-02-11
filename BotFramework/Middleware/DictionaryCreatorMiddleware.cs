@@ -47,7 +47,7 @@ namespace BotFramework.Middleware
     {
         public static void UseHandlers(this IAppBuilder builder)
         {
-            builder.ApplicationServicesBuilder.AddScoped<DictionaryContext>();
+            builder.Services.AddScoped<DictionaryContext>();
             builder.UseMiddleware<DictionaryCreatorMiddleware>();
         }
     }

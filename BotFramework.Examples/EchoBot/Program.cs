@@ -19,27 +19,18 @@ namespace EchoBot
 
         private static void Main(string[] args)
         {
-            UpdateDelegate app = null;
             using var host = Host.CreateDefaultBuilder(args)
                                  .ConfigureHostConfiguration(builder => builder.AddEnvironmentVariables())
-                                 .ConfigureServices(services =>
+                                 .ConfigureApp(app =>
                                  {
-                                     var builder = new AppBuilder(services);
-                                     services.AddSingleton<ITelegramBotClient>(_ => new TelegramBotClient(token));
-                                     services.AddTransient<IUpdateConsumer, Client>();
-                                     services.AddSingleton<ILogger, Logger>();
-
-                                     
-                                     builder.UseHandlers();
-                                     builder.UseStaticCommands();
-
-                                     var (injector, app1) = builder.Build();
-                                     app                  = app1;
+                                     app.Services.AddSingleton<ITelegramBotClient>(_ => new TelegramBotClient(token));
+                                     app.Services.AddTransient<IUpdateConsumer, Client>();
+                                     app.Services.AddSingleton<ILogger, Logger>();
+                                     app.UseHandlers();
+                                     app.UseStaticCommands();
                                  })
-                                 .Build();
-            var bot = host.Services.GetService<ITelegramBotClient>()!;
-            bot!.OnUpdate += (sender, eventArgs) => app(eventArgs.Update);
-            bot.StartReceiving();
+                                 .Build()
+                                 .RunAsync();
             Console.ReadLine();
         }
     }

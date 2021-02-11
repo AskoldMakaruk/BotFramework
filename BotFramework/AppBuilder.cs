@@ -18,13 +18,13 @@ namespace BotFramework
         /// <param name="applicationServicesBuider">The <see cref="IServiceCollection"/> for application services.</param>
         public AppBuilder(IServiceCollection applicationServicesBuider)
         {
-            ApplicationServicesBuilder = applicationServicesBuider;
+            Services = applicationServicesBuider;
         }
 
         /// <summary>
         /// Gets the <see cref="IServiceProvider"/> for application services.
         /// </summary>
-        public IServiceCollection ApplicationServicesBuilder { get; set; }
+        public IServiceCollection Services { get; set; }
 
         /// <summary>
         /// Adds the middleware to the application request pipeline.
@@ -44,12 +44,13 @@ namespace BotFramework
         /// <returns>The <see cref="IServiceProvider"/> and <see cref="UpdateDelegate"/>.</returns>
         public (IServiceProvider services, UpdateDelegate app) Build()
         {
-            var            provider = ApplicationServicesBuilder.BuildServiceProvider();
+            var            provider = Services.BuildServiceProvider();
             UpdateDelegate app      = context => Task.CompletedTask;
 
             app = _components.Select(t => t(provider))
                              .Reverse()
                              .Aggregate(app, (current, component) => component(current));
+            
             return (provider, app);
         }
     }
