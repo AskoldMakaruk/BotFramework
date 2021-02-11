@@ -29,7 +29,7 @@ namespace BotFramework.Middleware
 
         public Task Invoke(Update update, DictionaryContext dictionaryContext)
         {
-            if (_services.GetService<IUpdateConsumer>() is not { } client)
+            if (_services.GetService<IUpdateConsumer>() is not { } client) //checking for null 
             {
                 throw new Exception("Client not found");
             }

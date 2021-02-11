@@ -15,7 +15,8 @@ namespace BotFramework.Clients
         //telegram replies to those requests
         //user messages
         private TaskCompletionSource<object>? GetRequestTask;
-        
+
+        //todo make ProducerConsumerTaskCollectionidk
         private readonly IProducerConsumerCollection<object> RequestToSend   = new ConcurrentQueue<object>();
         private readonly IProducerConsumerCollection<object> TelegramReplies = new ConcurrentQueue<object>();
         private readonly IProducerConsumerCollection<Update> UpdatesToHandle = new ConcurrentQueue<Update>();
@@ -28,7 +29,7 @@ namespace BotFramework.Clients
 
         public void Initialize(ICommand command, Update update)
         {
-            UserId = (int)update.GetId();
+            UserId = (int) update.GetId();
             Consume(update);
             CurrentTask = command.Execute(this);
             Console.WriteLine(UserId);
@@ -65,8 +66,9 @@ namespace BotFramework.Clients
                 return ValueTask.FromResult(updateToReturn);
             }
 
+            //this is ugly please refactor
             GetRequestTask = new TaskCompletionSource<object>();
-            return new ValueTask<TResponse>(GetRequestTask?.Task.ContinueWith(a=>(TResponse)a.GetAwaiter().GetResult()) ?? default);
+            return new ValueTask<TResponse>(GetRequestTask?.Task.ContinueWith(a => (TResponse) a.GetAwaiter().GetResult()) ?? Task.FromResult(default(TResponse)));
         }
 
         public ValueTask<Update> GetUpdate(Func<Update, bool>? filter = null, Action<Update>? onFilterFail = null)
@@ -116,7 +118,5 @@ namespace BotFramework.Clients
                 OnFilterFail?.Invoke(u);
             }
         }
-
-       
     }
 }
