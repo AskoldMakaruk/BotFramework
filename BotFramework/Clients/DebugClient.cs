@@ -32,7 +32,6 @@ namespace BotFramework.Clients
             UserId = (int) update.GetId();
             Consume(update);
             CurrentTask = command.Execute(this);
-            Console.WriteLine(UserId);
         }
 
         public Task<TResponse> MakeRequest<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = default)
