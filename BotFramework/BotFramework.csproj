@@ -41,10 +41,4 @@
     <ProjectReference Include="..\BotFramework.Abstractions\BotFramework.Abstractions.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Reference Include="Microsoft.Extensions.Hosting.Abstractions, Version=5.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60">
-      <HintPath>..\..\..\..\..\..\nix\store\qjc18x0qzihgwjnbbc6zp59ba4bgg7x7-dotnet-sdk-5.0.100\packs\Microsoft.AspNetCore.App.Ref\5.0.0\ref\net5.0\Microsoft.Extensions.Hosting.Abstractions.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
 </Project>
