@@ -4,13 +4,17 @@ using BotFramework;
 using BotFramework.Abstractions;
 using BotFramework.Clients;
 using BotFramework.Clients.ClientExtensions;
+using BotFramework.Helpers;
 using BotFramework.HostServices;
 using BotFramework.Middleware;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Serilog;
+using Serilog.Context;
+using Serilog.Events;
 using Telegram.Bot;
 using Telegram.Bot.Types;
+using ILogger = Serilog.ILogger;
 
 namespace EchoBot
 {
@@ -20,11 +24,20 @@ namespace EchoBot
         {
             using var host = Host.CreateDefaultBuilder(args)
                                  .UseConfigurationWithEnvironment()
+                                 .UseSerilog((context, configuration) =>
+                                 {
+                                     configuration
+                                     .MinimumLevel.Debug()
+                                     .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+                                     .Enrich.FromLogContext()
+                                     .WriteTo.Console();
+                                 })
                                  .ConfigureApp((app, context) =>
                                  {
-                                     app.Services.AddSingleton<ITelegramBotClient>(_ => new TelegramBotClient(context.Configuration["BotToken"]));
+                                     app.Services.AddSingleton<ITelegramBotClient>(_ =>
+                                     new TelegramBotClient(context.Configuration["BotToken"]));
                                      app.Services.AddTransient<IUpdateConsumer, Client>();
-                                     app.Services.AddSingleton<ILogger, Logger>();
+                                     app.UseMiddleware<LoggingMiddleware>();
                                      app.UseHandlers();
                                      app.UseStaticCommands();
                                  })
@@ -33,7 +46,34 @@ namespace EchoBot
             Console.ReadLine();
         }
     }
-    
+
+    public class LoggingMiddleware
+    {
+        private readonly UpdateDelegate _next;
+        private readonly ILogger _logger;
+
+        public LoggingMiddleware(UpdateDelegate next, ILogger logger)
+        {
+            _next = next;
+            _logger = logger;
+        }
+
+        public Task Invoke(Update update)
+        {
+            var info = update.GetInfoFromUpdate();
+
+            using (LogContext.PushProperty("UpdateType", info.UpdateType))
+            using (LogContext.PushProperty("MessageType", info.MessageType))
+            using (LogContext.PushProperty("From", info.FromName))
+            using (LogContext.PushProperty("Contents", info.Contents))
+            {
+                _logger.Information("{UpdateType} {MessageType} | {From}: {Contents}");
+            }
+
+            return _next.Invoke(update);
+        }
+    }
+
     public class EchoCommand : IStaticCommand
     {
         private readonly ILogger logger;
@@ -47,7 +87,7 @@ namespace EchoBot
         {
             var message = await client.GetTextMessage();
 
-            logger.Log("DI Works!");
+            logger.Information("DI Works!");
 
             await client.SendTextMessage($"Hello, here ypur last message {message.Text}, type somethinh again");
 
@@ -73,19 +113,6 @@ namespace EchoBot
         public bool SuitableFirst(Update ctx)
         {
             return ctx.Message?.Text == "/help";
-        }
-    }
-
-    public interface ILogger
-    {
-        void Log(string text);
-    }
-
-    public class Logger : ILogger
-    {
-        public void Log(string text)
-        {
-            Console.WriteLine(text);
         }
     }
 
