@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,6 +21,7 @@ namespace BotFramework.Middleware
     public class DictionaryCreatorMiddleware
     {
         private readonly ConcurrentDictionary<long, LinkedList<IUpdateConsumer>> dictionary = new();
+
         private readonly UpdateDelegate                                          _next;
 
         public DictionaryCreatorMiddleware(UpdateDelegate next)
@@ -27,8 +29,9 @@ namespace BotFramework.Middleware
             _next = next;
         }
 
-        public Task Invoke(Update update, DictionaryContext dictionaryContext)
+        public Task Invoke(Update update, DictionaryContext dictionaryContext, WrappedServiceProvider provider)
         {
+            
             if (update.GetId() is not { } id)
             {
                 return _next.Invoke(update);

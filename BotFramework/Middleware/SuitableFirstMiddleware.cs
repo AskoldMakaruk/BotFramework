@@ -1,8 +1,10 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using BotFramework.Abstractions;
+using BotFramework.Helpers;
 using Microsoft.Extensions.DependencyInjection;
 using Telegram.Bot.Types;
 
@@ -12,9 +14,11 @@ namespace BotFramework.Middleware
 
     public class StaticCommandsMiddleware
     {
-        private readonly IServiceProvider     _services;
-        private readonly List<IStaticCommand> commands;
-        private readonly UpdateDelegate       _next;
+        private readonly IServiceProvider                             _services;
+        private readonly List<IStaticCommand>                         commands;
+        private readonly UpdateDelegate                               _next;
+        private readonly ConcurrentDictionary<long, IServiceProvider> _providers = new();
+
 
 
         public StaticCommandsMiddleware(IServiceProvider services, UpdateDelegate next, StaticCommandsList staticCommands)
@@ -27,7 +31,7 @@ namespace BotFramework.Middleware
                                      .ToList();
         }
 
-        public Task Invoke(Update update, DictionaryContext dictionaryContext)
+        public Task Invoke(Update update, DictionaryContext dictionaryContext, WrappedServiceProvider provider)
         {
             if (_services.GetService<IUpdateConsumer>() is not { } client) //checking for null 
             {
@@ -62,6 +66,7 @@ namespace BotFramework.Middleware
                 client.Initialize(command, update);
 
                 dictionaryContext.Handlers.AddFirst(client);
+                provider.Provider = _providers.GetOrAdd(update.GetUser()!.Id, provider.Provider);
                 return true;
             }
 
