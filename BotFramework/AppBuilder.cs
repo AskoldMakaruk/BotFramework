@@ -8,14 +8,6 @@ using Telegram.Bot.Types;
 
 namespace BotFramework
 {
-    public class WrappedServiceProvider
-    {
-        public WrappedServiceProvider(IServiceProvider provider)
-        {
-            Provider = provider;
-        }
-        public IServiceProvider Provider { get; set; }
-    }
     public class AppBuilder : IAppBuilder
     {
         private readonly List<Func<IServiceProvider, Func<UpdateDelegate, UpdateDelegate>>> _components = new();
@@ -53,15 +45,19 @@ namespace BotFramework
         /// <returns>The <see cref="IServiceProvider"/> and <see cref="UpdateDelegate"/>.</returns>
         public (IServiceProvider services, UpdateDelegate app) Build()
         {
-            Services.AddScoped<WrappedServiceProvider>((serviceProvider => new(serviceProvider.CreateScope().ServiceProvider)));
-            var            provider = Services.BuildServiceProvider();
-            UpdateDelegate app      = context => Task.CompletedTask;
+            Services.AddScoped<WrappedServiceProvider>(serviceProvider => new(serviceProvider));
+            var provider = Services.BuildServiceProvider();
+            UpdateDelegate res = context =>
+            {
+                var providerScope = provider.CreateScope().ServiceProvider;
+                UpdateDelegate app = context => Task.CompletedTask;
+                app = _components.Select(t => t(providerScope))
+                                 .Reverse()
+                                 .Aggregate(app, (current, component) => component(current));
+                return app(context);
+            };
 
-            app = _components.Select(t => t(provider))
-                             .Reverse()
-                             .Aggregate(app, (current, component) => component(current));
-
-            return (provider, app);
+            return (provider, res);
         }
     }
 }

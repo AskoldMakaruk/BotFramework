@@ -14,26 +14,24 @@ namespace BotFramework.Middleware
 
     public class StaticCommandsMiddleware
     {
-        private readonly IServiceProvider                             _services;
         private readonly List<IStaticCommand>                         commands;
         private readonly UpdateDelegate                               _next;
         private readonly ConcurrentDictionary<long, IServiceProvider> _providers = new();
 
 
-
         public StaticCommandsMiddleware(IServiceProvider services, UpdateDelegate next, StaticCommandsList staticCommands)
         {
-            _services = services;
             _next     = next;
-            var scope = _services.CreateScope();
+            var scope = services.CreateScope();
             commands = staticCommands.StaticCommandsTypes.Select(scope.ServiceProvider.GetService)
                                      .Cast<IStaticCommand>()
                                      .ToList();
         }
 
-        public Task Invoke(Update update, DictionaryContext dictionaryContext, WrappedServiceProvider provider)
+        public Task Invoke(Update update, DictionaryContext dictionaryContext, WrappedServiceProvider provider, Consumers consumers)
         {
-            if (_services.GetService<IUpdateConsumer>() is not { } client) //checking for null 
+
+            if (provider.Provider.GetService<IUpdateConsumer>() is not { } client) //checking for null 
             {
                 throw new Exception("Client not found");
             }
@@ -43,7 +41,7 @@ namespace BotFramework.Middleware
                 return Task.CompletedTask;
             }
 
-            var currentCommand = dictionaryContext.Handlers.FirstOrDefault(t => !t.IsDone);
+            var currentCommand = consumers.Handlers.FirstOrDefault(t => !t.IsDone);
             if (currentCommand is not null)
             {
                 currentCommand.Consume(update);
@@ -62,14 +60,22 @@ namespace BotFramework.Middleware
                     return false;
                 }
 
-                command = (IStaticCommand) _services.GetService(command.GetType())!;
+                var newScope = provider.Provider.CreateScope().ServiceProvider;
+                dictionaryContext.Providers[update.Message.Chat.Id] = newScope;
+                command           = (IStaticCommand) provider.Provider.GetService(command.GetType())!;
                 client.Initialize(command, update);
-
-                dictionaryContext.Handlers.AddFirst(client);
-                provider.Provider = _providers.GetOrAdd(update.GetUser()!.Id, provider.Provider);
+                var consumers1 = newScope.GetService<Consumers>();
+                consumers1!.Handlers = consumers.Handlers;
+                consumers1.Handlers.AddFirst(client);
+                var consumers2 = newScope.GetService<Consumers>();
+                //provider.Provider = _providers.GetOrAdd(update.GetUser()!.Id, provider.Provider);
                 return true;
-            }
+    }
 
+            var newScope = provider.Provider.CreateScope().ServiceProvider;
+            dictionaryContext.Providers[update.Message.Chat.Id] = newScope;
+            var consumers1 = newScope.GetService<Consumers>();
+            consumers1!.Handlers = consumers.Handlers;
             return _next(update);
         }
     }

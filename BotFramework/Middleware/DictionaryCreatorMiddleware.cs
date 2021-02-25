@@ -12,17 +12,17 @@ namespace BotFramework.Middleware
 {
     public class DictionaryContext
     {
-        /// <summary>
-        ///     First not done handler will handle CurrentUpdate
-        /// </summary>
+        public ConcurrentDictionary<long, IServiceProvider> Providers { get; set; } = new();
+    }
+
+    public class Consumers
+    {
         public LinkedList<IUpdateConsumer> Handlers { get; set; } = new();
     }
 
     public class DictionaryCreatorMiddleware
     {
-        private readonly ConcurrentDictionary<long, LinkedList<IUpdateConsumer>> dictionary = new();
-
-        private readonly UpdateDelegate                                          _next;
+        private readonly UpdateDelegate _next;
 
         public DictionaryCreatorMiddleware(UpdateDelegate next)
         {
@@ -31,17 +31,14 @@ namespace BotFramework.Middleware
 
         public Task Invoke(Update update, DictionaryContext dictionaryContext, WrappedServiceProvider provider)
         {
-            
             if (update.GetId() is not { } id)
             {
                 return _next.Invoke(update);
             }
 
-            dictionary.AddOrUpdate(
-                id, _ => new LinkedList<IUpdateConsumer>(),
-                (_, list) => new LinkedList<IUpdateConsumer>(list.Where(t => !t.IsDone)));
-            dictionaryContext.Handlers = dictionary[id];
-
+            dictionaryContext.Providers.TryAdd(id, provider.Provider);
+            provider.Provider = dictionaryContext.Providers[id];
+            var consumers = provider.Provider.GetService<Consumers>();
             return _next.Invoke(update);
         }
     }
@@ -50,7 +47,8 @@ namespace BotFramework.Middleware
     {
         public static void UseHandlers(this IAppBuilder builder)
         {
-            builder.Services.AddScoped<DictionaryContext>();
+            builder.Services.AddSingleton<DictionaryContext>();
+            builder.Services.AddScoped<Consumers>();
             builder.UseMiddleware<DictionaryCreatorMiddleware>();
         }
     }
