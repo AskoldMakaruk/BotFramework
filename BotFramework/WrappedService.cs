@@ -10,7 +10,7 @@ namespace BotFramework
             Service = service;
         }
 
-        public T Service { get; set; }
+        public T Service;
     }
 
     public static class WrappedService
