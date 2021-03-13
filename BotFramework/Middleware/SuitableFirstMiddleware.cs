@@ -10,41 +10,36 @@ using Telegram.Bot.Types;
 
 namespace BotFramework.Middleware
 {
-    public record StaticCommandsList(List<Type> StaticCommandsTypes);
 
-    public class StaticCommandsMiddleware
+    public record Consumers(LinkedList<IUpdateConsumer> List);
+    public class StaticCommandsEndpoint
     {
-        private readonly List<IStaticCommand>                         commands;
-        private readonly UpdateDelegate                               _next;
-        private readonly ConcurrentDictionary<long, IServiceProvider> _providers = new();
+        private readonly UpdateDelegate       _next;
 
-
-        public StaticCommandsMiddleware(IServiceProvider services, UpdateDelegate next, StaticCommandsList staticCommands)
+        public StaticCommandsEndpoint(UpdateDelegate next)
         {
-            _next     = next;
-            var scope = services.CreateScope();
-            commands = staticCommands.StaticCommandsTypes.Select(scope.ServiceProvider.GetService)
-                                     .Cast<IStaticCommand>()
-                                     .ToList();
-        }
-
-        public Task Invoke(Update update, DictionaryContext dictionaryContext, WrappedServiceProvider provider, Consumers consumers)
+            _next = next;
+        } 
+        public Task Invoke(Update    update, DictionaryContext dictionaryContext, IServiceProvider provider, PossibleCommands possibleCommands,
+                           Consumers consumers)
         {
-
-            if (provider.Provider.GetService<IUpdateConsumer>() is not { } client) //checking for null 
+            var client = provider.GetService<IUpdateConsumer>();
+            if (client is null) //checking for null 
             {
                 throw new Exception("Client not found");
             }
 
+            var commands = possibleCommands.Commands.OfType<IStaticCommand>().ToList();
             if (Initialize(commands.FirstOrDefault(t => t.SuitableFirst(update))))
             {
                 return Task.CompletedTask;
             }
 
-            var currentCommand = consumers.Handlers.FirstOrDefault(t => !t.IsDone);
+            var currentCommand = consumers.List.FirstOrDefault(t => !t.IsDone);
             if (currentCommand is not null)
             {
                 currentCommand.Consume(update);
+                dictionaryContext.Add(update.GetId().Value, provider);
                 return Task.CompletedTask;
             }
 
@@ -60,46 +55,16 @@ namespace BotFramework.Middleware
                     return false;
                 }
 
-                var newScope = provider.Provider.CreateScope().ServiceProvider;
-                dictionaryContext.Providers[update.Message.Chat.Id] = newScope;
-                command           = (IStaticCommand) provider.Provider.GetService(command.GetType())!;
+                dictionaryContext.Add(update.GetId().Value, consumers);
+                dictionaryContext.Add(update.GetId().Value, provider);
+                command = (IStaticCommand) provider.GetService(command.GetType())!;
                 client.Initialize(command, update);
-                var consumers1 = newScope.GetService<Consumers>();
-                consumers1!.Handlers = consumers.Handlers;
-                consumers1.Handlers.AddFirst(client);
-                var consumers2 = newScope.GetService<Consumers>();
-                //provider.Provider = _providers.GetOrAdd(update.GetUser()!.Id, provider.Provider);
+                consumers.List.AddFirst(client);
                 return true;
-    }
+            }
 
-            var newScope = provider.Provider.CreateScope().ServiceProvider;
-            dictionaryContext.Providers[update.Message.Chat.Id] = newScope;
-            var consumers1 = newScope.GetService<Consumers>();
-            consumers1!.Handlers = consumers.Handlers;
             return _next(update);
         }
     }
 
-    public static class StaticCommandsEndpoint
-    {
-        public static void UseStaticCommands(this IAppBuilder builder, StaticCommandsList staticCommands)
-        {
-            builder.Services.AddSingleton(staticCommands);
-            builder.UseMiddleware<StaticCommandsMiddleware>(staticCommands);
-            foreach (var command in staticCommands.StaticCommandsTypes)
-                builder.Services.AddScoped(command);
-        }
-
-        public static void UseStaticCommands(this IAppBuilder builder)
-        {
-            var staticCommands = AppDomain.CurrentDomain.GetAssemblies()
-                                          .SelectMany(s => s.GetTypes())
-                                          .Where(p => typeof(ICommand).IsAssignableFrom(p) && !p.IsAbstract)
-                                          .ToList();
-            foreach (var command in staticCommands)
-                builder.Services.AddScoped(command);
-            builder.Services.AddSingleton(new StaticCommandsList(staticCommands));
-            builder.UseMiddleware<StaticCommandsMiddleware>(new StaticCommandsList(staticCommands));
-        }
-    }
 }

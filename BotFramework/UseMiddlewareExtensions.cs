@@ -96,7 +96,7 @@ namespace BotFramework
 
                 return context =>
                 {
-                    var serviceProvider = applicationServices.GetService<WrappedServiceProvider>()!.Provider; //sosat
+                    var serviceProvider = applicationServices.GetWrappedService<IServiceProvider>(); //sosat
                     if (serviceProvider == null)
                     {
                         throw new InvalidOperationException(
