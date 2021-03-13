@@ -10,7 +10,7 @@ namespace BotFramework
             Service = service;
         }
 
-        public T Service;
+        public T Service { get; set; }
     }
 
     public static class WrappedService
@@ -46,9 +46,9 @@ namespace BotFramework
             if (service is null)
             //todo normal exceptions
                 throw new Exception("Not found");
-            dynamic dService = service;
-            ref dynamic d    = ref dService.Service;
-            d                = newService;
+            var property = service.GetType().GetProperty("Service");
+            property!.SetValue(service, newService);
+            var service2 = provider.GetService(typeof(WrappedService<>).MakeGenericType(serviceType));
         }
     }
 }
