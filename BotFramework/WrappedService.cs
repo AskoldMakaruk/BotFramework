@@ -48,7 +48,6 @@ namespace BotFramework
                 throw new Exception("Not found");
             var property = service.GetType().GetProperty("Service");
             property!.SetValue(service, newService);
-            var service2 = provider.GetService(typeof(WrappedService<>).MakeGenericType(serviceType));
         }
     }
 }
