@@ -46,8 +46,9 @@ namespace BotFramework
             if (service is null)
             //todo normal exceptions
                 throw new Exception("Not found");
-            var property = service.GetType().GetProperty("Service");
-            property!.SetValue(service, newService);
+            dynamic dService = service;
+            // ReSharper disable once RedundantCast
+            dService.Service = (dynamic) newService;
         }
     }
 }
