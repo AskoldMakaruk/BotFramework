@@ -27,8 +27,7 @@ namespace BotFramework.Tests
                       .ConfigureAppDebug(app =>
                       {
                           app.Services.AddTransient<IUpdateConsumer, DebugClient>(_ => client);
-                          app.UseStaticCommands(new StaticCommandsList(new()
-                          {typeof(EchoCommand), typeof(HelpCommand)}));
+                          app.UseStaticCommands();
                           app.UseHandlers();
                       })
                       .Build()
