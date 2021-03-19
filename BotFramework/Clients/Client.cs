@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
 using BotFramework.Abstractions;
+using BotFramework.Helpers;
 using Telegram.Bot;
 using Telegram.Bot.Requests.Abstractions;
 using Telegram.Bot.Types;
@@ -27,7 +28,7 @@ namespace BotFramework.Clients
 
         public void Initialize(ICommand command, Update update)
         {
-            UserId = update.Message.Chat.Id;
+            UserId = update.GetInfoFromUpdate().From.Id;
             HandleUpdate(update);
             CurrentTask = command.Execute(this);
         }
