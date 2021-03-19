@@ -13,7 +13,7 @@
     <RepositoryUrl>https://github.com/AskoldMakaruk/BotFramework</RepositoryUrl>
     <RepositoryType>Open</RepositoryType>
     <PackageTags>telegram bot</PackageTags>
-    <PackageReleaseNotes>Middleware</PackageReleaseNotes>
+    <PackageReleaseNotes>Fixes</PackageReleaseNotes>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
