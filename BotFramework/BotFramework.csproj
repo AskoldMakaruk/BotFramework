@@ -6,7 +6,7 @@
     <Company>BotFramework</Company>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
-    <FileVersion>1.0.0.33</FileVersion>
+    <FileVersion>1.0.0.34</FileVersion>
     <Version>1.0.0-alpha-33</Version>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/AskoldMakaruk/BotFramework</PackageProjectUrl>
@@ -15,6 +15,7 @@
     <PackageTags>telegram bot</PackageTags>
     <PackageReleaseNotes>Fixes</PackageReleaseNotes>
     <Nullable>enable</Nullable>
+    <PackageVersion>1.0.0-alpha-34</PackageVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
