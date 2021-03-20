@@ -2,6 +2,7 @@ using System;
 using BotFramework.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Serilog;
 using Telegram.Bot;
 
 namespace BotFramework.HostServices
@@ -19,7 +20,7 @@ namespace BotFramework.HostServices
                        appConfigurator(appBuilder, context);
                        appBuilder.Services.AddHostedService(provider =>
                        new AppRunnerService((UpdateDelegate) context.Properties[AppKostyl],
-                           provider.GetService<ITelegramBotClient>()!));
+                           provider.GetService<ITelegramBotClient>()!, provider.GetService<ILogger>()!));
                    })
                    .UseConsoleLifetime();
         }
