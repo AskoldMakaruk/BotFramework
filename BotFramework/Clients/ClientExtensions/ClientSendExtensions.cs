@@ -753,12 +753,11 @@ namespace BotFramework.Clients.ClientExtensions
                                                 bool                      sendEmailToProvider       = default
         ) =>
         client.MakeRequest(new SendInvoiceRequest(
-            (int) (chatId ?? client.UserId),
+            (chatId ?? client.UserId),
             title,
             description,
             payload,
             providerToken,
-            startParameter,
             currency,
             // ReSharper disable once PossibleMultipleEnumeration
             prices
