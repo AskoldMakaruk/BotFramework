@@ -13,9 +13,9 @@
     <RepositoryUrl>https://github.com/AskoldMakaruk/BotFramework</RepositoryUrl>
     <RepositoryType>Open</RepositoryType>
     <PackageTags>telegram bot</PackageTags>
-    <PackageReleaseNotes>Fixes</PackageReleaseNotes>
+    <PackageReleaseNotes>Added logging middleware.</PackageReleaseNotes>
     <Nullable>enable</Nullable>
-    <PackageVersion>1.0.0-alpha-35</PackageVersion>
+    <PackageVersion>1.0.0-alpha-36</PackageVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
