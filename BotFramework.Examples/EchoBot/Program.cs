@@ -1,17 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using BotFramework;
 using BotFramework.Abstractions;
 using BotFramework.Clients;
 using BotFramework.Clients.ClientExtensions;
-using BotFramework.Helpers;
 using BotFramework.HostServices;
 using BotFramework.Middleware;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
-using Serilog.Context;
 using Serilog.Events;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -45,33 +42,6 @@ namespace EchoBot
                                  .Build()
                                  .RunAsync();
             Console.ReadLine();
-        }
-    }
-
-    public class LoggingMiddleware
-    {
-        private readonly UpdateDelegate _next;
-        private readonly ILogger _logger;
-
-        public LoggingMiddleware(UpdateDelegate next, ILogger logger)
-        {
-            _next = next;
-            _logger = logger;
-        }
-
-        public Task Invoke(Update update)
-        {
-            var info = update.GetInfoFromUpdate();
-
-            using (LogContext.PushProperty("UpdateType", info.UpdateType))
-            using (LogContext.PushProperty("MessageType", info.MessageType))
-            using (LogContext.PushProperty("From", info.FromName))
-            using (LogContext.PushProperty("Contents", info.Contents))
-            {
-                _logger.Information("{UpdateType} {MessageType} | {From}: {Contents}");
-            }
-
-            return _next.Invoke(update);
         }
     }
 

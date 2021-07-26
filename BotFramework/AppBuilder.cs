@@ -50,7 +50,7 @@ namespace BotFramework
             UpdateDelegate res = context =>
             {
                 var providerScope = provider.CreateScope().ServiceProvider;
-                UpdateDelegate app = context => Task.CompletedTask;
+                UpdateDelegate app = _ => Task.CompletedTask;
                 app = _components.Select(t => t(providerScope))
                                  .Reverse()
                                  .Aggregate(app, (current, component) => component(current));

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using BotFramework.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,12 +13,11 @@ namespace BotFramework.Middleware
 
     public class PossibleCommands
     {
-        public List<ICommand> Commands                            { get; set; } = new();
+        public List<ICommand> Commands { get; set; } = new();
     }
 
     public class StaticCommandsMiddleware
     {
-        
         private readonly List<IStaticCommand> commands;
         private readonly UpdateDelegate       _next;
 
@@ -67,10 +67,15 @@ namespace BotFramework.Middleware
 
         public static StaticCommandsList GetStaticCommands()
         {
-            var res = AppDomain.CurrentDomain.GetAssemblies()
-                               .SelectMany(s => s.GetTypes())
-                               .Where(p => typeof(ICommand).IsAssignableFrom(p) && !p.IsAbstract)
-                               .ToList();
+            var allTypes =
+            Assembly.GetExecutingAssembly().GetReferencedAssemblies().Select(Assembly.Load).SelectMany(a => a.GetTypes());
+
+            var res = 
+            // AppDomain.CurrentDomain.GetAssemblies()
+            // .SelectMany(s => s.GetTypes())
+            allTypes
+            .Where(p => typeof(ICommand).IsAssignableFrom(p) && !p.IsAbstract)
+            .ToList();
             return new(res);
         }
     }

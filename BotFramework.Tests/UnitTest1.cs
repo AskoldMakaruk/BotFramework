@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading.Tasks;
 using BotFramework.Abstractions;
 using NUnit.Framework;
@@ -18,20 +19,43 @@ namespace BotFramework.Tests
         private UpdateDelegate app = null;
         private DebugClient    client;
 
+        private IHost _host;
+
         [SetUp]
         public void Setup()
         {
             client = new DebugClient();
-            app = Host.CreateDefaultBuilder()
-                      .ConfigureHostConfiguration(builder => builder.AddEnvironmentVariables())
-                      .ConfigureAppDebug(app =>
-                      {
-                          app.Services.AddTransient<IUpdateConsumer, DebugClient>(_ => client);
-                          app.UseStaticCommands();
-                          app.UseHandlers();
-                      })
-                      .Build()
-                      .Services.GetService<AppRunnerServiceExtensions.DebugDelegateWrapper>()!.App;
+            _host = Host.CreateDefaultBuilder()
+                        .ConfigureHostConfiguration(builder => builder.AddEnvironmentVariables())
+                        .ConfigureAppDebug(app =>
+                        {
+                            app.Services.AddTransient<IUpdateConsumer, DebugClient>(_ => client);
+                            app.UseStaticCommands();
+                            app.UseHandlers();
+                        })
+                        .Build();
+
+            app = _host
+                  .Services.GetService<AppRunnerServiceExtensions.DebugDelegateWrapper>()!.App;
+        }
+
+        [Test]
+        public void GetStaticCommands_WhenExecuted_ShouldReturnStaticCommands()
+        {
+            var commands = CommandsMiddlewareExtensions.GetStaticCommands().StaticCommandsTypes.ToList();
+
+            Assert.Contains(typeof(EchoCommand), commands);
+            Assert.Contains(typeof(HelpCommand), commands);
+        }
+
+        [Test]
+        public void ServicesShouldContainStaticCommands()
+        {
+            var cmd      = new EchoCommand(null);
+            var commands = _host.Services.GetServices(typeof(IStaticCommand)).Select(a => a.GetType()).ToList();
+
+            Assert.Contains(typeof(EchoCommand), commands);
+            Assert.Contains(typeof(HelpCommand), commands);
         }
 
         [Test]

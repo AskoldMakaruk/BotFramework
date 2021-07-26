@@ -43,7 +43,7 @@ namespace BotFramework.Clients
                 GetRequestTask.SetResult(request);
             }
 
-            return Task<TResponse>.FromResult((TResponse) (reply));
+            return Task.FromResult((TResponse) (reply!));
         }
 
         public ValueTask<TResponse> GetRequest<TResponse>(Func<TResponse, bool>? filter = null)
