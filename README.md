@@ -83,4 +83,12 @@ public class EchoCommand : IStaticCommand
 }   
 ```
 
-
+## IClient Extensions
+### Get Extensions aka filters
+// todo
+### Send Extensions
+// todo
+## Non-Istatic commands
+// todo 
+## Middleware
+// todo 
