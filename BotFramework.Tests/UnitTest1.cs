@@ -16,15 +16,13 @@ namespace BotFramework.Tests
 {
     public class Tests
     {
-        private UpdateDelegate app = null;
-        private DebugClient    client;
+        private DebugClient client;
 
         private IHost _host;
 
         [SetUp]
         public void Setup()
         {
-            client = new DebugClient();
             _host = Host.CreateDefaultBuilder()
                         .UseSerilog((context, configuration) =>
                         {
@@ -37,42 +35,39 @@ namespace BotFramework.Tests
                         .ConfigureHostConfiguration(builder => builder.AddEnvironmentVariables())
                         .UseBotFramework((builder, _) =>
                         {
-                            builder.Services.AddTransient<IUpdateConsumer, DebugClient>(_ => client);
+                            builder.Services.AddSingleton<IUpdateConsumer, DebugClient>();
+                            builder.Services.AddTransient<UpdateHandler>();
                             builder.UseStaticCommands();
                             builder.UseHandlers();
                         }, true)
                         .Build();
 
-            app = _host
-                  .Services.GetService<AppRunnerServiceExtensions.DebugDelegateWrapper>()!.App;
+            client = _host.Services.GetService<IUpdateConsumer>() as DebugClient;
         }
 
 
         [Test]
-        //[Timeout(5000)]
+        // [Timeout(5000)]
         public async Task Test1()
         {
             var text = "test text";
-            await app(new()
-            {
-                Message = new()
+            await client.FromUser(
+                new Message
                 {
                     From = From,
                     Text = text
-                }
-            });
+                });
+
             var message = await client.GetRequest<SendMessageRequest>();
 
             Assert.AreEqual($"Hello, here ypur last message {text}, type somethinh again", message.Text);
 
-            await app(new()
-            {
-                Message = new()
+            await client.FromUser(
+                new Message
                 {
                     From = From,
                     Text = text
-                }
-            });
+                });
 
             message = await client.GetRequest<SendMessageRequest>();
             Assert.AreEqual($"And this is your new message {text}, and now type only message with hello", message.Text);
