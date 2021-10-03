@@ -29,7 +29,7 @@ namespace BotFramework.Clients
 
         public void Initialize(ICommand command, Update update)
         {
-            UserId = (int) update.GetId();
+            UserId = (int) update.GetId()!;
             Consume(update);
             CurrentTask = command.Execute(this);
         }

@@ -20,28 +20,34 @@ namespace EchoBot
     {
         private static void Main(string[] args)
         {
-            using var host = Host.CreateDefaultBuilder(args)
-                                 .UseConfigurationWithEnvironment()
-                                 .UseSerilog((context, configuration) =>
-                                 {
-                                     configuration
-                                     .MinimumLevel.Debug()
-                                     .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
-                                     .Enrich.FromLogContext()
-                                     .WriteTo.Console();
-                                 })
-                                 .ConfigureApp((app, context) =>
-                                 {
-                                     app.Services.AddSingleton<ITelegramBotClient>(_ =>
-                                     new TelegramBotClient(context.Configuration["BotToken"]));
-                                     app.Services.AddTransient<IUpdateConsumer, Client>();
-                                     app.UseMiddleware<LoggingMiddleware>();
-                                     app.UseHandlers();
-                                     app.UseStaticCommands();
-                                 })
-                                 .Build()
-                                 .RunAsync();
-            Console.ReadLine();
+            Host.CreateDefaultBuilder(args)
+                .UseConfigurationWithEnvironment()
+                .UseSerilog((context, configuration) =>
+                {
+                    configuration
+                    .MinimumLevel.Debug()
+                    .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+                    .Enrich.FromLogContext()
+                    .WriteTo.Console();
+                })
+                
+                // use this 
+                .UseSimpleBotFramework()
+
+                // --| OR |--
+
+                // use this
+                .UseBotFramework((app, context) =>
+                {
+                    app.Services.AddSingleton<ITelegramBotClient>(_ =>
+                    new TelegramBotClient(context.Configuration["BotToken"]));
+                    app.Services.AddTransient<IUpdateConsumer, Client>();
+                    app.UseMiddleware<LoggingMiddleware>();
+                    app.UseHandlers();
+                    app.UseStaticCommands();
+                })
+                .Build()
+                .Run();
         }
     }
 

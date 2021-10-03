@@ -7,6 +7,8 @@ using BotFramework.Middleware;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Serilog;
+using Serilog.Events;
 using Telegram.Bot.Requests;
 using Telegram.Bot.Types;
 
@@ -24,13 +26,21 @@ namespace BotFramework.Tests
         {
             client = new DebugClient();
             _host = Host.CreateDefaultBuilder()
-                        .ConfigureHostConfiguration(builder => builder.AddEnvironmentVariables())
-                        .ConfigureAppDebug(app =>
+                        .UseSerilog((context, configuration) =>
                         {
-                            app.Services.AddTransient<IUpdateConsumer, DebugClient>(_ => client);
-                            app.UseStaticCommands();
-                            app.UseHandlers();
+                            configuration
+                            .MinimumLevel.Debug()
+                            .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+                            .Enrich.FromLogContext()
+                            .WriteTo.Console();
                         })
+                        .ConfigureHostConfiguration(builder => builder.AddEnvironmentVariables())
+                        .UseBotFramework((builder, _) =>
+                        {
+                            builder.Services.AddTransient<IUpdateConsumer, DebugClient>(_ => client);
+                            builder.UseStaticCommands();
+                            builder.UseHandlers();
+                        }, true)
                         .Build();
 
             app = _host
@@ -39,6 +49,7 @@ namespace BotFramework.Tests
 
 
         [Test]
+        //[Timeout(5000)]
         public async Task Test1()
         {
             var text = "test text";
@@ -51,6 +62,7 @@ namespace BotFramework.Tests
                 }
             });
             var message = await client.GetRequest<SendMessageRequest>();
+
             Assert.AreEqual($"Hello, here ypur last message {text}, type somethinh again", message.Text);
 
             await app(new()

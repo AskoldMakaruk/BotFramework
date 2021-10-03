@@ -32,8 +32,8 @@ namespace BotFramework.Middleware
 
         public Task Invoke(Update update, PossibleCommands possibleCommands)
         {
-           possibleCommands.Commands.AddRange(commands);
-           return _next.Invoke(update);
+            possibleCommands.Commands.AddRange(commands);
+            return _next.Invoke(update);
         }
     }
 
@@ -51,31 +51,26 @@ namespace BotFramework.Middleware
             builder.UseMiddleware<StaticCommandsMiddleware>(staticCommands);
             foreach (var command in staticCommands.StaticCommandsTypes)
                 builder.Services.AddScoped(command);
+
+            builder.Services.AddWrappedScoped(_ => new Consumers(new()));
+            builder.UseMiddleware<StaticCommandsEndpoint>();
         }
 
         public static void UseStaticCommands(this IAppBuilder builder)
         {
-            builder.UsePossibleCommands();
             var staticCommands = GetStaticCommands();
-            foreach (var command in staticCommands.StaticCommandsTypes)
-                builder.Services.AddScoped(command);
-            builder.Services.AddSingleton(staticCommands);
-            builder.UseMiddleware<StaticCommandsMiddleware>(staticCommands);
-            builder.Services.AddWrappedScoped(_ => new Consumers(new ()));
-            builder.UseMiddleware<StaticCommandsEndpoint>();
+            UseStaticCommands(builder, staticCommands);
         }
 
         public static StaticCommandsList GetStaticCommands()
         {
-            var allTypes =
-            Assembly.GetExecutingAssembly().GetReferencedAssemblies().Select(Assembly.Load).SelectMany(a => a.GetTypes());
-
-            var res = 
-            // AppDomain.CurrentDomain.GetAssemblies()
-            // .SelectMany(s => s.GetTypes())
-            allTypes
-            .Where(p => typeof(ICommand).IsAssignableFrom(p) && !p.IsAbstract)
-            .ToList();
+            var allTypes = AppDomain.CurrentDomain.GetAssemblies()
+                                    .Where(a => !a.FullName.Contains("Microsoft") && !a.FullName.Contains("System"))
+                                    .SelectMany(a => a.GetReferencedAssemblies())
+                                    .Select(Assembly.Load)
+                                    .SelectMany(a => a.GetTypes());
+            var res = allTypes.Where(p => typeof(ICommand).IsAssignableFrom(p) && !p.IsAbstract)
+                              .ToList();
             return new(res);
         }
     }

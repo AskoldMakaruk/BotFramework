@@ -10,21 +10,25 @@ using Telegram.Bot.Types;
 
 namespace BotFramework.Middleware
 {
-
     public record Consumers(LinkedList<IUpdateConsumer> List);
+
     public class StaticCommandsEndpoint
     {
-        private readonly UpdateDelegate       _next;
+        private readonly UpdateDelegate _next;
 
         public StaticCommandsEndpoint(UpdateDelegate next)
         {
             _next = next;
-        } 
-        public Task Invoke(Update    update, DictionaryContext dictionaryContext, IServiceProvider provider, PossibleCommands possibleCommands,
-                           Consumers consumers)
+        }
+
+        public Task Invoke(Update            update,
+                           ContextDictionary contextDictionary,
+                           IServiceProvider  provider,
+                           PossibleCommands  possibleCommands,
+                           Consumers         consumers)
         {
             var client = provider.GetService<IUpdateConsumer>();
-            if (client is null) //checking for null 
+            if (client is null)
             {
                 throw new Exception("Client not found");
             }
@@ -39,7 +43,7 @@ namespace BotFramework.Middleware
             if (currentCommand is not null)
             {
                 currentCommand.Consume(update);
-                dictionaryContext.Add(update.GetId().Value, provider);
+                contextDictionary.Add(update.GetId().Value, provider);
                 return Task.CompletedTask;
             }
 
@@ -55,9 +59,9 @@ namespace BotFramework.Middleware
                     return false;
                 }
 
-                dictionaryContext.Add(update.GetId().Value, consumers);
-                dictionaryContext.Add(update.GetId().Value, provider);
-                command = (IStaticCommand) provider.GetService(command.GetType())!;
+                contextDictionary.Add(update.GetId().Value, consumers);
+                contextDictionary.Add(update.GetId().Value, provider);
+                command = (IStaticCommand)provider.GetService(command.GetType())!;
                 client.Initialize(command, update);
                 consumers.List.AddFirst(client);
                 return true;
@@ -66,5 +70,4 @@ namespace BotFramework.Middleware
             return _next(update);
         }
     }
-
 }

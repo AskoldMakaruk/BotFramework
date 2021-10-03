@@ -1,8 +1,10 @@
 ﻿using System.Linq;
+using System.Reflection;
 using BotFramework.Abstractions;
 using BotFramework.HostServices;
 using BotFramework.Middleware;
 using EchoBot;
+using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -19,11 +21,11 @@ namespace BotFramework.Tests
         {
             _host = Host.CreateDefaultBuilder()
                         .ConfigureHostConfiguration(builder => builder.AddEnvironmentVariables())
-                        .ConfigureAppDebug(app =>
+                        .UseBotFramework((app, _) =>
                         {
                             app.UseStaticCommands();
                             app.UseHandlers();
-                        })
+                        }, true)
                         .Build();
         }
 
@@ -39,7 +41,7 @@ namespace BotFramework.Tests
         [Test]
         public void ServicesShouldContainStaticCommands()
         {
-            var commands = _host.Services.GetServices(typeof(IStaticCommand)).Select(a => a.GetType()).ToList();
+            var commands = _host.Services.GetService<StaticCommandsList>().StaticCommandsTypes.ToList();
 
             Assert.Contains(typeof(EchoCommand), commands);
             Assert.Contains(typeof(HelpCommand), commands);

@@ -7,6 +7,7 @@ using Telegram.Bot;
 
 namespace BotFramework.HostServices
 {
+    // todo handle obsolete update handling
     public class AppRunnerService : IHostedService
     {
         private readonly ITelegramBotClient _client;
@@ -22,7 +23,7 @@ namespace BotFramework.HostServices
         public async Task StartAsync(CancellationToken cancellationToken)
         {
             var me = await _client.GetMeAsync(cancellationToken);
-            _logger.Information($"Started bot @{me.Username}");
+            _logger.Information("Started bot @{UserName}", me.Username);
             _client.StartReceiving(cancellationToken: cancellationToken);
         }
 
