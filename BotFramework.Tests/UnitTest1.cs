@@ -18,31 +18,24 @@ namespace BotFramework.Tests
     {
         private DebugClient client;
 
-        private IHost _host;
 
         [SetUp]
         public void Setup()
         {
-            _host = Host.CreateDefaultBuilder()
-                        .UseSerilog((context, configuration) =>
-                        {
-                            configuration
-                            .MinimumLevel.Debug()
-                            .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
-                            .Enrich.FromLogContext()
-                            .WriteTo.Console();
-                        })
-                        .ConfigureHostConfiguration(builder => builder.AddEnvironmentVariables())
-                        .UseBotFramework((builder, _) =>
-                        {
-                            builder.Services.AddSingleton<IUpdateConsumer, DebugClient>();
-                            builder.Services.AddTransient<UpdateHandler>();
-                            builder.UseStaticCommands();
-                            builder.UseHandlers();
-                        }, true)
-                        .Build();
+            var host = Host.CreateDefaultBuilder()
+                           .UseSerilog((context, configuration) =>
+                           {
+                               configuration
+                               .MinimumLevel.Debug()
+                               .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+                               .Enrich.FromLogContext()
+                               .WriteTo.Console();
+                           })
+                           .ConfigureHostConfiguration(builder => builder.AddEnvironmentVariables())
+                           .UseSimpleBotFramework(true)
+                           .Build();
 
-            client = _host.Services.GetService<IUpdateConsumer>() as DebugClient;
+            client = host.Services.GetService<IUpdateConsumer>() as DebugClient;
         }
 
 

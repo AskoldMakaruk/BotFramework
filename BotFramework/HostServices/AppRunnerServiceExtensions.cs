@@ -20,6 +20,14 @@ namespace BotFramework.HostServices
             return services;
         }
 
+        public static IServiceCollection AddDebugUpdateConsumer(this IServiceCollection services)
+        {
+            services.AddSingleton<IUpdateConsumer, DebugClient>();
+            services.AddTransient<UpdateHandler>();
+
+            return services;
+        }
+
         public static IServiceCollection AddTelegramClient(this IServiceCollection services, string token)
         {
             services.AddSingleton<ITelegramBotClient>(new TelegramBotClient(token));
@@ -42,8 +50,15 @@ namespace BotFramework.HostServices
             {
                 appConfigurator?.Invoke(app, context);
 
-                app.Services.AddUpdateConsumer();
-                app.Services.AddTelegramClient(context.Configuration["BotToken"]);
+                if (!isDebug)
+                {
+                    app.Services.AddUpdateConsumer();
+                    app.Services.AddTelegramClient(context.Configuration["BotToken"]);
+                }
+                else
+                {
+                    app.Services.AddDebugUpdateConsumer();
+                }
 
                 app.UseMiddleware<LoggingMiddleware>();
                 app.UseHandlers();

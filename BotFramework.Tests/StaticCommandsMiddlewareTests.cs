@@ -1,6 +1,5 @@
-﻿using System.Linq;
-using System.Reflection;
-using BotFramework.Abstractions;
+﻿using System;
+using System.Linq;
 using BotFramework.HostServices;
 using BotFramework.Middleware;
 using EchoBot;
@@ -29,22 +28,24 @@ namespace BotFramework.Tests
                         .Build();
         }
 
+        private Type[] commandTypes = {
+            typeof(EchoCommand),
+            typeof(HelpCommand),
+            typeof(StateMachineTests.StatefullCommand)
+        };
+
         [Test]
         public void GetStaticCommands_WhenExecuted_ShouldReturnStaticCommands()
         {
             var commands = CommandsMiddlewareExtensions.GetStaticCommands().StaticCommandsTypes.ToList();
-
-            Assert.Contains(typeof(EchoCommand), commands);
-            Assert.Contains(typeof(HelpCommand), commands);
+            commands.Should().Contain(commandTypes);
         }
 
         [Test]
         public void ServicesShouldContainStaticCommands()
         {
-            var commands = _host.Services.GetService<StaticCommandsList>().StaticCommandsTypes.ToList();
-
-            Assert.Contains(typeof(EchoCommand), commands);
-            Assert.Contains(typeof(HelpCommand), commands);
+            var commands = _host.Services.GetService<StaticCommandsList>()!.StaticCommandsTypes.ToList();
+            commands.Should().Contain(commandTypes);
         }
     }
 }

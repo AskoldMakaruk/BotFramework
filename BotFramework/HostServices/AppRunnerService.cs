@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using BotFramework.Abstractions;
 using Microsoft.Extensions.Hosting;
 using Serilog;
+using Serilog.Core;
 using Telegram.Bot;
 
 namespace BotFramework.HostServices
@@ -16,9 +17,11 @@ namespace BotFramework.HostServices
         public AppRunnerService(UpdateDelegate app, ITelegramBotClient client, ILogger logger)
         {
             _client          =  client;
-            _logger     =  logger;
+            _logger          =  logger;
             _client.OnUpdate += (sender, args) => app(args.Update);
         }
+
+        public AppRunnerService(UpdateDelegate app, ITelegramBotClient client) : this(app, client, Logger.None) { }
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {

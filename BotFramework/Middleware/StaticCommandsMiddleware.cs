@@ -64,11 +64,19 @@ namespace BotFramework.Middleware
 
         public static StaticCommandsList GetStaticCommands()
         {
-            var allTypes = AppDomain.CurrentDomain.GetAssemblies()
-                                    .Where(a => !a.FullName.Contains("Microsoft") && !a.FullName.Contains("System"))
-                                    .SelectMany(a => a.GetReferencedAssemblies())
-                                    .Select(Assembly.Load)
-                                    .SelectMany(a => a.GetTypes());
+            var assemblies = AppDomain.CurrentDomain.GetAssemblies()
+                                      .Where(a => !a.FullName.Contains("Microsoft")
+                                                  && !a.FullName.Contains("System"))
+                                      .ToList();
+
+            var referenced = assemblies.SelectMany(a => a.GetReferencedAssemblies())
+                                       .Where(a => !a.FullName.Contains("Microsoft")
+                                                   && !a.FullName.Contains("System"))
+                                       .Select(Assembly.Load);
+
+            assemblies = assemblies.Concat(referenced).ToList();
+
+            var allTypes = assemblies.SelectMany(a => a.GetTypes());
             var res = allTypes.Where(p => typeof(ICommand).IsAssignableFrom(p) && !p.IsAbstract)
                               .ToList();
             return new(res);
