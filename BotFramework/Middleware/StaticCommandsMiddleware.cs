@@ -11,6 +11,8 @@ namespace BotFramework.Middleware
 {
     public record StaticCommandsList(IReadOnlyList<Type> StaticCommandsTypes);
 
+    public record Consumers(LinkedList<IUpdateConsumer> List);
+
     public class PossibleCommands
     {
         public List<ICommand> Commands { get; set; } = new();
@@ -41,7 +43,7 @@ namespace BotFramework.Middleware
     {
         public static void UsePossibleCommands(this IAppBuilder builder)
         {
-            builder.Services.AddScoped(_ => new PossibleCommands());
+            builder.Services.AddScoped<PossibleCommands>();
         }
 
         public static void UseStaticCommands(this IAppBuilder builder, StaticCommandsList staticCommands)
@@ -49,11 +51,14 @@ namespace BotFramework.Middleware
             builder.UsePossibleCommands();
             builder.Services.AddSingleton(staticCommands);
             builder.UseMiddleware<StaticCommandsMiddleware>(staticCommands);
+            
             foreach (var command in staticCommands.StaticCommandsTypes)
+            {
                 builder.Services.AddScoped(command);
+            }
 
             builder.Services.AddWrappedScoped(_ => new Consumers(new()));
-            builder.UseMiddleware<StaticCommandsEndpoint>();
+            builder.UseMiddleware<SuitableMiddleware>();
         }
 
         public static void UseStaticCommands(this IAppBuilder builder)
@@ -62,6 +67,8 @@ namespace BotFramework.Middleware
             UseStaticCommands(builder, staticCommands);
         }
 
+        // this might not be perfect solution because it loads many assemblies 
+        // we need to investigate it later
         public static StaticCommandsList GetStaticCommands()
         {
             var assemblies = AppDomain.CurrentDomain.GetAssemblies()

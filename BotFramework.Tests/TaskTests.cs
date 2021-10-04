@@ -9,6 +9,7 @@ using NUnit.Framework;
 namespace BotFramework.Tests
 {
     // this 
+    [Ignore("This is just a proof of concept.")]
     public class TaskTests
     {
         private static Task _task;

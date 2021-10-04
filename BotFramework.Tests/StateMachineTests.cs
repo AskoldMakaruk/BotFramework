@@ -33,7 +33,7 @@ namespace BotFramework.Tests
                                .WriteTo.Console();
                            })
                            .ConfigureHostConfiguration(builder => builder.AddEnvironmentVariables())
-                           .UseSimpleBotFramework((builder, context) => { builder.Services.AddScoped<StatefullService>(); }, true)
+                           .UseSimpleBotFramework(true)
                            .Build();
 
             client = host.Services.GetService<IUpdateConsumer>() as DebugClient;
@@ -45,13 +45,26 @@ namespace BotFramework.Tests
             public  int State => _state++;
         }
 
+        public class CancelCommand : IStaticCommand
+        {
+            public bool SuitableFirst(Update update)
+            {
+                return update.Message.Text == "StateMachineTests.Cancel";
+            }
+
+            public async Task Execute(IClient client)
+            {
+                await client.SendTextMessage("Action was canceled");
+            }
+        }
+
         public class StatefullCommand : IStaticCommand
         {
             private readonly StatefullService _service;
 
-            public StatefullCommand(StatefullService service)
+            public StatefullCommand()
             {
-                _service = service;
+                _service = new();
             }
 
             public bool SuitableFirst(Update update)
@@ -89,6 +102,27 @@ namespace BotFramework.Tests
             message.Text = "<any text>";
             await client.FromUser(message);
             (await client.GetRequest<SendMessageRequest>()).Text.Should().Contain("1");
+        }
+
+        [Test]
+        public async Task StatefullCommand_WhenCancelMessagesReceived_ShoudDiscardState()
+        {
+            var message = new Message
+            {
+                From = new User
+                {
+                    Id       = 1,
+                    Username = "UserName",
+                },
+                Text = "state"
+            };
+
+            await client.FromUser(message);
+            (await client.GetRequest<SendMessageRequest>()).Text.Should().Contain("0");
+
+            message.Text = "StateMachineTests.Cancel";
+            await client.FromUser(message);
+            (await client.GetRequest<SendMessageRequest>()).Text.Should().Be("Action was canceled");
         }
     }
 }
