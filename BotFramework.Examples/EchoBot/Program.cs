@@ -30,7 +30,7 @@ namespace EchoBot
                     .Enrich.FromLogContext()
                     .WriteTo.Console();
                 })
-                
+
                 // use this 
                 .UseSimpleBotFramework()
 
@@ -39,16 +39,35 @@ namespace EchoBot
                 // use this
                 .UseBotFramework((app, context) =>
                 {
-                    app.Services.AddSingleton<ITelegramBotClient>(_ =>
-                    new TelegramBotClient(context.Configuration["BotToken"]));
-                    app.Services.AddTransient<IUpdateConsumer, Client>();
+                    app.Services.AddTelegramClient(context.Configuration["BotToken"]);
+                    app.Services.AddUpdateConsumer();
                     app.UseMiddleware<LoggingMiddleware>();
                     app.UseHandlers();
                     app.UseStaticCommands();
                 })
+                // --| OR |--
+                // use this
+                .UseBotFrameworkStartup<Startup>()
+                // --| OR |--
+                // use this
+                .UseBotFramework(new Startup().Configure, false)
                 .Build()
                 .Run();
         }
+    }
+
+    public class Startup : IStartup
+    {
+        public void Configure(IAppBuilder app, HostBuilderContext context)
+        {
+            app.Services.AddTelegramClient(context.Configuration["BotToken"]);
+            app.Services.AddUpdateConsumer();
+            app.UseMiddleware<LoggingMiddleware>();
+            app.UseHandlers();
+            app.UseStaticCommands();
+        }
+
+        public bool IsDebug => false;
     }
 
     public class EchoCommand : IStaticCommand
