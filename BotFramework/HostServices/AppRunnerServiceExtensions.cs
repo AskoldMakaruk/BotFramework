@@ -76,7 +76,6 @@ namespace BotFramework.HostServices
                    {
                        appConfigurator(appBuilder, context);
 
-
                        appBuilder.Services.AddHostedService(provider =>
                        new AppRunnerService((UpdateDelegate)context.Properties[AppKostyl],
                            provider.GetService<ITelegramBotClient>()!, provider.GetService<ILogger>()!));
@@ -88,6 +87,14 @@ namespace BotFramework.HostServices
                        }
                    })
                    .UseConsoleLifetime();
+        }
+
+        public static IHostBuilder UseBotFrameworkStartup<T>(this IHostBuilder builder, T startup) where T : IStartup =>
+             builder.UseBotFramework(startup.Configure, startup.IsDebug);
+        public static IHostBuilder UseBotFrameworkStartup<T>(this IHostBuilder builder) where T : IStartup, new()
+        {
+            var startup = new T();
+            return builder.UseBotFramework(startup.Configure, startup.IsDebug);
         }
 
         public record DebugDelegateWrapper(UpdateDelegate App);
