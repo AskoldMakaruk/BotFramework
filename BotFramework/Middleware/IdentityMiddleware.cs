@@ -4,11 +4,13 @@ using BotFramework.Helpers;
 using Microsoft.Extensions.DependencyInjection;
 using Telegram.Bot.Types;
 
+#nullable enable
 namespace BotFramework.Middleware
 {
-    public interface IUserFactory<TUser>
+    public interface IUserRepository<TUser>
     {
-        Task<TUser> GetUser(long userId);
+        Task<TUser?> GetUser(long    userId);
+        Task<TUser>  CreateUser(User user);
     }
 
     public class IdentityMiddleware<TUser>
@@ -20,7 +22,7 @@ namespace BotFramework.Middleware
             _next = next;
         }
 
-        internal async Task Invoke(Update update, AccountContext<TUser> accountContext, IUserFactory<TUser> factory)
+        internal async Task Invoke(Update update, AccountContext<TUser> accountContext, IUserRepository<TUser> repository)
         {
             if (update.GetUser() is not { } user)
             {
@@ -30,7 +32,8 @@ namespace BotFramework.Middleware
 
             if (accountContext.User != null)
             {
-                accountContext.User = await factory.GetUser(user.Id);
+                var dbUser = await repository.GetUser(user.Id) ?? await repository.CreateUser(user);
+                accountContext.User = dbUser;
             }
 
             await _next.Invoke(update);
