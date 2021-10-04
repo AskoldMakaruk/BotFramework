@@ -28,7 +28,10 @@ namespace BotFramework.Middleware
                 return;
             }
 
-            accountContext.User = await factory.GetUser(user.Id);
+            if (accountContext.User != null)
+            {
+                accountContext.User = await factory.GetUser(user.Id);
+            }
 
             await _next.Invoke(update);
         }
