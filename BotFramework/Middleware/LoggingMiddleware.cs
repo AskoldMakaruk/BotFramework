@@ -2,11 +2,13 @@
 using BotFramework.Abstractions;
 using BotFramework.Helpers;
 using Serilog;
-using Serilog.Context;
 using Telegram.Bot.Types;
 
 namespace BotFramework.Middleware
 {
+    /// <summary>
+    /// Middleware that logs all incoming messages from users.
+    /// </summary>
     public class LoggingMiddleware
     {
         private readonly UpdateDelegate _next;
@@ -22,13 +24,11 @@ namespace BotFramework.Middleware
         {
             var info = update.GetInfoFromUpdate();
 
-            using (LogContext.PushProperty("UpdateType", info.UpdateType))
-            using (LogContext.PushProperty("MessageType", info.MessageType))
-            using (LogContext.PushProperty("From", info.FromName))
-            using (LogContext.PushProperty("Contents", info.Contents))
-            {
-                _logger.Information("{UpdateType} {MessageType} | {From}: {Contents}");
-            }
+            _logger.Information("{UpdateType} {MessageType} | {From}: {Contents}",
+                info.UpdateType,
+                info.MessageType,
+                info.From,
+                info.Contents);
 
             return _next.Invoke(update);
         }
