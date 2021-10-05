@@ -6,6 +6,6 @@ namespace BotFramework
     public interface IStartup
     {
         public void Configure(IAppBuilder app, HostBuilderContext context);
-        public bool IsDebug { get; }
+        public bool isTesting { get; }
     }
 }

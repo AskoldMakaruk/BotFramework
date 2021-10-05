@@ -2,8 +2,6 @@ using System;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using BotFramework.Middleware;
-using FluentAssertions;
 using NUnit.Framework;
 
 namespace BotFramework.Tests

@@ -3,7 +3,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using BotFramework.Abstractions;
 using BotFramework.Helpers;
-using Telegram.Bot;
 using Telegram.Bot.Requests.Abstractions;
 using Telegram.Bot.Types;
 

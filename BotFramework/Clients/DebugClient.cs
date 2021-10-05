@@ -2,8 +2,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
-using BotFramework.Abstractions;
-using BotFramework.Helpers;
 using BotFramework.HostServices;
 using Telegram.Bot;
 using Telegram.Bot.Requests.Abstractions;
@@ -16,7 +14,6 @@ namespace BotFramework.Clients
         public Task<TResponse> MakeRequest<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = default);
     }
 
-    // этот класс должен хранить отданные всеми клиентами апдейты и выдавать их тестам
     public class TelegramSink : IRequestSinc
     {
         private readonly ITelegramBotClient _botClient;
@@ -70,13 +67,12 @@ namespace BotFramework.Clients
                 return ValueTask.FromResult(updateToReturn);
             }
 
-            //this is ugly please refactor
             GetRequestTask = new TaskCompletionSource<object>();
-            return new ValueTask<TResponse>(GetRequestTask?.Task.ContinueWith(a => (TResponse)a.GetAwaiter().GetResult())
+            return new ValueTask<TResponse>(GetRequestTask?.Task
+                                                          .ContinueWith(a => (TResponse)a.GetAwaiter().GetResult())
                                             ?? Task.FromResult(default(TResponse))!);
         }
     }
-
 
     public class AppUpdateProducer
     {
@@ -90,63 +86,4 @@ namespace BotFramework.Clients
             _debugDelegateWrapper = debugDelegateWrapper;
         }
     }
-
-    // public class DebugClient : IUpdateConsumer
-    // {
-    //     private TaskCompletionSource<object>? GetRequestTask;
-    //
-    //     //todo telegram reply factory
-    //     //todo make ProducerConsumerTaskCollectionidk
-    //     private readonly IProducerConsumerCollection<object> RequestToSend   = new ConcurrentQueue<object>();
-    //     private readonly IProducerConsumerCollection<object> TelegramReplies = new ConcurrentQueue<object>();
-    //
-    //     private Func<Update, bool>? CurrentFilter;
-    //     private Action<Update>?     OnFilterFail;
-    //     public  long                UserId { get; private set; }
-    //
-    //     private readonly UpdateHandler _updateHandler;
-    //
-    //
-    //     public DebugClient(UpdateHandler updateHandler)
-    //     {
-    //         _updateHandler = updateHandler;
-    //     }
-    //
-    //     public void Initialize(ICommand command, Update update)
-    //     {
-    //         UserId = (int)update.GetId()!;
-    //         Consume(update);
-    //         _updateHandler.CurrentTask = command.Execute(this);
-    //     }
-    //
-    //     public Task<TResponse> MakeRequest<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = default)
-    //     {
-    //         RequestToSend.TryAdd(request);
-    //         TelegramReplies.TryTake(out var reply);
-    //         if (GetRequestTask?.Task.IsCompleted == false)
-    //         {
-    //             GetRequestTask.SetResult(request);
-    //         }
-    //
-    //         return Task.FromResult((TResponse)(reply!));
-    //     }
-    //
-    //   
-    //
-    //     public ValueTask<Update> GetUpdate(Func<Update, bool>? filter = null, Action<Update>? onFilterFail = null)
-    //     {
-    //         CurrentFilter = filter;
-    //         OnFilterFail  = onFilterFail;
-    //
-    //         return _updateHandler.GetUpdate(CurrentFilter, OnFilterFail);
-    //     }
-    //
-    //     public bool IsDone             { get; private set; }
-    //     public bool IsWaitingForUpdate { get; private set; }
-    //
-    //     public void Consume(Update update)
-    //     {
-    //         _updateHandler.Consume(update, CurrentFilter, OnFilterFail);
-    //     }
-    // }
 }

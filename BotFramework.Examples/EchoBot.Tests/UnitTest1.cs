@@ -1,5 +1,4 @@
 using System.Threading.Tasks;
-using BotFramework.Abstractions;
 using NUnit.Framework;
 using BotFramework.Clients;
 using BotFramework.HostServices;

@@ -1,5 +1,4 @@
 using System;
-using System.Xml;
 using BotFramework.Abstractions;
 using BotFramework.Clients;
 using BotFramework.Middleware;
@@ -39,21 +38,20 @@ namespace BotFramework.HostServices
 
         internal const string AppKostyl = "UniqueAppKostyl";
 
-        public static IHostBuilder UseSimpleBotFramework(this IHostBuilder builder,
-                                                         bool              isDebug = false)
+        public static IHostBuilder UseSimpleBotFramework(this IHostBuilder builder, bool isTesting = false)
         {
-            return UseSimpleBotFramework(builder, (_, _) => { }, isDebug);
+            return UseSimpleBotFramework(builder, (_, _) => { }, isTesting);
         }
 
         public static IHostBuilder UseSimpleBotFramework(this IHostBuilder                       builder,
                                                          Action<IAppBuilder, HostBuilderContext> appConfigurator,
-                                                         bool                                    isDebug = false)
+                                                         bool                                    isTesting = false)
         {
             return builder.UseBotFramework((app, context) =>
             {
                 appConfigurator?.Invoke(app, context);
 
-                if (!isDebug)
+                if (!isTesting)
                 {
                     app.Services.AddUpdateConsumer();
                     app.Services.AddTelegramClient(context.Configuration["BotToken"]);
@@ -67,39 +65,41 @@ namespace BotFramework.HostServices
                 app.UseHandlers();
                 app.UseStaticCommands();
                 app.UseMiddleware<SuitableMiddleware>();
-            }, isDebug);
+            }, isTesting);
         }
 
         public static IHostBuilder UseBotFramework(this IHostBuilder                       builder,
                                                    Action<IAppBuilder, HostBuilderContext> appConfigurator,
-                                                   bool                                    isDebug = false)
+                                                   bool                                    isTesting = false)
         {
-            return builder
-                   .UseServiceProviderFactory(context => new AppBuilderFactory(context))
-                   .ConfigureContainer<AppBuilder>((context, appBuilder) =>
-                   {
-                       appConfigurator(appBuilder, context);
+            builder
+            .UseServiceProviderFactory(context => new AppBuilderFactory(context))
+            .ConfigureContainer<AppBuilder>((context, appBuilder) =>
+            {
+                appConfigurator(appBuilder, context);
 
-                       appBuilder.Services.AddHostedService(provider =>
-                       new AppRunnerService((UpdateDelegate)context.Properties[AppKostyl],
-                           provider.GetService<ITelegramBotClient>()!, provider.GetService<ILogger>()!));
+                appBuilder.Services.AddHostedService(provider =>
+                new AppRunnerService((UpdateDelegate)context.Properties[AppKostyl],
+                    provider.GetService<ITelegramBotClient>()!, provider.GetService<ILogger>()!));
 
-                       if (isDebug)
-                       {
-                           appBuilder.Services.AddSingleton(_ =>
-                           new DebugDelegateWrapper((UpdateDelegate)context.Properties[AppKostyl]));
-                       }
-                   })
-                   .UseConsoleLifetime();
+                if (isTesting)
+                {
+                    appBuilder.Services.AddSingleton(_ =>
+                    new DebugDelegateWrapper((UpdateDelegate)context.Properties[AppKostyl]));
+                }
+            })
+            .UseConsoleLifetime();
+
+            return builder;
         }
 
         public static IHostBuilder UseBotFrameworkStartup<T>(this IHostBuilder builder, T startup) where T : IStartup =>
-        builder.UseBotFramework(startup.Configure, startup.IsDebug);
+        builder.UseBotFramework(startup.Configure, startup.isTesting);
 
         public static IHostBuilder UseBotFrameworkStartup<T>(this IHostBuilder builder) where T : IStartup, new()
         {
             var startup = new T();
-            return builder.UseBotFramework(startup.Configure, startup.IsDebug);
+            return builder.UseBotFramework(startup.Configure, startup.isTesting);
         }
 
         public record DebugDelegateWrapper(UpdateDelegate App);

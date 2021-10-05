@@ -1,16 +1,12 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using BotFramework;
 using BotFramework.Abstractions;
-using BotFramework.Clients;
 using BotFramework.Clients.ClientExtensions;
 using BotFramework.HostServices;
 using BotFramework.Middleware;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using Serilog.Events;
-using Telegram.Bot;
 using Telegram.Bot.Types;
 using ILogger = Serilog.ILogger;
 
@@ -67,7 +63,7 @@ namespace EchoBot
             app.UseStaticCommands();
         }
 
-        public bool IsDebug => false;
+        public bool isTesting => false;
     }
 
     public class EchoCommand : IStaticCommand
