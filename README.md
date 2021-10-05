@@ -1,9 +1,10 @@
 # BotFramework
 
-[![package](https://img.shields.io/nuget/v/BotFramework)](https://www.nuget.org/packages/BotFramework) [![Nuget (with prereleases)](https://img.shields.io/nuget/vpre/BotFramework)](https://www.nuget.org/packages/BotFramework)
-
+[![package](https://img.shields.io/nuget/v/BotFramework)](https://www.nuget.org/packages/BotFramework) 
+[![Nuget (with prereleases)](https://img.shields.io/nuget/vpre/BotFramework)](https://www.nuget.org/packages/BotFramework)
 [![Nuget](https://img.shields.io/nuget/dt/BotFramework)](https://www.nuget.org/packages/BotFramework)
 
+[![telegram chat](https://img.shields.io/badge/Support_Chat-Telegram-blue.svg)](https://t.me/joinchat/127lTON-O_g4ZjBi)
 ## Echobot
 
 ### Starting boilerplate:
