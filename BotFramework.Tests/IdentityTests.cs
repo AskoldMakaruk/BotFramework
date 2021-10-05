@@ -22,7 +22,9 @@ namespace BotFramework.Tests
     {
         public record IdentityUser(long Id, string Name);
 
-        private DebugClient                         client;
+        private AppUpdateProducer client;
+        private MemorySink        _sink;
+
         private Mock<IUserRepository<IdentityUser>> _userRepository;
 
         private readonly string _username = "UserName";
@@ -49,7 +51,8 @@ namespace BotFramework.Tests
                            }, true)
                            .Build();
 
-            client = host.Services.GetService<IUpdateConsumer>() as DebugClient;
+            client = host.Services.GetService<AppUpdateProducer>();
+            _sink = host.Services.GetService<IRequestSinc>() as MemorySink;
         }
 
         public class IdentityCommand : IStaticCommand
@@ -81,7 +84,7 @@ namespace BotFramework.Tests
             _userRepository.Setup(repository => repository.GetUser(1)).ReturnsAsync(() => new IdentityUser(1, _username));
 
             await client.FromUser(message);
-            (await client.GetRequest<SendMessageRequest>()).Text.Should().Contain(_username);
+            (await _sink.GetRequest<SendMessageRequest>()).Text.Should().Contain(_username);
         }
 
         [Test]
@@ -94,7 +97,7 @@ namespace BotFramework.Tests
                            .ReturnsAsync(() => new IdentityUser(1, _username));
 
             await client.FromUser(message);
-            (await client.GetRequest<SendMessageRequest>()).Text.Should().Contain(_username);
+            (await _sink.GetRequest<SendMessageRequest>()).Text.Should().Contain(_username);
         }
 
         [Test]
@@ -107,10 +110,10 @@ namespace BotFramework.Tests
                            .ReturnsAsync(() => null);
 
             await client.FromUser(message);
-            client.Invoking(a => a.GetRequest<SendMessageRequest>())
+            _sink.Invoking(a => a.GetRequest<SendMessageRequest>())
                   .Should()
                   .Throw<NullReferenceException>();
-            await client.GetRequest<SendMessageRequest>();
+            await _sink.GetRequest<SendMessageRequest>();
         }
 
         private Message Message()

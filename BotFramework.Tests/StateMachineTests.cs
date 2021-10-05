@@ -20,7 +20,9 @@ namespace BotFramework.Tests
     //tests are failing during incorect debug client scope
     public class StateMachineTests
     {
-        private DebugClient client;
+        private AppUpdateProducer client;
+        private MemorySink        _sink;
+
 
         [SetUp]
         public void Setup()
@@ -45,7 +47,8 @@ namespace BotFramework.Tests
                            }, true)
                            .Build();
 
-            client = host.Services.GetService<IUpdateConsumer>() as DebugClient;
+            client = host.Services.GetService<AppUpdateProducer>() ;
+            _sink = host.Services.GetService<IRequestSinc>() as MemorySink ;
         }
 
         public class StatefullService
@@ -106,11 +109,11 @@ namespace BotFramework.Tests
             };
 
             await client.FromUser(message);
-            (await client.GetRequest<SendMessageRequest>()).Text.Should().Contain("0");
+            (await _sink.GetRequest<SendMessageRequest>()).Text.Should().Contain("0");
 
             message.Text = "<any text>";
             await client.FromUser(message);
-            (await client.GetRequest<SendMessageRequest>()).Text.Should().Contain("1");
+            (await _sink.GetRequest<SendMessageRequest>()).Text.Should().Contain("1");
         }
 
         [Test]
@@ -119,13 +122,13 @@ namespace BotFramework.Tests
             var message = GetMessage();
 
             await client.FromUser(message);
-            (await client.GetRequest<SendMessageRequest>()).Text.Should().Contain("0");
+            (await _sink.GetRequest<SendMessageRequest>()).Text.Should().Contain("0");
 
             message      = GetMessage();
             message.Text = nameof(CancelCommand);
             
             await client.FromUser(message);
-            (await client.GetRequest<SendMessageRequest>()).Text.Should().Be("Action was canceled");
+            (await _sink.GetRequest<SendMessageRequest>()).Text.Should().Be("Action was canceled");
         }
 
         private static Message GetMessage()
