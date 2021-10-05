@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using BotFramework.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Serilog;
 using Telegram.Bot.Types;
 
 namespace BotFramework.Middleware
@@ -50,7 +51,15 @@ namespace BotFramework.Middleware
         public static void UseStaticCommands(this IAppBuilder builder, StaticCommandsList staticCommands)
         {
             builder.UsePossibleCommands();
-            builder.Services.TryAddSingleton(staticCommands);
+            builder.Services.TryAddSingleton(provider =>
+            {
+                provider.GetService<ILogger>()
+                        ?.Debug("Loaded {Count} static commands: {Commands}",
+                            staticCommands.StaticCommandsTypes.Count,
+                            string.Join(", ", staticCommands.StaticCommandsTypes.Select(a => a.Name)));
+
+                return staticCommands;
+            });
             builder.UseMiddleware<StaticCommandsMiddleware>();
 
             foreach (var command in staticCommands.StaticCommandsTypes)
@@ -60,7 +69,6 @@ namespace BotFramework.Middleware
 
             builder.Services.AddWrappedScoped(_ => new Consumers(new()));
         }
-
 
         public static void UseStaticCommandsAssembly(this IAppBuilder builder, Assembly assembly)
         {

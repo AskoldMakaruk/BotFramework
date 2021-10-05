@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using BotFramework.Abstractions;
 using BotFramework.Helpers;
+using Serilog;
 using Telegram.Bot.Requests.Abstractions;
 using Telegram.Bot.Types;
 
@@ -13,6 +14,7 @@ namespace BotFramework.Clients
     public class Client : IClient, IUpdateConsumer
     {
         private readonly UpdateHandler _updateHandler;
+        private readonly ILogger       _logger;
         private readonly IRequestSinc  _client;
 
         private Func<Update, bool>? CurrentFilter;
@@ -22,10 +24,11 @@ namespace BotFramework.Clients
         public bool IsDone             => _updateHandler.IsDone;
         public bool IsWaitingForUpdate => _updateHandler.IsWaitingForUpdate;
 
-        public Client(IRequestSinc client, UpdateHandler updateHandler)
+        public Client(IRequestSinc client, UpdateHandler updateHandler, ILogger logger)
         {
             _client        = client;
             _updateHandler = updateHandler;
+            _logger        = logger;
         }
 
         public void Initialize(ICommand command, Update update)
@@ -43,9 +46,11 @@ namespace BotFramework.Clients
             return _updateHandler.GetUpdate(filter, onFilterFail);
         }
 
-        public Task<TResponse> MakeRequest<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = default)
+        public async Task<TResponse> MakeRequest<TResponse>(IRequest<TResponse> request,
+                                                            CancellationToken   cancellationToken = default)
         {
-            return _client.MakeRequest(request, cancellationToken);
+            _logger.Verbose("{Message}", await request.ToHttpContent().ReadAsStringAsync(cancellationToken));
+            return await _client.MakeRequest(request, cancellationToken);
         }
 
         public void Consume(Update update)
