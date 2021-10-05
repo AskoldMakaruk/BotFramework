@@ -42,7 +42,7 @@ namespace BotFramework.Middleware
                 return;
             }
 
-            if (userContext.User != null)
+            if (userContext.User == null)
             {
                 var dbUser = await repository.GetUser(user.Id) ?? await repository.CreateUser(user);
                 userContext.User = dbUser;

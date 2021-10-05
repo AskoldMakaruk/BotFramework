@@ -29,8 +29,8 @@ namespace BotFramework
         /// <param name="app">The <see cref="IAppBuilder"/> instance.</param>
         /// <param name="args">The arguments to pass to the middleware type instance's constructor.</param>
         /// <returns>The <see cref="IAppBuilder"/> instance.</returns>
-        public static IAppBuilder UseMiddleware<[DynamicallyAccessedMembers(MiddlewareAccessibility)]
-            TMiddleware>(this IAppBuilder app, params object[] args)
+        public static IAppBuilder UseMiddleware<[DynamicallyAccessedMembers(MiddlewareAccessibility)] TMiddleware>(
+            this IAppBuilder app, params object[] args)
         {
             return app.UseMiddleware(typeof(TMiddleware), args);
         }
@@ -42,12 +42,14 @@ namespace BotFramework
         /// <param name="middleware">The middleware type.</param>
         /// <param name="args">The arguments to pass to the middleware type instance's constructor.</param>
         /// <returns>The <see cref="IAppBuilder"/> instance.</returns>
-        public static IAppBuilder UseMiddleware(this IAppBuilder app, [DynamicallyAccessedMembers(MiddlewareAccessibility)]
-                                                Type middleware,      params object[] args)
+        public static IAppBuilder UseMiddleware(this                                                  IAppBuilder app,
+                                                [DynamicallyAccessedMembers(MiddlewareAccessibility)] Type        middleware,
+                                                params                                                object[]    args)
         {
             return app.Use(applicationServices => next =>
             {
-                var methods = middleware.GetMethods(BindingFlags.Instance | BindingFlags.Public);
+                var methods = middleware.GetMethods(BindingFlags.Instance | BindingFlags.Public)
+                                        .Concat(middleware.GetMethods(BindingFlags.Instance | BindingFlags.NonPublic));
                 var invokeMethods = methods.Where(m =>
                                            string.Equals(m.Name,    InvokeMethodName,      StringComparison.Ordinal)
                                            || string.Equals(m.Name, InvokeAsyncMethodName, StringComparison.Ordinal)
@@ -89,7 +91,7 @@ namespace BotFramework
                 var instance = ActivatorUtilities.CreateInstance(applicationServices, middleware, ctorArgs);
                 if (parameters.Length == 1)
                 {
-                    return (UpdateDelegate) methodInfo.CreateDelegate(typeof(UpdateDelegate), instance);
+                    return (UpdateDelegate)methodInfo.CreateDelegate(typeof(UpdateDelegate), instance);
                 }
 
                 var factory = Compile<object>(methodInfo, parameters);
