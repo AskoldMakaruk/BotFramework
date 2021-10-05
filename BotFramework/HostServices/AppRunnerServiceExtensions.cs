@@ -90,7 +90,8 @@ namespace BotFramework.HostServices
         }
 
         public static IHostBuilder UseBotFrameworkStartup<T>(this IHostBuilder builder, T startup) where T : IStartup =>
-             builder.UseBotFramework(startup.Configure, startup.IsDebug);
+        builder.UseBotFramework(startup.Configure, startup.IsDebug);
+
         public static IHostBuilder UseBotFrameworkStartup<T>(this IHostBuilder builder) where T : IStartup, new()
         {
             var startup = new T();

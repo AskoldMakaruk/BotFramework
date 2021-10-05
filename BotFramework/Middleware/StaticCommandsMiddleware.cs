@@ -63,6 +63,10 @@ namespace BotFramework.Middleware
 
         public static void UseStaticCommands(this IAppBuilder builder)
         {
+            if (builder.Services.Any(x => x.ServiceType == typeof(StaticCommandsList)))
+            {
+                return;
+            }
             var staticCommands = GetStaticCommands();
             UseStaticCommands(builder, staticCommands);
         }

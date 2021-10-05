@@ -4,6 +4,7 @@ using BotFramework.Abstractions;
 using BotFramework.Clients;
 using BotFramework.Clients.ClientExtensions;
 using BotFramework.HostServices;
+using BotFramework.Middleware;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -33,7 +34,14 @@ namespace BotFramework.Tests
                                .WriteTo.Console();
                            })
                            .ConfigureHostConfiguration(builder => builder.AddEnvironmentVariables())
-                           .UseSimpleBotFramework(true)
+                           .UseSimpleBotFramework((builder, context) =>
+                           {
+                               builder.UseStaticCommands(new StaticCommandsList(new[]
+                               {
+                                   typeof(CancelCommand),
+                                   typeof(StatefullCommand)
+                               }));
+                           }, true)
                            .Build();
 
             client = host.Services.GetService<IUpdateConsumer>() as DebugClient;
