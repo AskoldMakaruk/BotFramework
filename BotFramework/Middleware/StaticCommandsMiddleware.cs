@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using BotFramework.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Telegram.Bot.Types;
 
 namespace BotFramework.Middleware
@@ -49,16 +50,21 @@ namespace BotFramework.Middleware
         public static void UseStaticCommands(this IAppBuilder builder, StaticCommandsList staticCommands)
         {
             builder.UsePossibleCommands();
-            builder.Services.AddSingleton(staticCommands);
-            builder.UseMiddleware<StaticCommandsMiddleware>(staticCommands);
-            
+            builder.Services.TryAddSingleton(staticCommands);
+            builder.UseMiddleware<StaticCommandsMiddleware>();
+
             foreach (var command in staticCommands.StaticCommandsTypes)
             {
                 builder.Services.AddScoped(command);
             }
 
             builder.Services.AddWrappedScoped(_ => new Consumers(new()));
-            builder.UseMiddleware<SuitableMiddleware>();
+        }
+
+
+        public static void UseStaticCommandsAssembly(this IAppBuilder builder, Assembly assembly)
+        {
+            builder.UseStaticCommands(GetStaticCommands(new[] { assembly }));
         }
 
         public static void UseStaticCommands(this IAppBuilder builder)
@@ -67,13 +73,13 @@ namespace BotFramework.Middleware
             {
                 return;
             }
-            var staticCommands = GetStaticCommands();
-            UseStaticCommands(builder, staticCommands);
+
+            builder.UseStaticCommands(GetStaticCommands(GetAssemblies()));
         }
 
         // this might not be perfect solution because it loads many assemblies 
         // we need to investigate it later
-        public static StaticCommandsList GetStaticCommands()
+        internal static Assembly[] GetAssemblies()
         {
             var assemblies = AppDomain.CurrentDomain.GetAssemblies()
                                       .Where(a => !a.FullName.Contains("Microsoft")
@@ -85,8 +91,12 @@ namespace BotFramework.Middleware
                                                    && !a.FullName.Contains("System"))
                                        .Select(Assembly.Load);
 
-            assemblies = assemblies.Concat(referenced).ToList();
 
+            return assemblies.Concat(referenced).ToArray();
+        }
+
+        public static StaticCommandsList GetStaticCommands(IEnumerable<Assembly> assemblies)
+        {
             var allTypes = assemblies.SelectMany(a => a.GetTypes());
             var res = allTypes.Where(p => typeof(ICommand).IsAssignableFrom(p) && !p.IsAbstract)
                               .ToList();

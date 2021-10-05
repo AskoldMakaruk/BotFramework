@@ -17,6 +17,7 @@ using Telegram.Bot.Types;
 
 namespace BotFramework.Tests
 {
+    //tests are failing during incorect debug client scope
     public class StateMachineTests
     {
         private DebugClient client;
@@ -57,7 +58,7 @@ namespace BotFramework.Tests
         {
             public bool SuitableFirst(Update update)
             {
-                return update.Message.Text == "StateMachineTests.Cancel";
+                return update.Message.Text == nameof(CancelCommand);
             }
 
             public async Task Execute(IClient client)
@@ -115,7 +116,21 @@ namespace BotFramework.Tests
         [Test]
         public async Task StatefullCommand_WhenCancelMessagesReceived_ShoudDiscardState()
         {
-            var message = new Message
+            var message = GetMessage();
+
+            await client.FromUser(message);
+            (await client.GetRequest<SendMessageRequest>()).Text.Should().Contain("0");
+
+            message      = GetMessage();
+            message.Text = nameof(CancelCommand);
+            
+            await client.FromUser(message);
+            (await client.GetRequest<SendMessageRequest>()).Text.Should().Be("Action was canceled");
+        }
+
+        private static Message GetMessage()
+        {
+            return new Message
             {
                 From = new User
                 {
@@ -124,13 +139,6 @@ namespace BotFramework.Tests
                 },
                 Text = "state"
             };
-
-            await client.FromUser(message);
-            (await client.GetRequest<SendMessageRequest>()).Text.Should().Contain("0");
-
-            message.Text = "StateMachineTests.Cancel";
-            await client.FromUser(message);
-            (await client.GetRequest<SendMessageRequest>()).Text.Should().Be("Action was canceled");
         }
     }
 }

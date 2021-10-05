@@ -13,8 +13,8 @@ namespace BotFramework.Clients
     /// >
     public class Client : IClient, IUpdateConsumer
     {
-        private readonly UpdateHandler      _updateHandler;
-        private readonly ITelegramBotClient _client;
+        private readonly UpdateHandler _updateHandler;
+        private readonly IRequestSinc  _client;
 
         private Func<Update, bool>? CurrentFilter;
         private Action<Update>?     OnFilterFail;
@@ -23,7 +23,7 @@ namespace BotFramework.Clients
         public bool IsDone             => _updateHandler.IsDone;
         public bool IsWaitingForUpdate => _updateHandler.IsWaitingForUpdate;
 
-        public Client(ITelegramBotClient client, UpdateHandler updateHandler)
+        public Client(IRequestSinc client, UpdateHandler updateHandler)
         {
             _client        = client;
             _updateHandler = updateHandler;
@@ -46,7 +46,7 @@ namespace BotFramework.Clients
 
         public Task<TResponse> MakeRequest<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = default)
         {
-            return _client.MakeRequestAsync(request, cancellationToken);
+            return _client.MakeRequest(request, cancellationToken);
         }
 
         public void Consume(Update update)

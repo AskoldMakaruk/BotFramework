@@ -2,7 +2,6 @@
 using System.Linq;
 using BotFramework.HostServices;
 using BotFramework.Middleware;
-using EchoBot;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,18 +27,17 @@ namespace BotFramework.Tests
                         .Build();
         }
 
-        private Type[] commandTypes = {
-            typeof(EchoCommand),
-            typeof(HelpCommand),
+        private Type[] commandTypes =
+        {
             typeof(StateMachineTests.StatefullCommand)
         };
 
-        [Test]
-        public void GetStaticCommands_WhenExecuted_ShouldReturnStaticCommands()
-        {
-            var commands = CommandsMiddlewareExtensions.GetStaticCommands().StaticCommandsTypes.ToList();
-            commands.Should().Contain(commandTypes);
-        }
+        // [Test]
+        // public void GetStaticCommands_WhenExecuted_ShouldReturnStaticCommands()
+        // {
+        //     var commands = CommandsMiddlewareExtensions.GetAssemblies().StaticCommandsTypes.ToList();
+        //     commands.Should().Contain(commandTypes);
+        // }
 
         [Test]
         public void ServicesShouldContainStaticCommands()

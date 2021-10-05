@@ -16,14 +16,17 @@ namespace BotFramework.HostServices
         {
             services.AddTransient<IUpdateConsumer, Client>();
             services.AddTransient<UpdateHandler>();
+            services.AddSingleton<IRequestSinc, TelegramSink>();
 
             return services;
         }
 
         public static IServiceCollection AddDebugUpdateConsumer(this IServiceCollection services)
         {
-            services.AddSingleton<IUpdateConsumer, DebugClient>();
+            services.AddTransient<IUpdateConsumer, Client>();
             services.AddTransient<UpdateHandler>();
+            services.AddSingleton<AppUpdateProducer>();
+            services.AddSingleton<IRequestSinc, MemorySink>();
 
             return services;
         }
@@ -63,6 +66,7 @@ namespace BotFramework.HostServices
                 app.UseMiddleware<LoggingMiddleware>();
                 app.UseHandlers();
                 app.UseStaticCommands();
+                app.UseMiddleware<SuitableMiddleware>();
             }, isDebug);
         }
 

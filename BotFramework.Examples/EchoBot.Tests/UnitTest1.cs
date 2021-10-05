@@ -4,6 +4,7 @@ using NUnit.Framework;
 using BotFramework.Clients;
 using BotFramework.HostServices;
 using BotFramework.Middleware;
+using EchoBot;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -16,8 +17,8 @@ namespace BotFramework.Tests
 {
     public class Tests
     {
-        private DebugClient client;
-
+        private AppUpdateProducer producer;
+        private MemorySink        _sink;
 
         [SetUp]
         public void Setup()
@@ -32,10 +33,12 @@ namespace BotFramework.Tests
                                .WriteTo.Console();
                            })
                            .ConfigureHostConfiguration(builder => builder.AddEnvironmentVariables())
-                           .UseSimpleBotFramework(true)
+                           .UseSimpleBotFramework(
+                               (builder, context) => { builder.UseStaticCommandsAssembly(typeof(HelpCommand).Assembly); }, true)
                            .Build();
 
-            client = host.Services.GetService<IUpdateConsumer>() as DebugClient;
+            producer = host.Services.GetService<AppUpdateProducer>();
+            _sink    = host.Services.GetService<IRequestSinc>() as MemorySink;
         }
 
 
@@ -44,25 +47,25 @@ namespace BotFramework.Tests
         public async Task Test1()
         {
             var text = "test text";
-            await client.FromUser(
+            await producer.FromUser(
                 new Message
                 {
                     From = From,
                     Text = text
                 });
 
-            var message = await client.GetRequest<SendMessageRequest>();
+            var message = await _sink.GetRequest<SendMessageRequest>();
 
             Assert.AreEqual($"Hello, here ypur last message {text}, type somethinh again", message.Text);
 
-            await client.FromUser(
+            await producer.FromUser(
                 new Message
                 {
                     From = From,
                     Text = text
                 });
 
-            message = await client.GetRequest<SendMessageRequest>();
+            message = await _sink.GetRequest<SendMessageRequest>();
             Assert.AreEqual($"And this is your new message {text}, and now type only message with hello", message.Text);
         }
 
