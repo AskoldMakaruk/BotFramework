@@ -264,3 +264,4 @@ __pycache__/
 *.pyc
 
 *.db
+/BotFramework.Akka/BotFramework.Akka.csproj

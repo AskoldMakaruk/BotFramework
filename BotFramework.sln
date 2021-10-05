@@ -7,7 +7,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotFramework", "BotFramewor
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EchoBot", "BotFramework.Examples\EchoBot\EchoBot.csproj", "{D94297A4-E77B-4C57-812E-554F009E07AD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotFramework.Tests", "BotFramework.Tests\BotFramework.Tests.csproj", "{7F3FE3F6-58CE-40CD-942B-C0EC64982F9C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotFramework.Abstractions", "BotFramework.Abstractions\BotFramework.Abstractions.csproj", "{195A3967-A09C-413F-80C8-DC938AC2399C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotFramework.Tests", "BotFramework.Tests\BotFramework.Tests.csproj", "{1F86F2BB-F129-499F-94F1-F5FAD2527F90}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EchoBot.Tests", "BotFramework.Examples\EchoBot.Tests\EchoBot.Tests.csproj", "{5BF6DE53-D1C3-4431-9A9D-119A4A605E1B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examples", "Examples", "{AC2E5BD8-DE22-4731-81A7-80416DF85E33}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,15 +29,38 @@ Global
 		{D94297A4-E77B-4C57-812E-554F009E07AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D94297A4-E77B-4C57-812E-554F009E07AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D94297A4-E77B-4C57-812E-554F009E07AD}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7F3FE3F6-58CE-40CD-942B-C0EC64982F9C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7F3FE3F6-58CE-40CD-942B-C0EC64982F9C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7F3FE3F6-58CE-40CD-942B-C0EC64982F9C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7F3FE3F6-58CE-40CD-942B-C0EC64982F9C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{195A3967-A09C-413F-80C8-DC938AC2399C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{195A3967-A09C-413F-80C8-DC938AC2399C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{195A3967-A09C-413F-80C8-DC938AC2399C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{195A3967-A09C-413F-80C8-DC938AC2399C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1F86F2BB-F129-499F-94F1-F5FAD2527F90}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1F86F2BB-F129-499F-94F1-F5FAD2527F90}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1F86F2BB-F129-499F-94F1-F5FAD2527F90}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1F86F2BB-F129-499F-94F1-F5FAD2527F90}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5BF6DE53-D1C3-4431-9A9D-119A4A605E1B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5BF6DE53-D1C3-4431-9A9D-119A4A605E1B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5BF6DE53-D1C3-4431-9A9D-119A4A605E1B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5BF6DE53-D1C3-4431-9A9D-119A4A605E1B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {D97F6906-677D-4B33-9C3D-EA91D5443026}
+	EndGlobalSection
+	GlobalSection(AutomaticVersions) = postSolution
+		UpdateAssemblyVersion = False
+		UpdateAssemblyFileVersion = True
+		UpdateAssemblyInfoVersion = True
+		ShouldCreateLogs = True
+		AssemblyFileVersionSettings = IncrementOnDemand.IncrementOnDemand.IncrementOnDemand.Increment
+		UpdatePackageVersion = False
+		AssemblyInfoVersionSemVerSettings = AssemblyFileVersion.IncrementOnce.Alpha
+		AssemblyInfoVersionType = SemVer1
+		InheritWinAppVersionFrom = None
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{D94297A4-E77B-4C57-812E-554F009E07AD} = {AC2E5BD8-DE22-4731-81A7-80416DF85E33}
+		{5BF6DE53-D1C3-4431-9A9D-119A4A605E1B} = {AC2E5BD8-DE22-4731-81A7-80416DF85E33}
 	EndGlobalSection
 EndGlobal

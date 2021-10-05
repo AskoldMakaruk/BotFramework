@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.1</TargetFramework>
+        <Authors />
+        <Company>BotFramework</Company>
+        <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+        <AssemblyVersion>1.0.0.0</AssemblyVersion>
+        <FileVersion>1.0.0.31</FileVersion>
+        <Version>1.0.0-alpha-29</Version>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageProjectUrl>https://github.com/AskoldMakaruk/BotFramework</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/AskoldMakaruk/BotFramework</RepositoryUrl>
+        <RepositoryType>Open</RepositoryType>
+        <PackageTags>telegram bot</PackageTags>
+        <PackageReleaseNotes>Middleware</PackageReleaseNotes>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="5.0.0" />
+        <PackageReference Include="Telegram.Bot" Version="16.0.2" />
+    </ItemGroup>
+
+</Project>
