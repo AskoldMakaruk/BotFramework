@@ -11,7 +11,7 @@ namespace BotFramework.Clients
 {
     /// <inheritdoc cref="IClient" />
     /// >
-    public class Client : IClient, IUpdateConsumer
+    public class Client : IUpdateConsumer
     {
         private readonly UpdateHandler _updateHandler;
         private readonly ILogger       _logger;
@@ -22,7 +22,6 @@ namespace BotFramework.Clients
 
         public long UserId             { get; private set; }
         public bool IsDone             => _updateHandler.IsDone;
-        public bool IsWaitingForUpdate => _updateHandler.IsWaitingForUpdate;
 
         public Client(IRequestSinc client, UpdateHandler updateHandler, ILogger logger)
         {

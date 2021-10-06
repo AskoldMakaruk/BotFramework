@@ -8,8 +8,7 @@ namespace BotFramework.Clients
     public class UpdateHandler
     {
         public Task? CurrentTask;
-        public bool  IsDone             => CurrentTask.IsCompleted;
-        public bool  IsWaitingForUpdate => CurrentBasicBotTask?.Task.IsCompleted == false;
+        public bool  IsDone => CurrentTask.IsCompleted;
 
         private readonly IProducerConsumerCollection<Update> UpdatesToHandle = new ConcurrentQueue<Update>();
         private          TaskCompletionSource<Update>?       CurrentBasicBotTask;

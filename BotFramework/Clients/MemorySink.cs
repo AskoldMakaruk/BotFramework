@@ -2,33 +2,10 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
-using BotFramework.HostServices;
-using Telegram.Bot;
 using Telegram.Bot.Requests.Abstractions;
-using Telegram.Bot.Types;
 
 namespace BotFramework.Clients
 {
-    public interface IRequestSinc
-    {
-        public Task<TResponse> MakeRequest<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = default);
-    }
-
-    public class TelegramSink : IRequestSinc
-    {
-        private readonly ITelegramBotClient _botClient;
-
-        public TelegramSink(ITelegramBotClient botClient)
-        {
-            _botClient = botClient;
-        }
-
-        public Task<TResponse> MakeRequest<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = default)
-        {
-            return _botClient.MakeRequestAsync(request, cancellationToken);
-        }
-    }
-
     public class MemorySink : IRequestSinc
     {
         private TaskCompletionSource<object>? GetRequestTask;
@@ -68,22 +45,11 @@ namespace BotFramework.Clients
             }
 
             GetRequestTask = new TaskCompletionSource<object>();
-            return new ValueTask<TResponse>(GetRequestTask?.Task
-                                                          .ContinueWith(a => (TResponse)a.GetAwaiter().GetResult())
-                                            ?? Task.FromResult(default(TResponse))!);
-        }
-    }
-
-    public class AppUpdateProducer
-    {
-        public Task FromUser(Update  update)  => _debugDelegateWrapper.App(update);
-        public Task FromUser(Message message) => FromUser(new Update { Message = message });
-
-        private readonly AppRunnerServiceExtensions.DebugDelegateWrapper _debugDelegateWrapper;
-
-        public AppUpdateProducer(AppRunnerServiceExtensions.DebugDelegateWrapper debugDelegateWrapper)
-        {
-            _debugDelegateWrapper = debugDelegateWrapper;
+            
+            var task = GetRequestTask?.Task.ContinueWith(a =>
+                       (TResponse)a.GetAwaiter().GetResult())
+                       ?? Task.FromResult(default(TResponse))!;
+            return new ValueTask<TResponse>(task);
         }
     }
 }
