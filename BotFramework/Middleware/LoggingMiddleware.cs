@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 using BotFramework.Abstractions;
-using BotFramework.Helpers;
+using BotFramework.Extensions;
 using Serilog;
 using Telegram.Bot.Types;
 

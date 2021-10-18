@@ -1,3 +1,5 @@
+using System;
+using System.Threading.Tasks;
 using Telegram.Bot.Types;
 
 namespace BotFramework.Abstractions
@@ -8,6 +10,6 @@ namespace BotFramework.Abstractions
         
         void Consume(Update update);
 
-        void Initialize(ICommand command, Update update);
+        void Initialize(Func<IClient, Task> command, Update update);
     }
 }

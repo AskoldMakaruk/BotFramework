@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using BotFramework.Abstractions;
 using BotFramework.Clients;
 using BotFramework.Clients.ClientExtensions;
+using BotFramework.Extensions;
 using BotFramework.HostServices;
 using BotFramework.Middleware;
 using FluentAssertions;
@@ -16,7 +17,6 @@ using Telegram.Bot.Types;
 
 namespace BotFramework.Tests
 {
-    //tests are failing during incorect debug client scope
     public class StateMachineTests
     {
         private AppUpdateProducer client;
@@ -30,7 +30,7 @@ namespace BotFramework.Tests
                            .UseSerilog((context, configuration) =>
                            {
                                configuration
-                               .MinimumLevel.Debug()
+                               .MinimumLevel.Verbose()
                                .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
                                .Enrich.FromLogContext()
                                .WriteTo.Console();
@@ -46,8 +46,8 @@ namespace BotFramework.Tests
                            }, true)
                            .Build();
 
-            client = host.Services.GetService<AppUpdateProducer>() ;
-            _sink = host.Services.GetService<IRequestSinc>() as MemorySink ;
+            client = host.Services.GetService<AppUpdateProducer>();
+            _sink  = host.Services.GetService<IRequestSinc>() as MemorySink;
         }
 
         public class StatefullService
@@ -97,16 +97,7 @@ namespace BotFramework.Tests
         [Test]
         public async Task StatefullCommand_WhenMultipleMessagesReceived_ShoudPreserveState()
         {
-            var message = new Message
-            {
-                From = new User
-                {
-                    Id       = 1,
-                    Username = "UserName",
-                },
-                Text = "state"
-            };
-
+            var message = GetMessage();
             await client.FromUser(message);
             (await _sink.GetRequest<SendMessageRequest>()).Text.Should().Contain("0");
 
@@ -125,7 +116,7 @@ namespace BotFramework.Tests
 
             message      = GetMessage();
             message.Text = nameof(CancelCommand);
-            
+
             await client.FromUser(message);
             (await _sink.GetRequest<SendMessageRequest>()).Text.Should().Be("Action was canceled");
         }

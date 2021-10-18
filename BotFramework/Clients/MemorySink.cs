@@ -8,27 +8,35 @@ namespace BotFramework.Clients
 {
     public class MemorySink : IRequestSinc
     {
-        private TaskCompletionSource<object>? GetRequestTask;
+        private readonly ConcurrentQueue<TaskCompletionSource<object>?> GetTasks = new();
 
-        private readonly IProducerConsumerCollection<object> RequestToSend   = new ConcurrentQueue<object>();
-        private readonly IProducerConsumerCollection<object> TelegramReplies = new ConcurrentQueue<object>();
+        private readonly ConcurrentQueue<object> RequestToSend   = new ConcurrentQueue<object>();
+        private readonly ConcurrentQueue<object> TelegramReplies = new ConcurrentQueue<object>();
 
         public Task<TResponse> MakeRequest<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = default)
         {
-            RequestToSend.TryAdd(request);
-            TelegramReplies.TryTake(out var reply);
-            if (GetRequestTask?.Task.IsCompleted == false)
+            TelegramReplies.TryDequeue(out var reply);
+
+            lock (GetTasks)
             {
-                GetRequestTask.SetResult(request);
+                GetTasks.TryPeek(out var task);
+                if (task?.Task.IsCompleted == false)
+                {
+                    task.SetResult(request);
+                    GetTasks.TryDequeue(out _);
+                    return Task.FromResult((TResponse)reply!);
+                }
             }
 
-            return Task.FromResult((TResponse)(reply!));
+            RequestToSend.Enqueue(request);
+
+            return Task.FromResult((TResponse)reply!);
         }
 
         public ValueTask<TResponse> GetRequest<TResponse>(Func<TResponse, bool>? filter = null)
         {
             TResponse? updateToReturn = default;
-            while (RequestToSend.TryTake(out var update))
+            while (RequestToSend.TryDequeue(out var update))
             {
                 if (update is not TResponse item || filter?.Invoke(item) == false)
                 {
@@ -44,9 +52,12 @@ namespace BotFramework.Clients
                 return ValueTask.FromResult(updateToReturn);
             }
 
-            GetRequestTask = new TaskCompletionSource<object>();
-            
-            var task = GetRequestTask?.Task.ContinueWith(a =>
+            var source = new TaskCompletionSource<object>();
+            lock (GetTasks)
+            {
+                GetTasks.Enqueue(source);
+            }
+            var task = source?.Task.ContinueWith(a =>
                        (TResponse)a.GetAwaiter().GetResult())
                        ?? Task.FromResult(default(TResponse))!;
             return new ValueTask<TResponse>(task);

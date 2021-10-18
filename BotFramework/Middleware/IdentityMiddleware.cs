@@ -1,7 +1,6 @@
 using System.Threading.Tasks;
 using BotFramework.Abstractions;
-using BotFramework.Helpers;
-using Microsoft.Extensions.DependencyInjection;
+using BotFramework.Extensions;
 using Telegram.Bot.Types;
 
 #nullable enable
@@ -48,16 +47,6 @@ namespace BotFramework.Middleware
             }
 
             await _next.Invoke(update);
-        }
-    }
-
-    public static class UseIdentityMiddleware
-    {
-        public static void UseIdentity<TUser>(this IAppBuilder builder) where TUser : class
-        {
-            builder.Services.AddScoped<UserContext<TUser>>();
-            builder.Services.AddScoped(provider => provider.GetService<UserContext<TUser>>()?.User!);
-            builder.UseMiddleware<IdentityMiddleware<TUser>>();
         }
     }
 

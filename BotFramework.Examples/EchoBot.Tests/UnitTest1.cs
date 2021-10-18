@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using NUnit.Framework;
 using BotFramework.Clients;
+using BotFramework.Extensions;
 using BotFramework.HostServices;
 using BotFramework.Middleware;
 using EchoBot;

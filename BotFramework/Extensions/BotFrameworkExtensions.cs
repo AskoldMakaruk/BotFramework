@@ -1,41 +1,17 @@
 using System;
 using BotFramework.Abstractions;
-using BotFramework.Clients;
+using BotFramework.HostServices;
 using BotFramework.Middleware;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using Telegram.Bot;
+using Telegram.Bot.Types;
 
-namespace BotFramework.HostServices
+namespace BotFramework.Extensions
 {
-    public static class AppRunnerServiceExtensions
+    public static class BotFrameworkExtensions
     {
-        public static IServiceCollection AddUpdateConsumer(this IServiceCollection services)
-        {
-            services.AddTransient<IUpdateConsumer, Client>();
-            services.AddTransient<UpdateHandler>();
-            services.AddSingleton<IRequestSinc, TelegramSink>();
-
-            return services;
-        }
-
-        public static IServiceCollection AddDebugUpdateConsumer(this IServiceCollection services)
-        {
-            services.AddTransient<IUpdateConsumer, Client>();
-            services.AddTransient<UpdateHandler>();
-            services.AddSingleton<AppUpdateProducer>();
-            services.AddSingleton<IRequestSinc, MemorySink>();
-
-            return services;
-        }
-
-        public static IServiceCollection AddTelegramClient(this IServiceCollection services, string token)
-        {
-            services.AddSingleton<ITelegramBotClient>(new TelegramBotClient(token));
-            return services;
-        }
-
         internal const string AppKostyl = "UniqueAppKostyl";
 
         public static IHostBuilder UseSimpleBotFramework(this IHostBuilder builder, bool isTesting = false)
@@ -61,10 +37,16 @@ namespace BotFramework.HostServices
                     app.Services.AddDebugUpdateConsumer();
                 }
 
-                app.UseMiddleware<LoggingMiddleware>();
-                app.UseHandlers();
                 app.UseStaticCommands();
+
+                app.Services.AddScoped<Update>(provider => provider.GetService<UpdateFactory>()!.CurrentUpdate);
+                app.Services.AddScoped<UpdateFactory>();
+                app.Services.AddScoped<UpdateContext>();
+
+                app.UseMiddleware<UpdateMiddleware>();
+                app.UseMiddleware<LoggingMiddleware>();
                 app.UseMiddleware<SuitableMiddleware>();
+                app.UseMiddleware<EndpointMiddleware>();
             }, isTesting);
         }
 
@@ -93,8 +75,10 @@ namespace BotFramework.HostServices
             return builder;
         }
 
-        public static IHostBuilder UseBotFrameworkStartup<T>(this IHostBuilder builder, T startup) where T : IStartup =>
-        builder.UseBotFramework(startup.Configure, startup.isTesting);
+        public static IHostBuilder UseBotFrameworkStartup<T>(this IHostBuilder builder, T startup) where T : IStartup
+        {
+            return builder.UseBotFramework(startup.Configure, startup.isTesting);
+        }
 
         public static IHostBuilder UseBotFrameworkStartup<T>(this IHostBuilder builder) where T : IStartup, new()
         {

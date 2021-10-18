@@ -2,6 +2,7 @@
 using BotFramework;
 using BotFramework.Abstractions;
 using BotFramework.Clients.ClientExtensions;
+using BotFramework.Extensions;
 using BotFramework.HostServices;
 using BotFramework.Middleware;
 using Microsoft.Extensions.Hosting;
@@ -38,7 +39,6 @@ namespace EchoBot
                     app.Services.AddTelegramClient(context.Configuration["BotToken"]);
                     app.Services.AddUpdateConsumer();
                     app.UseMiddleware<LoggingMiddleware>();
-                    app.UseHandlers();
                     app.UseStaticCommands();
                 })
                 // --| OR |--
@@ -59,7 +59,6 @@ namespace EchoBot
             app.Services.AddTelegramClient(context.Configuration["BotToken"]);
             app.Services.AddUpdateConsumer();
             app.UseMiddleware<LoggingMiddleware>();
-            app.UseHandlers();
             app.UseStaticCommands();
         }
 

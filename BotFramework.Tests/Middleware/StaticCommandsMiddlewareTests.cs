@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using BotFramework.Extensions;
 using BotFramework.HostServices;
 using BotFramework.Middleware;
 using FluentAssertions;
@@ -22,7 +23,7 @@ namespace BotFramework.Tests
                         .UseBotFramework((app, _) =>
                         {
                             app.UseStaticCommands();
-                            app.UseHandlers();
+                            //app.UseHandlers();
                         }, true)
                         .Build();
         }

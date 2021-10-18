@@ -2,7 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using BotFramework.Abstractions;
-using BotFramework.Helpers;
+using BotFramework.Extensions;
 using Serilog;
 using Telegram.Bot.Requests.Abstractions;
 using Telegram.Bot.Types;
@@ -11,30 +11,31 @@ namespace BotFramework.Clients
 {
     /// <inheritdoc cref="IClient" />
     /// >
-    public class Client : IUpdateConsumer
+    public class Client : IUpdateConsumer // todo delete this class its just a proxy
     {
-        private readonly UpdateHandler _updateHandler;
-        private readonly ILogger       _logger;
-        private readonly IRequestSinc  _client;
+        private readonly UpdateQueue  _updateQueue;
+        private readonly ILogger      _logger;
+        private readonly IRequestSinc _client;
 
         private Func<Update, bool>? CurrentFilter;
         private Action<Update>?     OnFilterFail;
+        private Task                CurrentTask;
 
-        public long UserId             { get; private set; }
-        public bool IsDone             => _updateHandler.IsDone;
+        public long UserId { get; private set; }
+        public bool IsDone => CurrentTask.IsCompleted;
 
-        public Client(IRequestSinc client, UpdateHandler updateHandler, ILogger logger)
+        public Client(IRequestSinc client, UpdateQueue updateQueue, ILogger logger)
         {
-            _client        = client;
-            _updateHandler = updateHandler;
-            _logger        = logger;
+            _client      = client;
+            _updateQueue = updateQueue;
+            _logger      = logger;
         }
 
-        public void Initialize(ICommand command, Update update)
+        public void Initialize(Func<IClient, Task> command, Update update)
         {
             UserId = (long)update.GetId()!;
             Consume(update);
-            _updateHandler.CurrentTask = command.Execute(this);
+            CurrentTask = command(this);
         }
 
         public ValueTask<Update> GetUpdate(Func<Update, bool>? filter = null, Action<Update>? onFilterFail = null)
@@ -42,7 +43,7 @@ namespace BotFramework.Clients
             CurrentFilter = filter;
             OnFilterFail  = onFilterFail;
 
-            return _updateHandler.GetUpdate(filter, onFilterFail);
+            return _updateQueue.GetUpdate(filter, onFilterFail);
         }
 
         public async Task<TResponse> MakeRequest<TResponse>(IRequest<TResponse> request,
@@ -54,7 +55,7 @@ namespace BotFramework.Clients
 
         public void Consume(Update update)
         {
-            _updateHandler.Consume(update, CurrentFilter, OnFilterFail);
+            _updateQueue.Consume(update, CurrentFilter, OnFilterFail);
         }
     }
 }

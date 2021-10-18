@@ -2,14 +2,40 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using BotFramework.Abstractions;
-using BotFramework.Helpers;
-using Microsoft.Extensions.Logging;
+using BotFramework.Extensions;
 using Serilog.Core;
 using Telegram.Bot.Types;
 using ILogger = Serilog.ILogger;
 
+
 namespace BotFramework.Middleware
 {
+    public enum EndpointPriority
+    {
+        First,
+        Last
+    }
+
+    public interface IEndpoint
+    {
+        public EndpointPriority    Priority { get; }
+        public Func<IClient, Task> Action   { get; }
+    }
+
+    public class CommandEndpoint : IEndpoint
+    {
+        private readonly ICommand _command;
+
+        public CommandEndpoint(ICommand command, EndpointPriority priority)
+        {
+            Priority = priority;
+            _command = command;
+        }
+
+        public EndpointPriority    Priority { get; }
+        public Func<IClient, Task> Action   => _client => _command.Execute(_client);
+    }
+
     public class SuitableMiddleware
     {
         private readonly UpdateDelegate _next;
@@ -19,63 +45,35 @@ namespace BotFramework.Middleware
             _next = next;
         }
 
-        public Task Invoke(Update            update,
-                           ContextDictionary contextDictionary,
-                           IServiceProvider  provider,
-                           PossibleCommands  possibleCommands,
-                           Consumers         consumers,
-                           IUpdateConsumer   client,
-                           ILogger?          logger = null)
+        public Task Invoke(Update           update,
+                           UpdateContext    updateContext,
+                           IServiceProvider provider,
+                           PossibleCommands possibleCommands,
+                           ILogger?         logger = null)
         {
             logger ??= Logger.None;
-            var id       = update.GetId().Value;
             var commands = possibleCommands.Commands.OfType<IStaticCommand>().ToList();
 
-            var command = commands.FirstOrDefault(t => t.SuitableFirst(update));
-            if (Initialize(command))
+            if (commands.FirstOrDefault(t => t.SuitableFirst(update)) is { } firstCommand)
             {
-                logger.Debug("{Command} is first suitable to handle {User}'s request", command.GetType().Name,
+                logger.Debug("{Command} is first suitable to handle {User}'s request", firstCommand.GetType().Name,
                     update.GetUser());
-                return Task.CompletedTask;
+                var command = (IStaticCommand)provider.GetService(firstCommand.GetType())!;
+                updateContext.Endpoints.Add(new CommandEndpoint(command, EndpointPriority.First));
             }
-
-            var currentCommand = consumers.List.FirstOrDefault(t => !t.IsDone);
-            if (currentCommand is not null)
+            else if (commands.FirstOrDefault(t => t.SuitableLast(update)) is { } lastCommand)
             {
-                logger.Debug("Current command is handling {User}'s request",
+                logger.Debug("{Command} is last suitable to handle {User}'s request", lastCommand.GetType().Name,
                     update.GetUser());
-
-                currentCommand.Consume(update);
-                contextDictionary.Add(id, provider);
-                return Task.CompletedTask;
+                var command = (IStaticCommand)provider.GetService(lastCommand.GetType())!;
+                updateContext.Endpoints.Add(new CommandEndpoint(command, EndpointPriority.Last));
             }
-
-            command = commands.FirstOrDefault(t => t.SuitableLast(update));
-            if (Initialize(command))
+            else
             {
-                logger.Debug("{Command} is last suitable to handle {User}'s request", command.GetType().Name,
-                    update.GetUser());
-                return Task.CompletedTask;
+                logger.Debug("No suitable command found for {User}", update.GetUser());
             }
 
-            bool Initialize(ICommand? command)
-            {
-                if (command is null)
-                {
-                    return false;
-                }
 
-                contextDictionary.Add(id, consumers);
-                contextDictionary.Add(id, provider);
-
-                command = (IStaticCommand)provider.GetService(command.GetType())!;
-                client.Initialize(command, update);
-
-                consumers.List.AddFirst(client);
-                return true;
-            }
-
-            logger.Debug("No suitable command found for {User}", update.GetUser());
             return _next(update);
         }
     }
