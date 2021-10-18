@@ -7,20 +7,15 @@ namespace BotFramework.Clients
 {
     public class UpdateQueue
     {
-        private readonly IProducerConsumerCollection<Update>            UpdatesToHandle = new ConcurrentQueue<Update>();
-        private readonly ConcurrentQueue<TaskCompletionSource<Update>?> GetTasks        = new();
+        private readonly IProducerConsumerCollection<Update> UpdatesToHandle = new ConcurrentQueue<Update>();
+        private          TaskCompletionSource<Update>?       CurrentTask;
 
         public void Consume(Update update, Func<Update, bool>? filter = null, Action<Update>? onFilterFail = null)
         {
-            lock (GetTasks)
+            if (CurrentTask?.Task.IsCompleted == false)
             {
-                GetTasks.TryPeek(out var task);
-                if (task?.Task.IsCompleted == false)
-                {
-                    task.SetResult(update);
-                    GetTasks.TryDequeue(out _);
-                    return;
-                }
+                CurrentTask.SetResult(update);
+                return;
             }
 
             UpdatesToHandle.TryAdd(update);
@@ -46,12 +41,10 @@ namespace BotFramework.Clients
                 return ValueTask.FromResult(updateToReturn);
             }
 
-            var task = new TaskCompletionSource<Update>();
-            lock (GetTasks)
-            {
-                GetTasks.Enqueue(task);
-            }
-            return new ValueTask<Update>(task.Task);
+            CurrentTask = new TaskCompletionSource<Update>();
+
+
+            return new ValueTask<Update>(CurrentTask.Task);
         }
     }
 }

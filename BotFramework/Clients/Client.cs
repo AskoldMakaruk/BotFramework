@@ -18,15 +18,15 @@ namespace BotFramework.Clients
 
 
         public           long                                      UserId { get; private set; }
-        private readonly ConcurrentDictionary<UpdateHandler, bool> _handlers = new ();
+        private readonly ConcurrentDictionary<UpdateHandler, bool> _handlers = new();
         private readonly ConcurrentQueue<Update>                   Updates   = new();
         public           bool                                      IsDone => CurrentTask.IsCompleted;
         private          Task                                      CurrentTask = null!;
 
         public Client(IRequestSinc client, ILogger logger)
         {
-            _client      = client;
-            _logger      = logger;
+            _client = client;
+            _logger = logger;
         }
 
         //should move initialize in another class/interface maybe
@@ -54,7 +54,7 @@ namespace BotFramework.Clients
         public void Consume(Update update)
         {
             foreach (var (handler, _) in _handlers)
-               handler.HandleUpdate(update); 
+                handler.HandleUpdate(update);
             Updates.Enqueue(update);
         }
     }

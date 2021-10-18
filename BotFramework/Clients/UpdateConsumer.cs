@@ -15,22 +15,26 @@ namespace BotFramework.Clients
     {
         private readonly Func<Update, bool>?          filter;
         private readonly Action<Update>?              onFilterFail;
-        private readonly Action<UpdateHandler>              onDone;
-        private readonly TaskCompletionSource<Update> CompletionSource = new ();
-        private readonly ConcurrentQueue<Update>         ExistedBeforeUpdates;
+        private readonly Action<UpdateHandler>        onDone;
+        private readonly TaskCompletionSource<Update> CompletionSource = new();
+        private readonly ConcurrentQueue<Update>      ExistedBeforeUpdates;
 
         public bool IsDone => CompletionSource.Task.IsCompleted;
-        
+
         private bool IsSuitableUpdate(Update u)
         {
             var suitable = filter?.Invoke(u) is not false;
-            if(!suitable)
+            if (!suitable)
+            {
                 onFilterFail?.Invoke(u);
+            }
+
             return suitable;
         }
 
 
-        public UpdateHandler(Func<Update, bool>? filter, Action<Update>? onFilterFail, IEnumerable<Update> existingUpdates, Action<UpdateHandler> onDone)
+        public UpdateHandler(Func<Update, bool>?   filter, Action<Update>? onFilterFail, IEnumerable<Update> existingUpdates,
+                             Action<UpdateHandler> onDone)
         {
             this.filter          = filter;
             this.onFilterFail    = onFilterFail;
@@ -40,9 +44,7 @@ namespace BotFramework.Clients
 
         public void HandleUpdate(Update update)
         {
-            if(IsDone)
-                return;
-            if (IsSuitableUpdate(update))
+            if (!IsDone && IsSuitableUpdate(update))
             {
                 CompletionSource.SetResult(update);
                 onDone(this);

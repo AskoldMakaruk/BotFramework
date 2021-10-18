@@ -47,6 +47,7 @@ namespace BotFramework.Tests
         }
 
         [Test]
+        [Ignore("This feature will not be implemented")]
         public async Task should3()
         {
             var tasks = new List<Task>();
