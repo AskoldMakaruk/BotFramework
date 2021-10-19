@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Telegram.Bot.Types;
 
-namespace BotFramework.Clients
+namespace BotFramework.Services.Clients
 {
     /// <summary>
     /// Consumer as wrapper on Task 'Update'
@@ -53,7 +53,6 @@ namespace BotFramework.Clients
             CompletionSource.SetResult(update);
             onDone(this);
             return true;
-
         }
 
         public ValueTask<Update> GetUpdate()

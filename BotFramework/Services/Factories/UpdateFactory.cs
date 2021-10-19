@@ -1,6 +1,6 @@
 using Telegram.Bot.Types;
 
-namespace BotFramework.Middleware
+namespace BotFramework.Services.Factories
 {
     public class UpdateFactory
     {

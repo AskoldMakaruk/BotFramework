@@ -1,5 +1,5 @@
 using System;
-using BotFramework.Extensions;
+using BotFramework.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -21,7 +21,7 @@ namespace BotFramework.HostServices
 
         public IServiceProvider CreateServiceProvider(AppBuilder containerBuilder)
         {
-            var (services, app)                    = containerBuilder.Build();
+            var (services, app)                                   = containerBuilder.Build();
             _context.Properties[BotFrameworkExtensions.AppKostyl] = app;
             return services;
         }

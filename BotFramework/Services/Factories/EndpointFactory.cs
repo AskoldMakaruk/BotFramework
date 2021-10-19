@@ -1,7 +1,8 @@
 using System;
 using BotFramework.Abstractions;
+using BotFramework.Middleware;
 
-namespace BotFramework.Middleware
+namespace BotFramework.Services.Factories
 {
     public class EndpointFactory
     {

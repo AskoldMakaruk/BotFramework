@@ -1,11 +1,10 @@
 using System;
 using System.Threading.Tasks;
 using BotFramework.Abstractions;
-using BotFramework.Clients;
-using BotFramework.Clients.ClientExtensions;
-using BotFramework.Extensions;
-using BotFramework.HostServices;
+using BotFramework.Extensions.Hosting;
 using BotFramework.Middleware;
+using BotFramework.Services.Clients;
+using BotFramework.Services.Extensioins;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,7 +16,7 @@ using Serilog.Events;
 using Telegram.Bot.Requests;
 using Telegram.Bot.Types;
 
-namespace BotFramework.Tests
+namespace BotFramework.Tests.Middleware
 {
     public class IdentityTests
     {
@@ -53,7 +52,7 @@ namespace BotFramework.Tests
                            .Build();
 
             client = host.Services.GetService<AppUpdateProducer>();
-            _sink = host.Services.GetService<IRequestSinc>() as MemorySink;
+            _sink  = host.Services.GetService<IRequestSinc>() as MemorySink;
         }
 
         public class IdentityCommand : IStaticCommand
@@ -113,8 +112,8 @@ namespace BotFramework.Tests
 
             await client.FromUser(message);
             _sink.Invoking(a => a.GetRequest<SendMessageRequest>())
-                  .Should()
-                  .Throw<NullReferenceException>();
+                 .Should()
+                 .Throw<NullReferenceException>();
             await _sink.GetRequest<SendMessageRequest>();
         }
 

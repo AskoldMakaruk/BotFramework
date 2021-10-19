@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using BotFramework.Abstractions;
 using BotFramework.Extensions;
+using BotFramework.Services.Clients;
 using Telegram.Bot.Types;
 
 namespace BotFramework.Middleware

@@ -1,20 +1,17 @@
 using System.Threading.Tasks;
 using BotFramework.Abstractions;
-using NUnit.Framework;
-using BotFramework.Clients;
-using BotFramework.Extensions;
-using BotFramework.HostServices;
-using BotFramework.Middleware;
-using EchoBot;
+using BotFramework.Extensions.Hosting;
+using BotFramework.Services.Clients;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using NUnit.Framework;
 using Serilog;
 using Serilog.Events;
 using Telegram.Bot.Requests;
 using Telegram.Bot.Types;
 
-namespace BotFramework.Tests
+namespace EchoBot.Tests
 {
     public class Tests
     {

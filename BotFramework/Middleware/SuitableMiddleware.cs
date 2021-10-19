@@ -2,9 +2,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using BotFramework.Abstractions;
 using BotFramework.Extensions;
+using BotFramework.Services.Factories;
+using Serilog;
 using Serilog.Core;
 using Telegram.Bot.Types;
-using ILogger = Serilog.ILogger;
 
 namespace BotFramework.Middleware
 {

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
-using BotFramework.Extensions;
-using BotFramework.HostServices;
+using BotFramework.Extensions.Hosting;
 using BotFramework.Middleware;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
@@ -9,7 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using NUnit.Framework;
 
-namespace BotFramework.Tests
+namespace BotFramework.Tests.Middleware
 {
     public class StaticCommandsMiddlewareTests
     {

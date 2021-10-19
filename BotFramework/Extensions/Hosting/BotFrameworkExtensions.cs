@@ -2,13 +2,14 @@ using System;
 using BotFramework.Abstractions;
 using BotFramework.HostServices;
 using BotFramework.Middleware;
+using BotFramework.Services.Factories;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
-namespace BotFramework.Extensions
+namespace BotFramework.Extensions.Hosting
 {
     public static class BotFrameworkExtensions
     {

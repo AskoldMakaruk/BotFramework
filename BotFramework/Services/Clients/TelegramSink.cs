@@ -4,7 +4,7 @@ using BotFramework.Abstractions;
 using Telegram.Bot;
 using Telegram.Bot.Requests.Abstractions;
 
-namespace BotFramework.Clients
+namespace BotFramework.Services.Clients
 {
     public class TelegramSink : IRequestSinc
     {

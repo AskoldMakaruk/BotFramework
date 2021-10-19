@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using BotFramework.Abstractions;
-using BotFramework.Clients.ClientExtensions;
+using BotFramework.Services.Extensioins;
 using FluentAssertions;
 using Moq;
 using NUnit.Framework;
@@ -56,7 +56,7 @@ namespace BotFramework.Tests
         {
             var client = _clientMock.Object;
             var filter = client.GetUpdateFilter().Select(a => a.Id).Where(i => i == 1);
-            
+
             (await filter).Should().Be(1);
             (await filter).Should().Be(2);
         }

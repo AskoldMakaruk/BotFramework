@@ -6,7 +6,7 @@ using BotFramework.Extensions;
 using Telegram.Bot.Requests.Abstractions;
 using Telegram.Bot.Types;
 
-namespace BotFramework.Clients
+namespace BotFramework.Services.Clients
 {
     public class Client : IClient
     {

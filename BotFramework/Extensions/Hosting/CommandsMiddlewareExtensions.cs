@@ -8,7 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Serilog;
 
-namespace BotFramework.Extensions
+namespace BotFramework.Extensions.Hosting
 {
     public static class CommandsMiddlewareExtensions
     {

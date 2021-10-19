@@ -1,8 +1,9 @@
 using System.Collections.Concurrent;
 using System.Linq;
 using BotFramework.Abstractions;
+using BotFramework.Middleware;
 
-namespace BotFramework.Middleware
+namespace BotFramework.Services.Clients
 {
     public class PriorityUpdateConsumer
     {
@@ -16,12 +17,12 @@ namespace BotFramework.Middleware
             {
                 return;
             }
-            
+
             if (consumers.FirstOrDefault(a => !a.IsDone) is { } consumer)
             {
                 consumer.Consume(context.Update);
             }
-            
+
             if (CheckPriority(EndpointPriority.Last))
             {
                 return;
@@ -39,7 +40,6 @@ namespace BotFramework.Middleware
 
                 consumers.Add(client);
                 return true;
-
             }
         }
     }

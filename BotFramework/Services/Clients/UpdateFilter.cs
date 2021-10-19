@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using BotFramework.Abstractions;
 using Telegram.Bot.Types;
 
-namespace BotFramework.Clients.ClientExtensions
+namespace BotFramework.Services.Clients
 {
     public class UpdateFilter<T>
     {

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using BotFramework.Clients;
+using BotFramework.Services.Clients;
 using FluentAssertions;
 using NUnit.Framework;
 using Serilog;

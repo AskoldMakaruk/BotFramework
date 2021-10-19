@@ -4,7 +4,7 @@ using System.Reflection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 
-namespace BotFramework.Extensions
+namespace BotFramework.Extensions.Hosting
 {
     public static class ConfigurationExtensions
     {

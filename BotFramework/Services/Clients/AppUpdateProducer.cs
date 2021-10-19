@@ -1,8 +1,8 @@
 using System.Threading.Tasks;
-using BotFramework.Extensions;
+using BotFramework.Extensions.Hosting;
 using Telegram.Bot.Types;
 
-namespace BotFramework.Clients
+namespace BotFramework.Services.Clients
 {
     public class AppUpdateProducer
     {

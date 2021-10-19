@@ -1,9 +1,10 @@
 using System.Linq;
 using BotFramework.Abstractions;
+using BotFramework.Services.Clients;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
 
-namespace BotFramework.Clients.ClientExtensions
+namespace BotFramework.Services.Extensioins
 {
     public static class ClientGetExtensions
     {

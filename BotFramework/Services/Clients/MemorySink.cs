@@ -4,10 +4,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using BotFramework.Abstractions;
 using Serilog;
-using Serilog.Core;
 using Telegram.Bot.Requests.Abstractions;
 
-namespace BotFramework.Clients
+namespace BotFramework.Services.Clients
 {
     public class MemorySink : IRequestSinc
     {

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using BotFramework.Abstractions;
+using BotFramework.Services.Factories;
 using Telegram.Bot.Types;
 
 namespace BotFramework.Middleware
@@ -20,7 +21,7 @@ namespace BotFramework.Middleware
             return _next(update);
         }
     }
-    
+
     public class UpdateContext
     {
         public readonly Update           Update;

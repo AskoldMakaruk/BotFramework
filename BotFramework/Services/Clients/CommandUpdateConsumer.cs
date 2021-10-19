@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using BotFramework.Abstractions;
 using Telegram.Bot.Types;
 
-namespace BotFramework.Clients
+namespace BotFramework.Services.Clients
 {
     public class CommandUpdateConsumer : ICommandUpdateConsumer
     {

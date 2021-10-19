@@ -2,7 +2,7 @@ using BotFramework.Abstractions;
 using BotFramework.Middleware;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace BotFramework.Extensions
+namespace BotFramework.Extensions.Hosting
 {
     public static class UseIdentityMiddleware
     {

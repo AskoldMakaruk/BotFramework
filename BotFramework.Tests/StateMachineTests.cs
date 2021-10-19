@@ -1,10 +1,9 @@
 using System.Threading.Tasks;
 using BotFramework.Abstractions;
-using BotFramework.Clients;
-using BotFramework.Clients.ClientExtensions;
-using BotFramework.Extensions;
-using BotFramework.HostServices;
+using BotFramework.Extensions.Hosting;
 using BotFramework.Middleware;
+using BotFramework.Services.Clients;
+using BotFramework.Services.Extensioins;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

@@ -1,9 +1,9 @@
 using BotFramework.Abstractions;
-using BotFramework.Clients;
+using BotFramework.Services.Clients;
 using Microsoft.Extensions.DependencyInjection;
 using Telegram.Bot;
 
-namespace BotFramework.Extensions
+namespace BotFramework.Extensions.Hosting
 {
     public static class ConsumerExtensions
     {
