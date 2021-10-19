@@ -2,12 +2,13 @@
 
     <PropertyGroup>
         <TargetFramework>netstandard2.1</TargetFramework>
-        <Authors />
+        <Authors/>
         <Company>BotFramework</Company>
         <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
         <AssemblyVersion>1.0.0.0</AssemblyVersion>
-        <FileVersion>1.0.0.31</FileVersion>
-        <Version>1.0.0-alpha-29</Version>
+        <FileVersion>1.0.0.42</FileVersion>
+        <Version>1.0.0-alpha-42</Version>
+        <PackageVersion>1.0.0-alpha-42</PackageVersion>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <PackageProjectUrl>https://github.com/AskoldMakaruk/BotFramework</PackageProjectUrl>
         <RepositoryUrl>https://github.com/AskoldMakaruk/BotFramework</RepositoryUrl>
