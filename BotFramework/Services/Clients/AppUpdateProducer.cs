@@ -1,6 +1,5 @@
 using System.Threading.Tasks;
 using BotFramework.Extensions;
-using BotFramework.HostServices;
 using Telegram.Bot.Types;
 
 namespace BotFramework.Clients

@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using System.Threading.Tasks;
 using BotFramework.Abstractions;
@@ -9,12 +8,6 @@ using ILogger = Serilog.ILogger;
 
 namespace BotFramework.Middleware
 {
-    public interface IEndpoint
-    {
-        public EndpointPriority Priority { get; }
-        public Task             Action   { get; }
-    }
-
     public class CommandEndpoint : IEndpoint
     {
         public EndpointPriority Priority { get; private set; }
@@ -35,24 +28,6 @@ namespace BotFramework.Middleware
         }
     }
 
-
-    public class EndpointFactory
-    {
-        private readonly IServiceProvider _provider;
-
-        public EndpointFactory(IServiceProvider provider)
-        {
-            _provider = provider;
-        }
-
-        public IEndpoint CreateEndpoint(ICommand command, EndpointPriority priority)
-        {
-            var newCommand = (IStaticCommand)_provider.GetService(command.GetType())!;
-            var endpoint   = (CommandEndpoint)_provider.GetService(typeof(CommandEndpoint))!;
-            endpoint.Initlialize(newCommand, priority);
-            return endpoint;
-        }
-    }
 
     public class SuitableMiddleware
     {
@@ -87,7 +62,7 @@ namespace BotFramework.Middleware
 
                 updateContext.Endpoints.Add(endpointFactory.CreateEndpoint(lastCommand, EndpointPriority.Last));
             }
-            
+
             // else
             // {
             //     logger.Debug("No suitable command found for {User}", update.GetUser());

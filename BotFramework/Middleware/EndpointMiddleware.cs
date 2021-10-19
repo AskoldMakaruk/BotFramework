@@ -9,7 +9,7 @@ namespace BotFramework.Middleware
     public class EndpointMiddleware
     {
         private static readonly ConcurrentDictionary<long, PriorityUpdateConsumer> _consumers = new();
-        private readonly        UpdateDelegate                             _next;
+        private readonly        UpdateDelegate                                     _next;
 
 
         public EndpointMiddleware(UpdateDelegate next)

@@ -10,8 +10,6 @@ namespace BotFramework.Middleware
 {
     public record StaticCommandsList(IReadOnlyList<Type> StaticCommandsTypes);
 
-    public record Consumers(LinkedList<ICommandUpdateConsumer> List);
-
     public class PossibleCommands
     {
         public List<ICommand> Commands { get; set; } = new();

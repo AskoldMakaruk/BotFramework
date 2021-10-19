@@ -35,8 +35,6 @@ namespace BotFramework.Extensions
             {
                 builder.Services.AddScoped(command);
             }
-
-            builder.Services.AddWrappedScoped(_ => new Consumers(new()));
         }
 
         public static void UseStaticCommandsAssembly(this IAppBuilder builder, Assembly assembly)
