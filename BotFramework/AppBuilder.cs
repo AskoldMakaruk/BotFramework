@@ -44,7 +44,6 @@ namespace BotFramework
         /// <returns>The <see cref="IServiceProvider"/> and <see cref="UpdateDelegate"/>.</returns>
         public (IServiceProvider services, UpdateDelegate app) Build()
         {
-            Services.AddWrappedScoped(t => t);
             var provider = Services.BuildServiceProvider();
             UpdateDelegate res = context =>
             {

@@ -98,14 +98,13 @@ namespace BotFramework
 
                 return context =>
                 {
-                    var serviceProvider = applicationServices.GetWrappedService<IServiceProvider>(); //sosat
-                    if (serviceProvider == null)
+                    if (applicationServices == null)
                     {
                         throw new InvalidOperationException(
                             Resources.FormatException_UseMiddlewareIServiceProviderNotAvailable(nameof(IServiceProvider)));
                     }
 
-                    return factory(instance, context, serviceProvider);
+                    return factory(instance, context, applicationServices);
                 };
             });
         }
