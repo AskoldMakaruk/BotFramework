@@ -7,33 +7,51 @@ using Serilog.Core;
 using Telegram.Bot.Types;
 using ILogger = Serilog.ILogger;
 
-
 namespace BotFramework.Middleware
 {
-    public enum EndpointPriority
-    {
-        First,
-        Last
-    }
-
     public interface IEndpoint
     {
-        public EndpointPriority    Priority { get; }
-        public Func<IClient, Task> Action   { get; }
+        public EndpointPriority Priority { get; }
+        public Task             Action   { get; }
     }
 
     public class CommandEndpoint : IEndpoint
     {
-        private readonly ICommand _command;
+        public EndpointPriority Priority { get; private set; }
+        public Task             Action   => _command.Execute(_client);
 
-        public CommandEndpoint(ICommand command, EndpointPriority priority)
+        private readonly IClient  _client;
+        private          ICommand _command;
+
+        public CommandEndpoint(IClient client)
+        {
+            _client = client;
+        }
+
+        public void Initlialize(ICommand command, EndpointPriority priority)
         {
             Priority = priority;
             _command = command;
         }
+    }
 
-        public EndpointPriority    Priority { get; }
-        public Func<IClient, Task> Action   => _client => _command.Execute(_client);
+
+    public class EndpointFactory
+    {
+        private readonly IServiceProvider _provider;
+
+        public EndpointFactory(IServiceProvider provider)
+        {
+            _provider = provider;
+        }
+
+        public IEndpoint CreateEndpoint(ICommand command, EndpointPriority priority)
+        {
+            var newCommand = (IStaticCommand)_provider.GetService(command.GetType())!;
+            var endpoint   = (CommandEndpoint)_provider.GetService(typeof(CommandEndpoint))!;
+            endpoint.Initlialize(newCommand, priority);
+            return endpoint;
+        }
     }
 
     public class SuitableMiddleware
@@ -47,8 +65,8 @@ namespace BotFramework.Middleware
 
         public Task Invoke(Update           update,
                            UpdateContext    updateContext,
-                           IServiceProvider provider,
                            PossibleCommands possibleCommands,
+                           EndpointFactory  endpointFactory,
                            ILogger?         logger = null)
         {
             logger ??= Logger.None;
@@ -58,20 +76,22 @@ namespace BotFramework.Middleware
             {
                 logger.Debug("{Command} is first suitable to handle {User}'s request", firstCommand.GetType().Name,
                     update.GetUser());
-                var command = (IStaticCommand)provider.GetService(firstCommand.GetType())!;
-                updateContext.Endpoints.Add(new CommandEndpoint(command, EndpointPriority.First));
+
+                updateContext.Endpoints.Add(endpointFactory.CreateEndpoint(firstCommand, EndpointPriority.First));
             }
-            else if (commands.FirstOrDefault(t => t.SuitableLast(update)) is { } lastCommand)
+
+            if (commands.FirstOrDefault(t => t.SuitableLast(update)) is { } lastCommand)
             {
                 logger.Debug("{Command} is last suitable to handle {User}'s request", lastCommand.GetType().Name,
                     update.GetUser());
-                var command = (IStaticCommand)provider.GetService(lastCommand.GetType())!;
-                updateContext.Endpoints.Add(new CommandEndpoint(command, EndpointPriority.Last));
+
+                updateContext.Endpoints.Add(endpointFactory.CreateEndpoint(lastCommand, EndpointPriority.Last));
             }
-            else
-            {
-                logger.Debug("No suitable command found for {User}", update.GetUser());
-            }
+            
+            // else
+            // {
+            //     logger.Debug("No suitable command found for {User}", update.GetUser());
+            // }
 
 
             return _next(update);

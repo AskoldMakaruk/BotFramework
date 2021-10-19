@@ -2,8 +2,8 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using BotFramework.Clients;
 using FluentAssertions;
-using Moq;
 using NUnit.Framework;
+using Serilog;
 using Telegram.Bot.Requests;
 using Telegram.Bot.Requests.Abstractions;
 using Telegram.Bot.Types;
@@ -18,7 +18,11 @@ namespace BotFramework.Tests
         [SetUp]
         public void Setup()
         {
-            _sink = new MemorySink();
+            var logger = new LoggerConfiguration().MinimumLevel.Verbose()
+                                                  .WriteTo.Console()
+                                                  .CreateLogger();
+
+            _sink = new MemorySink(logger);
         }
 
 

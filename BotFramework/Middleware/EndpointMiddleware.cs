@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using BotFramework.Abstractions;
@@ -9,7 +8,7 @@ namespace BotFramework.Middleware
 {
     public class EndpointMiddleware
     {
-        private static readonly ConcurrentDictionary<long, UpdateConsumer> _consumers = new();
+        private static readonly ConcurrentDictionary<long, PriorityUpdateConsumer> _consumers = new();
         private readonly        UpdateDelegate                             _next;
 
 
@@ -18,10 +17,9 @@ namespace BotFramework.Middleware
             _next = next;
         }
 
-        public Task Invoke(Update           update,
-                           UpdateContext    updateContext,
-                           IServiceProvider provider,
-                           IUpdateConsumer  client)
+        public Task Invoke(Update                 update,
+                           UpdateContext          updateContext,
+                           ICommandUpdateConsumer client)
         {
             var id = update.GetId()!.Value;
 
@@ -31,7 +29,7 @@ namespace BotFramework.Middleware
             }
             else
             {
-                var a = new UpdateConsumer();
+                var a = new PriorityUpdateConsumer();
                 _consumers.TryAdd(id, a);
                 a.Consume(updateContext, client);
             }

@@ -41,7 +41,9 @@ namespace BotFramework.Extensions
 
                 app.Services.AddScoped<Update>(provider => provider.GetService<UpdateFactory>()!.CurrentUpdate);
                 app.Services.AddScoped<UpdateFactory>();
+                app.Services.AddScoped<EndpointFactory>();
                 app.Services.AddScoped<UpdateContext>();
+                app.Services.AddScoped<CommandEndpoint>();
 
                 app.UseMiddleware<UpdateMiddleware>();
                 app.UseMiddleware<LoggingMiddleware>();

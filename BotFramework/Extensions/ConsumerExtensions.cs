@@ -9,20 +9,18 @@ namespace BotFramework.Extensions
     {
         public static IServiceCollection AddUpdateConsumer(this IServiceCollection services)
         {
-            services.AddScoped<IUpdateConsumer, Client>();
-            services.AddTransient<UpdateQueue>();
+            services.AddScoped<ICommandUpdateConsumer, CommandUpdateConsumer>();
             services.AddSingleton<IRequestSinc, TelegramSink>();
-
+            services.AddScoped<IClient, Client>();
             return services;
         }
 
         public static IServiceCollection AddDebugUpdateConsumer(this IServiceCollection services)
         {
-            services.AddScoped<IUpdateConsumer, Client>();
-            services.AddTransient<UpdateQueue>();
+            services.AddScoped<ICommandUpdateConsumer, CommandUpdateConsumer>();
             services.AddSingleton<AppUpdateProducer>();
             services.AddSingleton<IRequestSinc, MemorySink>();
-
+            services.AddScoped<IClient, Client>();
             return services;
         }
 

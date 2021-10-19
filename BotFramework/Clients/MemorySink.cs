@@ -2,18 +2,29 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
+using BotFramework.Abstractions;
+using Serilog;
+using Serilog.Core;
 using Telegram.Bot.Requests.Abstractions;
 
 namespace BotFramework.Clients
 {
     public class MemorySink : IRequestSinc
     {
+        private readonly ILogger _logger;
+
+        public MemorySink(ILogger logger)
+        {
+            _logger = logger;
+        }
+
         private readonly ConcurrentQueue<TaskCompletionSource<object>?> GetTasks = new();
 
-        private readonly ConcurrentQueue<object> RequestToSend   = new ConcurrentQueue<object>();
-        private readonly ConcurrentQueue<object> TelegramReplies = new ConcurrentQueue<object>();
+        private readonly ConcurrentQueue<object> RequestToSend   = new();
+        private readonly ConcurrentQueue<object> TelegramReplies = new();
 
-        public Task<TResponse> MakeRequest<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = default)
+        public async Task<TResponse> MakeRequest<TResponse>(IRequest<TResponse> request,
+                                                            CancellationToken   cancellationToken = default)
         {
             TelegramReplies.TryDequeue(out var reply);
 
@@ -24,13 +35,13 @@ namespace BotFramework.Clients
                 {
                     task.SetResult(request);
                     GetTasks.TryDequeue(out _);
-                    return Task.FromResult((TResponse)reply!);
+                    return (TResponse)reply!;
                 }
             }
 
             RequestToSend.Enqueue(request);
-
-            return Task.FromResult((TResponse)reply!);
+            _logger.Verbose("{Message}", await request.ToHttpContent().ReadAsStringAsync(cancellationToken));
+            return (TResponse)reply!;
         }
 
         public ValueTask<TResponse> GetRequest<TResponse>(Func<TResponse, bool>? filter = null)
@@ -57,6 +68,7 @@ namespace BotFramework.Clients
             {
                 GetTasks.Enqueue(source);
             }
+
             var task = source?.Task.ContinueWith(a =>
                        (TResponse)a.GetAwaiter().GetResult())
                        ?? Task.FromResult(default(TResponse))!;

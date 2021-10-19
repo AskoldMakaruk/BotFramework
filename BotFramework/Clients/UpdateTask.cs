@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Telegram.Bot.Types;
 
@@ -11,11 +10,11 @@ namespace BotFramework.Clients
     /// Consumer as wrapper on Task 'Update'
     /// Should be deleted after done 
     /// </summary>
-    public class UpdateHandler
+    public class UpdateTask
     {
         private readonly Func<Update, bool>?          filter;
         private readonly Action<Update>?              onFilterFail;
-        private readonly Action<UpdateHandler>        onDone;
+        private readonly Action<UpdateTask>           onDone;
         private readonly TaskCompletionSource<Update> CompletionSource = new();
         private readonly ConcurrentQueue<Update>      ExistedBeforeUpdates;
 
@@ -33,8 +32,10 @@ namespace BotFramework.Clients
         }
 
 
-        public UpdateHandler(Func<Update, bool>?   filter, Action<Update>? onFilterFail, IEnumerable<Update> existingUpdates,
-                             Action<UpdateHandler> onDone)
+        public UpdateTask(Func<Update, bool>? filter,
+                          Action<Update>?     onFilterFail,
+                          IEnumerable<Update> existingUpdates,
+                          Action<UpdateTask>  onDone)
         {
             this.filter          = filter;
             this.onFilterFail    = onFilterFail;
@@ -42,13 +43,17 @@ namespace BotFramework.Clients
             ExistedBeforeUpdates = new ConcurrentQueue<Update>(existingUpdates);
         }
 
-        public void HandleUpdate(Update update)
+        public bool HandleUpdate(Update update)
         {
-            if (!IsDone && IsSuitableUpdate(update))
+            if (IsDone || !IsSuitableUpdate(update))
             {
-                CompletionSource.SetResult(update);
-                onDone(this);
+                return false;
             }
+
+            CompletionSource.SetResult(update);
+            onDone(this);
+            return true;
+
         }
 
         public ValueTask<Update> GetUpdate()
