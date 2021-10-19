@@ -8,7 +8,7 @@ using BotFramework.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 using Telegram.Bot.Types;
 
-namespace BotFramework
+namespace BotFramework.Extensions.Hosting
 {
     public static class UseMiddlewareExtensions
     {
@@ -42,9 +42,10 @@ namespace BotFramework
         /// <param name="middleware">The middleware type.</param>
         /// <param name="args">The arguments to pass to the middleware type instance's constructor.</param>
         /// <returns>The <see cref="IAppBuilder"/> instance.</returns>
-        public static IAppBuilder UseMiddleware(this                                                  IAppBuilder app,
-                                                [DynamicallyAccessedMembers(MiddlewareAccessibility)] Type        middleware,
-                                                params                                                object[]    args)
+        public static IAppBuilder UseMiddleware(this IAppBuilder app,
+                                                [DynamicallyAccessedMembers(MiddlewareAccessibility)]
+                                                Type middleware,
+                                                params object[] args)
         {
             return app.Use(applicationServices => next =>
             {
@@ -98,14 +99,13 @@ namespace BotFramework
 
                 return context =>
                 {
-                    var serviceProvider = applicationServices.GetWrappedService<IServiceProvider>(); //sosat
-                    if (serviceProvider == null)
+                    if (applicationServices == null)
                     {
                         throw new InvalidOperationException(
                             Resources.FormatException_UseMiddlewareIServiceProviderNotAvailable(nameof(IServiceProvider)));
                     }
 
-                    return factory(instance, context, serviceProvider);
+                    return factory(instance, context, applicationServices);
                 };
             });
         }

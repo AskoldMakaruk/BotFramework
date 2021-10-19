@@ -1,14 +1,13 @@
 ﻿using System.Threading.Tasks;
 using BotFramework;
 using BotFramework.Abstractions;
-using BotFramework.Clients.ClientExtensions;
-using BotFramework.HostServices;
+using BotFramework.Extensions.Hosting;
 using BotFramework.Middleware;
+using BotFramework.Services.Extensioins;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using Serilog.Events;
 using Telegram.Bot.Types;
-using ILogger = Serilog.ILogger;
 
 namespace EchoBot
 {
@@ -38,7 +37,6 @@ namespace EchoBot
                     app.Services.AddTelegramClient(context.Configuration["BotToken"]);
                     app.Services.AddUpdateConsumer();
                     app.UseMiddleware<LoggingMiddleware>();
-                    app.UseHandlers();
                     app.UseStaticCommands();
                 })
                 // --| OR |--
@@ -59,7 +57,6 @@ namespace EchoBot
             app.Services.AddTelegramClient(context.Configuration["BotToken"]);
             app.Services.AddUpdateConsumer();
             app.UseMiddleware<LoggingMiddleware>();
-            app.UseHandlers();
             app.UseStaticCommands();
         }
 
