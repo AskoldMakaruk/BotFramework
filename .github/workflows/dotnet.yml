@@ -15,7 +15,7 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 5.0.x
+        dotnet-version: 6.0.x
         
     - name: Restore dependencies
       run: dotnet restore
@@ -33,4 +33,10 @@ jobs:
       uses: brandedoutcast/publish-nuget@v2.5.5
       with:
         PROJECT_FILE_PATH: BotFramework.Abstractions/BotFramework.Abstractions.csproj
+        NUGET_KEY: ${{secrets.NUGET_API_KEY}}
+        
+    - name: Publish Hosting
+      uses: brandedoutcast/publish-nuget@v2.5.5
+      with:
+        PROJECT_FILE_PATH: BotFramework.Hosting/BotFramework.Hosting.csproj
         NUGET_KEY: ${{secrets.NUGET_API_KEY}}
