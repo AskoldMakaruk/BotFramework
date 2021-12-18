@@ -18,11 +18,7 @@ namespace BotFramework.Tests
         [SetUp]
         public void Setup()
         {
-            var logger = new LoggerConfiguration().MinimumLevel.Verbose()
-                                                  .WriteTo.Console()
-                                                  .CreateLogger();
-
-            _sink = new MemorySink(logger);
+            _sink = new MemorySink();
         }
 
 
