@@ -3,7 +3,7 @@ using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
 #nullable enable
-namespace BotFramework.Extensions
+namespace BotFramework.Abstractions
 {
     public static class UpdateExtensions
     {

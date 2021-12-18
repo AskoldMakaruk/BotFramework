@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-      <TargetFramework>net5.0</TargetFramework>
-      <Authors/>
+      <TargetFramework>net6.0</TargetFramework>
+      <Authors />
       <Company>BotFramework</Company>
       <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
       <AssemblyVersion>1.0.0.0</AssemblyVersion>
@@ -16,6 +16,7 @@
       <PackageTags>telegram bot</PackageTags>
       <PackageReleaseNotes>Updated nugets.</PackageReleaseNotes>
       <Nullable>enable</Nullable>
+      <LangVersion>10</LangVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -40,6 +41,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BotFramework.Abstractions\BotFramework.Abstractions.csproj" />
+    <ProjectReference Include="..\BotFramework.Hosting\BotFramework.Hosting.csproj" />
   </ItemGroup>
 
 </Project>

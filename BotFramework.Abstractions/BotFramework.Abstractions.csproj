@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>netstandard2.1</TargetFramework>
-        <Authors/>
+        <TargetFramework>net6.0</TargetFramework>
+        <Authors />
         <Company>BotFramework</Company>
         <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
         <AssemblyVersion>1.0.0.0</AssemblyVersion>
@@ -16,6 +16,7 @@
         <PackageTags>telegram bot</PackageTags>
         <PackageReleaseNotes>Middleware</PackageReleaseNotes>
         <Nullable>enable</Nullable>
+        <LangVersion>10</LangVersion>
     </PropertyGroup>
 
     <ItemGroup>

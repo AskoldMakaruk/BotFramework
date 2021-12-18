@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
 using BotFramework.Abstractions;
-using Serilog;
+using Microsoft.Extensions.Logging;
 using Telegram.Bot.Requests.Abstractions;
 
 namespace BotFramework.Services.Clients
@@ -12,7 +12,7 @@ namespace BotFramework.Services.Clients
     {
         private readonly ILogger _logger;
 
-        public MemorySink(ILogger logger)
+        public MemorySink(ILogger<MemorySink> logger = null)
         {
             _logger = logger;
         }
@@ -39,7 +39,7 @@ namespace BotFramework.Services.Clients
             }
 
             RequestToSend.Enqueue(request);
-            _logger.Verbose("{Message}", await request.ToHttpContent().ReadAsStringAsync(cancellationToken));
+            _logger.LogDebug("{Message}", await request.ToHttpContent().ReadAsStringAsync(cancellationToken));
             return (TResponse)reply!;
         }
 

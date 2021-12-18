@@ -30,7 +30,6 @@ namespace EchoBot
                 .UseSimpleBotFramework()
 
                 // --| OR |--
-
                 // use this
                 .UseBotFramework((app, context) =>
                 {
@@ -39,9 +38,11 @@ namespace EchoBot
                     app.UseMiddleware<LoggingMiddleware>();
                     app.UseStaticCommands();
                 })
+                
                 // --| OR |--
                 // use this
                 .UseBotFrameworkStartup<Startup>()
+                
                 // --| OR |--
                 // use this
                 .UseBotFramework(new Startup().Configure, false)

@@ -1,7 +1,6 @@
 ﻿using System.Threading.Tasks;
 using BotFramework.Abstractions;
-using BotFramework.Extensions;
-using Serilog;
+using Microsoft.Extensions.Logging;
 using Telegram.Bot.Types;
 
 namespace BotFramework.Middleware
@@ -12,9 +11,9 @@ namespace BotFramework.Middleware
     public class LoggingMiddleware
     {
         private readonly UpdateDelegate _next;
-        private readonly ILogger        _logger;
+        private readonly ILogger?       _logger;
 
-        public LoggingMiddleware(UpdateDelegate next, ILogger logger)
+        public LoggingMiddleware(UpdateDelegate next, ILogger<LoggingMiddleware>? logger)
         {
             _next   = next;
             _logger = logger;
@@ -24,7 +23,7 @@ namespace BotFramework.Middleware
         {
             var info = update.GetInfoFromUpdate();
 
-            _logger.Information("{UpdateType} {MessageType} | {From}: {Contents}",
+            _logger?.LogInformation("{UpdateType} {MessageType} | {From}: {Contents}",
                 info.UpdateType,
                 info.MessageType,
                 info.From,
