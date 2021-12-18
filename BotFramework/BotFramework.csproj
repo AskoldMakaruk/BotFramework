@@ -6,15 +6,15 @@
       <Company>BotFramework</Company>
       <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
       <AssemblyVersion>1.0.0.0</AssemblyVersion>
-      <FileVersion>1.0.0.42</FileVersion>
-      <Version>1.0.0-alpha-42</Version>
-      <PackageVersion>1.0.0-alpha-42</PackageVersion>
+      <FileVersion>1.0.0.43</FileVersion>
+      <Version>1.0.0-alpha-43</Version>
+      <PackageVersion>1.0.0-alpha-43</PackageVersion>
       <PackageLicenseExpression>MIT</PackageLicenseExpression>
       <PackageProjectUrl>https://github.com/AskoldMakaruk/BotFramework</PackageProjectUrl>
       <RepositoryUrl>https://github.com/AskoldMakaruk/BotFramework</RepositoryUrl>
       <RepositoryType>Open</RepositoryType>
       <PackageTags>telegram bot</PackageTags>
-      <PackageReleaseNotes>Updated nugets.</PackageReleaseNotes>
+      <PackageReleaseNotes>Identity, .net 6.</PackageReleaseNotes>
       <Nullable>enable</Nullable>
       <LangVersion>10</LangVersion>
   </PropertyGroup>
