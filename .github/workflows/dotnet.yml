@@ -40,3 +40,9 @@ jobs:
       with:
         PROJECT_FILE_PATH: BotFramework.Hosting/BotFramework.Hosting.csproj
         NUGET_KEY: ${{secrets.NUGET_API_KEY}}
+
+    - name: Publish Identity
+      uses: brandedoutcast/publish-nuget@v2.5.5
+      with:
+        PROJECT_FILE_PATH: BotFramework.Identity/BotFramework.Identity.csproj
+        NUGET_KEY: ${{secrets.NUGET_API_KEY}}
