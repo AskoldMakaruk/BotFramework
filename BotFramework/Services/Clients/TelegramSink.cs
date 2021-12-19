@@ -15,9 +15,10 @@ namespace BotFramework.Services.Clients
             _botClient = botClient;
         }
 
-        public Task<TResponse> MakeRequest<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = default)
+        public async Task<TResponse> MakeRequest<TResponse>(IRequest<TResponse> request,
+                                                            CancellationToken   cancellationToken = default)
         {
-            return _botClient.MakeRequestAsync(request, cancellationToken);
+            return await _botClient.MakeRequestAsync(request, cancellationToken);
         }
     }
 }

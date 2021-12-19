@@ -22,11 +22,11 @@ namespace BotFramework.Services.Clients
             _updateQueue = updateQueue;
         }
 
-        public Task<TResponse> MakeRequest<TResponse>(
+        public async Task<TResponse> MakeRequest<TResponse>(
             IRequest<TResponse> request,
             CancellationToken   cancellationToken = default)
         {
-            return _requestSinc.MakeRequest(request, cancellationToken);
+            return await _requestSinc.MakeRequest(request, cancellationToken);
         }
 
         public ValueTask<Update> GetUpdate(Func<Update, bool>? filter = null, Action<Update>? onFilterFail = null)

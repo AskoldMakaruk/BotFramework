@@ -21,17 +21,17 @@ namespace BotFramework.Services.Extensioins
         public static Task<User> GetMe(this IClient client, CancellationToken cancellationToken = default)
             => client.MakeRequest(new GetMeRequest(), cancellationToken);
 
-        public static Task<Message> SendTextMessage(this IClient      client,
-                                                    string            text,
-                                                    ChatId?           chatId                = default,
-                                                    ParseMode         parseMode             = default,
-                                                    bool              disableWebPagePreview = default,
-                                                    bool              disableNotification   = default,
-                                                    int               replyToMessageId      = default,
-                                                    IReplyMarkup?     replyMarkup           = default,
-                                                    CancellationToken cancellationToken     = default
+        public static async Task<Message> SendTextMessage(this IClient      client,
+                                                          string            text,
+                                                          ChatId?           chatId                = default,
+                                                          ParseMode?        parseMode             = null,
+                                                          bool              disableWebPagePreview = default,
+                                                          bool              disableNotification   = default,
+                                                          int               replyToMessageId      = default,
+                                                          IReplyMarkup?     replyMarkup           = default,
+                                                          CancellationToken cancellationToken     = default
         ) =>
-        client.MakeRequest(new SendMessageRequest(chatId ?? client.UserId, text)
+        await client.MakeRequest(new SendMessageRequest(chatId ?? client.UserId, text)
         {
             ParseMode             = parseMode,
             DisableWebPagePreview = disableWebPagePreview,
@@ -56,7 +56,7 @@ namespace BotFramework.Services.Extensioins
                                               InputOnlineFile   photo,
                                               ChatId?           chatId              = default,
                                               string            caption             = default,
-                                              ParseMode         parseMode           = default,
+                                              ParseMode?         parseMode           = default,
                                               bool              disableNotification = default,
                                               int               replyToMessageId    = default,
                                               IReplyMarkup      replyMarkup         = default,
@@ -75,7 +75,7 @@ namespace BotFramework.Services.Extensioins
                                               InputOnlineFile   audio,
                                               ChatId?           chatId              = default,
                                               string?           caption             = default,
-                                              ParseMode         parseMode           = default,
+                                              ParseMode?        parseMode           = default,
                                               int               duration            = default,
                                               string?           performer           = default,
                                               string?           title               = default,
@@ -102,7 +102,7 @@ namespace BotFramework.Services.Extensioins
                                                  InputOnlineFile   document,
                                                  ChatId?           chatId              = default,
                                                  string            caption             = default,
-                                                 ParseMode         parseMode           = default,
+                                                 ParseMode?        parseMode           = default,
                                                  bool              disableNotification = default,
                                                  int               replyToMessageId    = default,
                                                  IReplyMarkup      replyMarkup         = default,
@@ -141,7 +141,7 @@ namespace BotFramework.Services.Extensioins
                                               int               width               = default,
                                               int               height              = default,
                                               string            caption             = default,
-                                              ParseMode         parseMode           = default,
+                                              ParseMode?        parseMode           = default,
                                               bool              supportsStreaming   = default,
                                               bool              disableNotification = default,
                                               int               replyToMessageId    = default,
@@ -171,7 +171,7 @@ namespace BotFramework.Services.Extensioins
                                                   int               height              = default,
                                                   InputMedia        thumb               = default,
                                                   string            caption             = default,
-                                                  ParseMode         parseMode           = default,
+                                                  ParseMode?        parseMode           = default,
                                                   bool              disableNotification = default,
                                                   int               replyToMessageId    = default,
                                                   IReplyMarkup      replyMarkup         = default,
@@ -194,7 +194,7 @@ namespace BotFramework.Services.Extensioins
                                               InputOnlineFile   voice,
                                               ChatId?           chatId              = default,
                                               string            caption             = default,
-                                              ParseMode         parseMode           = default,
+                                              ParseMode?        parseMode           = default,
                                               int               duration            = default,
                                               bool              disableNotification = default,
                                               int               replyToMessageId    = default,
@@ -339,7 +339,7 @@ namespace BotFramework.Services.Extensioins
                                              int?                correctOptionId       = default,
                                              bool?               isClosed              = default,
                                              string              explanation           = default,
-                                             ParseMode           explanationParseMode  = default,
+                                             ParseMode?          explanationParseMode  = default,
                                              int?                openPeriod            = default,
                                              DateTime?           closeDate             = default
         ) =>
@@ -554,15 +554,15 @@ namespace BotFramework.Services.Extensioins
 
 #region Inline mode
 
-        public static Task AnswerInlineQuery(this IClient                       client,
-                                             string                             inlineQueryId,
-                                             IEnumerable<InlineQueryResultBase> results,
-                                             int?                               cacheTime         = default,
-                                             bool                               isPersonal        = default,
-                                             string                             nextOffset        = default,
-                                             string                             switchPmText      = default,
-                                             string                             switchPmParameter = default,
-                                             CancellationToken                  cancellationToken = default
+        public static Task AnswerInlineQuery(this IClient                   client,
+                                             string                         inlineQueryId,
+                                             IEnumerable<InlineQueryResult> results,
+                                             int?                           cacheTime         = default,
+                                             bool                           isPersonal        = default,
+                                             string                         nextOffset        = default,
+                                             string                         switchPmText      = default,
+                                             string                         switchPmParameter = default,
+                                             CancellationToken              cancellationToken = default
         ) =>
         client.MakeRequest(new AnswerInlineQueryRequest(inlineQueryId, results)
         {
@@ -583,7 +583,7 @@ namespace BotFramework.Services.Extensioins
                                                     int                  messageId,
                                                     string               text,
                                                     ChatId?              chatId                = default,
-                                                    ParseMode            parseMode             = default,
+                                                    ParseMode?           parseMode             = default,
                                                     bool                 disableWebPagePreview = default,
                                                     InlineKeyboardMarkup replyMarkup           = default,
                                                     CancellationToken    cancellationToken     = default
@@ -598,7 +598,7 @@ namespace BotFramework.Services.Extensioins
         public static Task EditMessageText(this IClient         client,
                                            string               inlineMessageId,
                                            string               text,
-                                           ParseMode            parseMode             = default,
+                                           ParseMode?           parseMode             = default,
                                            bool                 disableWebPagePreview = default,
                                            InlineKeyboardMarkup replyMarkup           = default,
                                            CancellationToken    cancellationToken     = default
@@ -616,12 +616,13 @@ namespace BotFramework.Services.Extensioins
                                                        ChatId?              chatId            = default,
                                                        InlineKeyboardMarkup replyMarkup       = default,
                                                        CancellationToken    cancellationToken = default,
-                                                       ParseMode            parseMode         = default
+                                                       ParseMode?           parseMode         = default
         ) =>
-        client.MakeRequest(new EditMessageCaptionRequest(chatId ?? client.UserId, messageId, caption)
+        client.MakeRequest(new EditMessageCaptionRequest(chatId ?? client.UserId, messageId)
         {
+            Caption     = caption,
             ParseMode   = parseMode,
-            ReplyMarkup = replyMarkup
+            ReplyMarkup = replyMarkup,
         }, cancellationToken);
 
         public static Task EditMessageCaption(this IClient         client,
@@ -629,10 +630,11 @@ namespace BotFramework.Services.Extensioins
                                               string               caption,
                                               InlineKeyboardMarkup replyMarkup       = default,
                                               CancellationToken    cancellationToken = default,
-                                              ParseMode            parseMode         = default
+                                              ParseMode?           parseMode         = default
         ) =>
-        client.MakeRequest(new EditInlineMessageCaptionRequest(inlineMessageId, caption)
+        client.MakeRequest(new EditInlineMessageCaptionRequest(inlineMessageId)
         {
+            Caption     = caption,
             ParseMode   = parseMode,
             ReplyMarkup = replyMarkup
         }, cancellationToken);
@@ -667,7 +669,10 @@ namespace BotFramework.Services.Extensioins
                                                            CancellationToken    cancellationToken = default
         ) =>
         client.MakeRequest(
-            new EditMessageReplyMarkupRequest(chatId ?? client.UserId, messageId, replyMarkup),
+            new EditMessageReplyMarkupRequest(chatId ?? client.UserId, messageId)
+            {
+                ReplyMarkup = replyMarkup,
+            },
             cancellationToken);
 
         public static Task EditMessageReplyMarkup(this IClient         client,
@@ -676,7 +681,10 @@ namespace BotFramework.Services.Extensioins
                                                   CancellationToken    cancellationToken = default
         ) =>
         client.MakeRequest(
-            new EditInlineMessageReplyMarkupRequest(inlineMessageId, replyMarkup),
+            new EditInlineMessageReplyMarkupRequest(inlineMessageId)
+            {
+                ReplyMarkup = replyMarkup
+            },
             cancellationToken);
 
         public static Task<Message> EditMessageLiveLocation(this IClient         client,
@@ -909,7 +917,10 @@ namespace BotFramework.Services.Extensioins
                                               string            description       = default,
                                               CancellationToken cancellationToken = default
         ) =>
-        client.MakeRequest(new SetChatDescriptionRequest(chatId ?? client.UserId, description), cancellationToken);
+        client.MakeRequest(new SetChatDescriptionRequest(chatId ?? client.UserId)
+        {
+            Description = description
+        }, cancellationToken);
 
         public static Task PinChatMessage(this IClient      client,
                                           int               messageId,
@@ -1041,7 +1052,7 @@ namespace BotFramework.Services.Extensioins
                                               InputOnlineFile   thumb             = default,
                                               CancellationToken cancellationToken = default) =>
         client.MakeRequest(
-            new SetStickerSetThumbRequest(name, userId, thumb),
+            new SetStickerSetThumbRequest(name, userId) { Thumb = thumb },
             cancellationToken
         );
 

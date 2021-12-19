@@ -4,11 +4,18 @@ using System.Linq;
 using System.Threading.Tasks;
 using BotFramework.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
+using Telegram.Bot.Types;
 
 namespace BotFramework
 {
     public class AppBuilder : IAppBuilder
     {
+        // class AppComponent
+        // {
+        //     ;
+        //     public 
+        // }
+        //
         private readonly List<Func<IServiceProvider, Func<UpdateDelegate, UpdateDelegate>>> _components = new();
 
 
@@ -45,17 +52,24 @@ namespace BotFramework
         public (IServiceProvider services, UpdateDelegate app) Build()
         {
             var provider = Services.BuildServiceProvider();
-            UpdateDelegate res = context =>
+
+            return (provider, Build(provider));
+        }
+
+        private UpdateDelegate Build(IServiceProvider provider)
+        {
+            Task Res(Update context)
             {
-                var providerScope = provider.CreateScope().ServiceProvider;
-                UpdateDelegate app = _ => Task.CompletedTask;
+                var            providerScope = provider.CreateScope().ServiceProvider;
+                UpdateDelegate app           = _ => Task.CompletedTask;
+
                 app = _components.Select(t => t(providerScope))
                                  .Reverse()
                                  .Aggregate(app, (current, component) => component(current));
                 return app(context);
-            };
+            }
 
-            return (provider, res);
+            return Res;
         }
     }
 }

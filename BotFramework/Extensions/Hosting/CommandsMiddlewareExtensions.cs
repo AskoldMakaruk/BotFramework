@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using BotFramework.Abstractions;
+using BotFramework.Hosting;
 using BotFramework.Middleware;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Serilog;
+using Microsoft.Extensions.Logging;
 
 namespace BotFramework.Extensions.Hosting
 {
@@ -22,10 +23,10 @@ namespace BotFramework.Extensions.Hosting
             builder.UsePossibleCommands();
             builder.Services.TryAddSingleton(provider =>
             {
-                ServiceProviderServiceExtensions.GetService<ILogger>(provider)
-                                                ?.Debug("Loaded {Count} static commands: {Commands}",
-                                                    staticCommands.StaticCommandsTypes.Count,
-                                                    string.Join(", ", staticCommands.StaticCommandsTypes.Select(a => a.Name)));
+                provider.GetService<ILogger<StaticCommandsMiddleware>>()
+                        ?.LogDebug("Loaded {Count} static commands: {Commands}",
+                            staticCommands.StaticCommandsTypes.Count,
+                            string.Join(", ", staticCommands.StaticCommandsTypes.Select(a => a.Name)));
 
                 return staticCommands;
             });
