@@ -1,9 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <FileVersion>1.0.0.43</FileVersion>
-        <Version>1.0.0-alpha-43</Version>
-        <PackageVersion>1.0.0-alpha-43</PackageVersion>
+        <FileVersion>1.0.0.44</FileVersion>
+        <Version>1.0.0-alpha-44</Version>
+        <PackageVersion>1.0.0-alpha-44</PackageVersion>
         <TargetFramework>net6.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>

@@ -1,11 +1,12 @@
 using System;
 using BotFramework.Abstractions;
+using BotFramework.Hosting;
 using BotFramework.HostServices;
 using BotFramework.Middleware;
 using BotFramework.Services.Factories;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Serilog;
+using Microsoft.Extensions.Logging;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
@@ -65,7 +66,7 @@ namespace BotFramework.Extensions.Hosting
 
                 appBuilder.Services.AddHostedService(provider =>
                 new AppRunnerService((UpdateDelegate)context.Properties[AppKostyl],
-                    provider.GetService<ITelegramBotClient>()!, provider.GetService<ILogger>()!));
+                    provider.GetService<ITelegramBotClient>()!, provider.GetService<ILogger<AppRunnerService>>()!));
 
                 if (isTesting)
                 {

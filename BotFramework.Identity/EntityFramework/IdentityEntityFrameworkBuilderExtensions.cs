@@ -27,20 +27,8 @@ public static class IdentityEntityFrameworkBuilderExtensions
 
     private static void AddStores(IServiceCollection services, Type userType, Type roleType, Type contextType)
     {
-        var identityUserType = FindGenericBaseType(userType, typeof(IdentityUser));
-        if (identityUserType == null)
-        {
-            throw new InvalidOperationException("NotIdentityUser");
-        }
-
         if (roleType != null)
         {
-            var identityRoleType = FindGenericBaseType(roleType, typeof(IdentityRole));
-            if (identityRoleType == null)
-            {
-                throw new InvalidOperationException("NotIdentityRole");
-            }
-
             Type userStoreType   = null;
             Type roleStoreType   = null;
             var  identityContext = FindGenericBaseType(contextType, typeof(IdentityDbContext<,,,,>));

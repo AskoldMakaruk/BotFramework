@@ -2,6 +2,7 @@
 using BotFramework;
 using BotFramework.Abstractions;
 using BotFramework.Extensions.Hosting;
+using BotFramework.Hosting;
 using BotFramework.Middleware;
 using BotFramework.Services.Extensioins;
 using Microsoft.Extensions.Hosting;

@@ -184,7 +184,7 @@ where TUserRole : IdentityUserRole, new()
     {
         cancellationToken.ThrowIfCancellationRequested();
         ThrowIfDisposed();
-        return UsersSet.FindAsync(userId, cancellationToken).AsTask();
+        return UsersSet.FindAsync(new object[] { userId }, cancellationToken: cancellationToken).AsTask();
     }
 
     /// <summary>

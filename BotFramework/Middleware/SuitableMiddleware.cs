@@ -1,10 +1,8 @@
 using System.Linq;
 using System.Threading.Tasks;
 using BotFramework.Abstractions;
-using BotFramework.Extensions;
 using BotFramework.Services.Factories;
-using Serilog;
-using Serilog.Core;
+using Microsoft.Extensions.Logging;
 using Telegram.Bot.Types;
 
 namespace BotFramework.Middleware
@@ -39,18 +37,17 @@ namespace BotFramework.Middleware
             _next = next;
         }
 
-        public Task Invoke(Update           update,
-                           UpdateContext    updateContext,
-                           PossibleCommands possibleCommands,
-                           EndpointFactory  endpointFactory,
-                           ILogger?         logger = null)
+        public Task Invoke(Update                       update,
+                           UpdateContext                updateContext,
+                           PossibleCommands             possibleCommands,
+                           EndpointFactory              endpointFactory,
+                           ILogger<SuitableMiddleware>? logger = null)
         {
-            logger ??= Logger.None;
             var commands = possibleCommands.Commands.OfType<IStaticCommand>().ToList();
 
             if (commands.FirstOrDefault(t => t.SuitableFirst(update)) is { } firstCommand)
             {
-                logger.Debug("{Command} is first suitable to handle {User}'s request", firstCommand.GetType().Name,
+                logger?.LogDebug("{Command} is first suitable to handle {User}'s request", firstCommand.GetType().Name,
                     update.GetUser());
 
                 updateContext.Endpoints.Add(endpointFactory.CreateEndpoint(firstCommand, EndpointPriority.First));
@@ -58,7 +55,7 @@ namespace BotFramework.Middleware
 
             if (commands.FirstOrDefault(t => t.SuitableLast(update)) is { } lastCommand)
             {
-                logger.Debug("{Command} is last suitable to handle {User}'s request", lastCommand.GetType().Name,
+                logger?.LogDebug("{Command} is last suitable to handle {User}'s request", lastCommand.GetType().Name,
                     update.GetUser());
 
                 updateContext.Endpoints.Add(endpointFactory.CreateEndpoint(lastCommand, EndpointPriority.Last));
