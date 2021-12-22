@@ -23,6 +23,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotFramework.Hosting", "Bot
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotFramework.Identity.Tests", "BotFramework.Identity.Tests\BotFramework.Identity.Tests.csproj", "{80365B83-27AC-4BC5-A93F-281FD5BC793A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotFramework.Authorization", "BotFramework.Authorization\BotFramework.Authorization.csproj", "{9FAEAEC4-FB5E-4351-B7A8-37D8EA2A1862}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -61,6 +63,10 @@ Global
 		{80365B83-27AC-4BC5-A93F-281FD5BC793A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{80365B83-27AC-4BC5-A93F-281FD5BC793A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{80365B83-27AC-4BC5-A93F-281FD5BC793A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9FAEAEC4-FB5E-4351-B7A8-37D8EA2A1862}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9FAEAEC4-FB5E-4351-B7A8-37D8EA2A1862}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9FAEAEC4-FB5E-4351-B7A8-37D8EA2A1862}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9FAEAEC4-FB5E-4351-B7A8-37D8EA2A1862}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
