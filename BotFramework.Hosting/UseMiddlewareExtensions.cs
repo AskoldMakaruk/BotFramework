@@ -141,7 +141,7 @@ namespace BotFramework.Hosting
             //
             // public class Middleware
             // {
-            //    public Task Invoke(HttpContext context, ILoggerFactory loggerFactory)
+            //    public Task Invoke(UpdateContext context, ILoggerFactory loggerFactory)
             //    {
             //
             //    }
@@ -151,16 +151,16 @@ namespace BotFramework.Hosting
             // We'll end up with something like this:
             //   Generic version:
             //
-            //   Task Invoke(Middleware instance, HttpContext httpContext, IServiceProvider provider)
+            //   Task Invoke(Middleware instance, UpdateContext UpdateContext, IServiceProvider provider)
             //   {
-            //      return instance.Invoke(httpContext, (ILoggerFactory)UseMiddlewareExtensions.GetService(provider, typeof(ILoggerFactory));
+            //      return instance.Invoke(UpdateContext, (ILoggerFactory)UseMiddlewareExtensions.GetService(provider, typeof(ILoggerFactory));
             //   }
 
             //   Non generic version:
             //
-            //   Task Invoke(object instance, HttpContext httpContext, IServiceProvider provider)
+            //   Task Invoke(object instance, UpdateContext UpdateContext, IServiceProvider provider)
             //   {
-            //      return ((Middleware)instance).Invoke(httpContext, (ILoggerFactory)UseMiddlewareExtensions.GetService(provider, typeof(ILoggerFactory));
+            //      return ((Middleware)instance).Invoke(UpdateContext, (ILoggerFactory)UseMiddlewareExtensions.GetService(provider, typeof(ILoggerFactory));
             //   }
 
             var middleware = typeof(T);

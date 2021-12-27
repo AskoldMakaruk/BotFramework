@@ -7,8 +7,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotFramework", "BotFramewor
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EchoBot", "BotFramework.Examples\EchoBot\EchoBot.csproj", "{D94297A4-E77B-4C57-812E-554F009E07AD}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotFramework.Abstractions", "BotFramework.Abstractions\BotFramework.Abstractions.csproj", "{195A3967-A09C-413F-80C8-DC938AC2399C}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotFramework.Tests", "BotFramework.Tests\BotFramework.Tests.csproj", "{1F86F2BB-F129-499F-94F1-F5FAD2527F90}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EchoBot.Tests", "BotFramework.Examples\EchoBot.Tests\EchoBot.Tests.csproj", "{5BF6DE53-D1C3-4431-9A9D-119A4A605E1B}"
@@ -22,8 +20,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotFramework.Hosting", "BotFramework.Hosting\BotFramework.Hosting.csproj", "{45AD7666-D5C4-4F3C-B0FA-F2FC1E7EB002}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotFramework.Identity.Tests", "BotFramework.Identity.Tests\BotFramework.Identity.Tests.csproj", "{80365B83-27AC-4BC5-A93F-281FD5BC793A}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotFramework.Authorization", "BotFramework.Authorization\BotFramework.Authorization.csproj", "{9FAEAEC4-FB5E-4351-B7A8-37D8EA2A1862}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,10 +35,6 @@ Global
 		{D94297A4-E77B-4C57-812E-554F009E07AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D94297A4-E77B-4C57-812E-554F009E07AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D94297A4-E77B-4C57-812E-554F009E07AD}.Release|Any CPU.Build.0 = Release|Any CPU
-		{195A3967-A09C-413F-80C8-DC938AC2399C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{195A3967-A09C-413F-80C8-DC938AC2399C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{195A3967-A09C-413F-80C8-DC938AC2399C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{195A3967-A09C-413F-80C8-DC938AC2399C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{1F86F2BB-F129-499F-94F1-F5FAD2527F90}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{1F86F2BB-F129-499F-94F1-F5FAD2527F90}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1F86F2BB-F129-499F-94F1-F5FAD2527F90}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -63,10 +55,6 @@ Global
 		{80365B83-27AC-4BC5-A93F-281FD5BC793A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{80365B83-27AC-4BC5-A93F-281FD5BC793A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{80365B83-27AC-4BC5-A93F-281FD5BC793A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9FAEAEC4-FB5E-4351-B7A8-37D8EA2A1862}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9FAEAEC4-FB5E-4351-B7A8-37D8EA2A1862}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9FAEAEC4-FB5E-4351-B7A8-37D8EA2A1862}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9FAEAEC4-FB5E-4351-B7A8-37D8EA2A1862}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

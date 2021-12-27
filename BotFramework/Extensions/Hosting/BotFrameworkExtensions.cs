@@ -3,7 +3,10 @@ using BotFramework.Abstractions;
 using BotFramework.Hosting;
 using BotFramework.HostServices;
 using BotFramework.Middleware;
+using BotFramework.Services;
 using BotFramework.Services.Factories;
+using FluentCache;
+using FluentCache.Simple;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -46,6 +49,9 @@ namespace BotFramework.Extensions.Hosting
                 app.Services.AddScoped<EndpointFactory>();
                 app.Services.AddScoped<UpdateContext>();
                 app.Services.AddScoped<CommandEndpoint>();
+                
+                app.Services.AddSingleton<ICache, FluentDictionaryCache>();
+                app.Services.AddSingleton<UserScopeStorage>();
 
                 app.UseMiddleware<UpdateMiddleware>();
                 app.UseMiddleware<LoggingMiddleware>();

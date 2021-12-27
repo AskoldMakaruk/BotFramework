@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using BotFramework.Middleware;
 using BotFramework.Services.Clients;
 using FluentAssertions;
 using NUnit.Framework;
@@ -29,7 +30,7 @@ namespace BotFramework.Tests
             {
                 await _sink.MakeRequest(GetRequest(i));
                 var message = await _sink.GetRequest<SendMessageRequest>();
-                message.ChatId.Should().Be(i);
+                message.ChatId.Should().Be((ChatId)i);
             }
         }
 
@@ -44,7 +45,7 @@ namespace BotFramework.Tests
             for (int i = 0; i < 10; i++)
             {
                 var message = await _sink.GetRequest<SendMessageRequest>();
-                message.ChatId.Should().Be(i);
+                message.ChatId.Should().Be((ChatId)i);
             }
         }
 
@@ -59,7 +60,7 @@ namespace BotFramework.Tests
 
                 var task = valueTask
                            .AsTask()
-                           .ContinueWith(a => a.GetAwaiter().GetResult().ChatId.Should().Be(i1));
+                           .ContinueWith(a => a.GetAwaiter().GetResult().ChatId.Should().Be((ChatId)i1));
                 tasks.Add(task);
             }
 

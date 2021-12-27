@@ -18,8 +18,7 @@
         <PackageReference Include="Serilog.Sinks.Console" Version="4.0.1" />
     </ItemGroup>
 
-    <ItemGroup>
-      <ProjectReference Include="..\BotFramework.Identity\BotFramework.Identity.csproj" />
+    <ItemGroup>      
       <ProjectReference Include="..\BotFramework\BotFramework.csproj" />
     </ItemGroup>
 

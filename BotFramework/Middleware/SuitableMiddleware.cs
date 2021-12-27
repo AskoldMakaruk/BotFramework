@@ -11,6 +11,7 @@ namespace BotFramework.Middleware
     {
         public EndpointPriority Priority { get; private set; }
         public Task             Action   => _command.Execute(_client);
+        public string[]?        Claims   { get; set; }
 
         private readonly IClient  _client;
         private          ICommand _command;
@@ -20,10 +21,11 @@ namespace BotFramework.Middleware
             _client = client;
         }
 
-        public void Initlialize(ICommand command, EndpointPriority priority)
+        public void Initlialize(ICommand command, EndpointPriority priority, string[]? claims)
         {
             Priority = priority;
             _command = command;
+            Claims   = claims;
         }
     }
 
