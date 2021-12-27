@@ -64,7 +64,7 @@ namespace EchoBot
 
         public bool isTesting => false;
     }
-
+    
     public class EchoCommand : IStaticCommand
     {
         private readonly ILogger logger;

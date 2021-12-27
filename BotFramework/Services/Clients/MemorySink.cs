@@ -10,9 +10,9 @@ namespace BotFramework.Services.Clients
 {
     public class MemorySink : IRequestSinc
     {
-        private readonly ILogger _logger;
+        private readonly ILogger? _logger;
 
-        public MemorySink(ILogger<MemorySink> logger = null)
+        public MemorySink(ILogger<MemorySink>? logger = null)
         {
             _logger = logger;
         }
@@ -39,7 +39,7 @@ namespace BotFramework.Services.Clients
             }
 
             RequestToSend.Enqueue(request);
-            _logger.LogDebug("{Message}", await request.ToHttpContent().ReadAsStringAsync(cancellationToken));
+            _logger?.LogDebug("{Message}", await request.ToHttpContent().ReadAsStringAsync(cancellationToken));
             return (TResponse)reply!;
         }
 

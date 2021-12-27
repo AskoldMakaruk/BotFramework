@@ -42,6 +42,7 @@
   <ItemGroup>
     <ProjectReference Include="..\BotFramework.Abstractions\BotFramework.Abstractions.csproj" />
     <ProjectReference Include="..\BotFramework.Hosting\BotFramework.Hosting.csproj" />
+    <ProjectReference Include="..\BotFramework.Identity\BotFramework.Identity.csproj" />
   </ItemGroup>
 
 </Project>

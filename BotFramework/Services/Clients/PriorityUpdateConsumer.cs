@@ -1,7 +1,6 @@
 using System.Collections.Concurrent;
 using System.Linq;
 using BotFramework.Abstractions;
-using BotFramework.Middleware;
 
 namespace BotFramework.Services.Clients
 {

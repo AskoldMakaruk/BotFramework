@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using BotFramework.Abstractions;
 using BotFramework.Services.Factories;
@@ -22,14 +21,15 @@ namespace BotFramework.Middleware
         }
     }
 
-    public class UpdateContext
-    {
-        public readonly Update           Update;
-        public readonly List<IEndpoint?> Endpoints = new();
-
-        public UpdateContext(Update update)
-        {
-            Update = update;
-        }
-    }
+    // public class AuthorizationMiddleware
+    // {
+    //     private readonly UpdateDelegate _next;
+    //
+    //     public AuthorizationMiddleware(UpdateDelegate next) => _next = next;
+    //
+    //     public Task Invoke(Update update, UpdateContext context)
+    //     {
+    //         return _next(update);
+    //     }
+    // }
 }

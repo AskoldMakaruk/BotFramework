@@ -1,5 +1,7 @@
 using System;
+using System.Reflection;
 using BotFramework.Abstractions;
+using BotFramework.Authorization;
 using BotFramework.Middleware;
 
 namespace BotFramework.Services.Factories
@@ -17,8 +19,21 @@ namespace BotFramework.Services.Factories
         {
             var newCommand = (IStaticCommand)_provider.GetService(command.GetType())!;
             var endpoint   = (CommandEndpoint)_provider.GetService(typeof(CommandEndpoint))!;
-            endpoint.Initlialize(newCommand, priority);
+
+            endpoint.Initlialize(newCommand, priority, GetClaims(newCommand));
+
             return endpoint;
+        }
+
+        private string[]? GetClaims(IStaticCommand command)
+        {
+            var commandType = command.GetType();
+            if (commandType.GetCustomAttribute(typeof(AuthorizeAttribute), true) is AuthorizeAttribute attr)
+            {
+                return attr.Claims;
+            }
+
+            return null;
         }
     }
 }
