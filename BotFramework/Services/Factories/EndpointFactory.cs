@@ -22,6 +22,10 @@ namespace BotFramework.Services.Factories
             {
                 endpointCommand.ControllerIntance = _provider.GetService(endpointCommand.ControllerType)!;
             }
+            else
+            {
+                command = (IStaticCommand)_provider.GetService(command.GetType())!;
+            }
 
             var endpoint = (CommandEndpoint)_provider.GetService(typeof(CommandEndpoint))!;
             endpoint.Initlialize(command, priority, GetClaims(command.GetType()));
