@@ -23,7 +23,7 @@ namespace BotFramework.Extensions.Hosting
             builder.UsePossibleCommands();
             builder.Services.TryAddSingleton(provider =>
             {
-                provider.GetService<ILogger<StaticCommandsMiddleware>>()
+                provider.GetService<ILogger>()
                         ?.LogDebug("Loaded {Count} static commands: {Commands}",
                             staticCommands.Types.Count,
                             string.Join(", ", staticCommands.Types.Select(a => a.Name)));
