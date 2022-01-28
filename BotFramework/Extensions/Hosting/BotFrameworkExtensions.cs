@@ -43,6 +43,7 @@ namespace BotFramework.Extensions.Hosting
                 }
 
                 app.UseStaticCommands();
+                app.UseControllers();
 
                 app.Services.AddScoped<Update>(provider => provider.GetService<UpdateFactory>()!.CurrentUpdate);
                 app.Services.AddScoped<UpdateFactory>();

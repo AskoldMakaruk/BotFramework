@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging;
 
 namespace BotFramework.Extensions.Hosting
 {
-    public static class CommandsMiddlewareExtensions
+    public static class StaticCommandsDIExtensions
     {
         public static void UsePossibleCommands(this IAppBuilder builder)
         {
@@ -25,14 +25,14 @@ namespace BotFramework.Extensions.Hosting
             {
                 provider.GetService<ILogger<StaticCommandsMiddleware>>()
                         ?.LogDebug("Loaded {Count} static commands: {Commands}",
-                            staticCommands.StaticCommandsTypes.Count,
-                            string.Join(", ", staticCommands.StaticCommandsTypes.Select(a => a.Name)));
+                            staticCommands.Types.Count,
+                            string.Join(", ", staticCommands.Types.Select(a => a.Name)));
 
                 return staticCommands;
             });
             builder.UseMiddleware<StaticCommandsMiddleware>();
 
-            foreach (var command in staticCommands.StaticCommandsTypes)
+            foreach (var command in staticCommands.Types)
             {
                 builder.Services.AddScoped(command);
             }
