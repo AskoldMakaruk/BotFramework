@@ -28,10 +28,10 @@ public class ControllerCommandEndpointMiddleware
     }
 
 
-    private IEnumerable<IStaticCommand> GetCommands(Type type)
+    private IEnumerable<IStaticCommand> GetCommands(Type controllerType)
     {
         var baseType = typeof(CommandAttribute);
-        var methods  = type.GetMethods(BindingFlags.Public | BindingFlags.Instance);
+        var methods  = controllerType.GetMethods(BindingFlags.Public | BindingFlags.Instance);
 
         foreach (var method in methods)
         {
@@ -51,7 +51,7 @@ public class ControllerCommandEndpointMiddleware
 
             bool? Seed(Update context) => true;
 
-            yield return new ControllerEndpointCommand(priority, predicate, method) { ControllerType = type };
+            yield return new ControllerEndpointCommand(priority, predicate, method) { ControllerType = controllerType };
         }
     }
 }

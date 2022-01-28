@@ -6,15 +6,15 @@
       <Company>BotFramework</Company>
       <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
       <AssemblyVersion>1.0.0.0</AssemblyVersion>
-      <FileVersion>1.0.0.50</FileVersion>
-      <Version>1.0.0-alpha-50</Version>
-      <PackageVersion>1.0.0-alpha-50</PackageVersion>
+      <FileVersion>1.0.0.51</FileVersion>
+      <Version>1.0.0-alpha-51</Version>
+      <PackageVersion>1.0.0-alpha-51</PackageVersion>
       <PackageLicenseExpression>MIT</PackageLicenseExpression>
       <PackageProjectUrl>https://github.com/AskoldMakaruk/BotFramework</PackageProjectUrl>
       <RepositoryUrl>https://github.com/AskoldMakaruk/BotFramework</RepositoryUrl>
       <RepositoryType>Open</RepositoryType>
       <PackageTags>telegram bot</PackageTags>
-      <PackageReleaseNotes>Controllers</PackageReleaseNotes>
+      <PackageReleaseNotes>Critical bugfix</PackageReleaseNotes>
       <Nullable>enable</Nullable>
       <LangVersion>10</LangVersion>
   </PropertyGroup>

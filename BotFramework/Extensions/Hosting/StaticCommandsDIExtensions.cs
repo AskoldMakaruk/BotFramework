@@ -5,6 +5,7 @@ using System.Reflection;
 using BotFramework.Abstractions;
 using BotFramework.Hosting;
 using BotFramework.Middleware;
+using BotFramework.Services.Controllers;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
@@ -74,7 +75,10 @@ namespace BotFramework.Extensions.Hosting
         public static StaticCommandsList GetStaticCommands(IEnumerable<Assembly> assemblies)
         {
             var allTypes = assemblies.SelectMany(a => a.GetTypes());
-            var res = allTypes.Where(p => typeof(ICommand).IsAssignableFrom(p) && !p.IsAbstract)
+            var res = allTypes.Where(p => typeof(ICommand).IsAssignableFrom(p)
+                                          && !p.IsAbstract
+                                          && p.GetCustomAttributes(true)
+                                              .Any(a => a.GetType() == typeof(IgnoreReflectionAttribute)))
                               .ToList();
             return new(res);
         }
