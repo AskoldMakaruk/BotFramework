@@ -78,7 +78,7 @@ namespace BotFramework.Extensions.Hosting
             var res = allTypes.Where(p => typeof(ICommand).IsAssignableFrom(p)
                                           && !p.IsAbstract
                                           && p.GetCustomAttributes(true)
-                                              .Any(a => a.GetType() == typeof(IgnoreReflectionAttribute)))
+                                              .All(a => a.GetType() != typeof(IgnoreReflectionAttribute)))
                               .ToList();
             return new(res);
         }
