@@ -6,6 +6,10 @@ using Telegram.Bot.Types;
 
 namespace BotFramework.Services.Controllers;
 
+[AttributeUsage(AttributeTargets.Class)]
+public class IgnoreReflectionAttribute : Attribute { }
+
+[IgnoreReflection]
 internal class ControllerEndpointCommand : IStaticCommand
 {
     private readonly EndpointPriority _priority;
