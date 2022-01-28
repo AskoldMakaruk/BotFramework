@@ -12,24 +12,24 @@ namespace BotFramework.Abstractions
         /// </summary>
         /// <param name="update">Message received from user.</param>
         /// <returns>Unique id of update's sender.</returns>
-        public static long? GetId(this Update update)
+        public static long? GetId(this Update? update)
         {
             var info = GetInfoFromUpdate(update);
             return info?.Chat?.Id ?? info?.From?.Id;
         }
 
-        public static User? GetUser(this Update update) => GetInfoFromUpdate(update)?.From;
+        public static User? GetUser(this Update? update) => GetInfoFromUpdate(update)?.From;
 
-        public static string ToLogString(this Update update) => GetInfoFromUpdate(update).ToString();
+        public static string ToLogString(this Update? update) => GetInfoFromUpdate(update).ToString();
 
-        public static ParsedUpdate GetInfoFromUpdate(this Update update)
+        public static ParsedUpdate GetInfoFromUpdate(this Update? update)
         {
             User?   from = default;
             Chat?   chat = default;
             string? fromName;
             var     contents = string.Empty;
 
-            switch (update.Type)
+            switch (update?.Type)
             {
                 case UpdateType.Message:
                     var message = update.Message;
@@ -107,7 +107,7 @@ namespace BotFramework.Abstractions
                     fromName = update.PreCheckoutQuery?.From?.Username;
                     break;
                 default:
-                    var ex = new NotImplementedException($"We don't support {update.Type} right now");
+                    var ex = new NotImplementedException($"We don't support {update?.Type} right now");
                     throw ex;
             }
 

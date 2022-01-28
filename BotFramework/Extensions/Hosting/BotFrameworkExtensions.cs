@@ -43,13 +43,14 @@ namespace BotFramework.Extensions.Hosting
                 }
 
                 app.UseStaticCommands();
+                app.UseControllers();
 
                 app.Services.AddScoped<Update>(provider => provider.GetService<UpdateFactory>()!.CurrentUpdate);
                 app.Services.AddScoped<UpdateFactory>();
                 app.Services.AddScoped<EndpointFactory>();
                 app.Services.AddScoped<UpdateContext>();
                 app.Services.AddScoped<CommandEndpoint>();
-                
+
                 app.Services.AddSingleton<ICache, FluentDictionaryCache>();
                 app.Services.AddSingleton<UserScopeStorage>();
 

@@ -3,6 +3,7 @@ using System.Reflection;
 using BotFramework.Abstractions;
 using BotFramework.Authorization;
 using BotFramework.Middleware;
+using BotFramework.Services.Controllers;
 
 namespace BotFramework.Services.Factories
 {
@@ -17,18 +18,19 @@ namespace BotFramework.Services.Factories
 
         public IEndpoint CreateEndpoint(ICommand command, EndpointPriority priority)
         {
-            var newCommand = (IStaticCommand)_provider.GetService(command.GetType())!;
-            var endpoint   = (CommandEndpoint)_provider.GetService(typeof(CommandEndpoint))!;
+            if (command is ControllerEndpointCommand endpointCommand)
+            {
+                endpointCommand.ControllerIntance = _provider.GetService(endpointCommand.ControllerType)!;
+            }
 
-            endpoint.Initlialize(newCommand, priority, GetClaims(newCommand));
-
+            var endpoint = (CommandEndpoint)_provider.GetService(typeof(CommandEndpoint))!;
+            endpoint.Initlialize(command, priority, GetClaims(command.GetType()));
             return endpoint;
         }
 
-        private string[]? GetClaims(IStaticCommand command)
+        private string[]? GetClaims(MemberInfo command)
         {
-            var commandType = command.GetType();
-            if (commandType.GetCustomAttribute(typeof(AuthorizeAttribute), true) is AuthorizeAttribute attr)
+            if (command.GetCustomAttribute(typeof(AuthorizeAttribute), true) is AuthorizeAttribute attr)
             {
                 return attr.Claims;
             }

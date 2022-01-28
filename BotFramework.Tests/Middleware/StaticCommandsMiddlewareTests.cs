@@ -35,14 +35,14 @@ namespace BotFramework.Tests.Middleware
         // [Test]
         // public void GetStaticCommands_WhenExecuted_ShouldReturnStaticCommands()
         // {
-        //     var commands = CommandsMiddlewareExtensions.GetAssemblies().StaticCommandsTypes.ToList();
+        //     var commands = StaticCommandsDIExtensions.GetAssemblies().Types.ToList();
         //     commands.Should().Contain(commandTypes);
         // }
 
         [Test]
         public void ServicesShouldContainStaticCommands()
         {
-            var commands = _host.Services.GetService<StaticCommandsList>()!.StaticCommandsTypes.ToList();
+            var commands = _host.Services.GetService<StaticCommandsList>()!.Types.ToList();
             commands.Should().Contain(commandTypes);
         }
     }
