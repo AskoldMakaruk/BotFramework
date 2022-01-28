@@ -22,7 +22,7 @@ namespace BotFramework.Tests
                                                   .WriteTo.Console()
                                                   .CreateLogger();
 
-            _sink = new MemorySink(logger);
+            _sink = new MemorySink();
         }
 
 

@@ -1,6 +1,7 @@
 using System;
 using BotFramework.Abstractions;
 using BotFramework.Middleware;
+using BotFramework.Services.Controllers;
 
 namespace BotFramework.Services.Factories
 {
@@ -15,9 +16,13 @@ namespace BotFramework.Services.Factories
 
         public IEndpoint CreateEndpoint(ICommand command, EndpointPriority priority)
         {
-            var newCommand = (IStaticCommand)_provider.GetService(command.GetType())!;
-            var endpoint   = (CommandEndpoint)_provider.GetService(typeof(CommandEndpoint))!;
-            endpoint.Initlialize(newCommand, priority);
+            if (command is ControllerEndpointCommand endpointCommand)
+            {
+                endpointCommand.ControllerIntance = _provider.GetService(endpointCommand.ControllerType)!;
+            }
+
+            var endpoint = (CommandEndpoint)_provider.GetService(typeof(CommandEndpoint))!;
+            endpoint.Initlialize(command, priority);
             return endpoint;
         }
     }

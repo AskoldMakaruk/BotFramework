@@ -1,7 +1,6 @@
 using System.Linq;
 using System.Threading.Tasks;
 using BotFramework.Abstractions;
-using BotFramework.Extensions;
 using BotFramework.Services.Factories;
 using Serilog;
 using Serilog.Core;
@@ -28,7 +27,6 @@ namespace BotFramework.Middleware
             _command = command;
         }
     }
-
 
     public class SuitableMiddleware
     {

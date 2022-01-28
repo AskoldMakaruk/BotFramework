@@ -4,7 +4,7 @@
 // using System.Threading.Tasks;
 // using NUnit.Framework;
 //
-// namespace BotFramework.Tests
+// namespace BotFramework.ControllersTests
 // {
 //     // this 
 //     [Ignore("This is just a proof of concept.")]
@@ -85,3 +85,4 @@
 //         }
 //     }
 // }
+
