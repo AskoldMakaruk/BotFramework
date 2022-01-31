@@ -29,7 +29,6 @@ namespace BotFramework.Middleware
         }
     }
 
-
     public class SuitableMiddleware
     {
         private readonly UpdateDelegate _next;

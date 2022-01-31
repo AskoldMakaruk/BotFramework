@@ -5,7 +5,7 @@
 // using NUnit.Framework;
 // using Telegram.Bot.Types;
 //
-// namespace BotFramework.Tests
+// namespace BotFramework.ControllersTests
 // {
 //     //todo implement tests
 //     public class UpdateHandlerTests
@@ -84,3 +84,4 @@
 //         }
 //     }
 // }
+

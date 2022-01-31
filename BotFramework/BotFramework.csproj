@@ -2,19 +2,19 @@
 
   <PropertyGroup>
       <TargetFramework>net6.0</TargetFramework>
-      <Authors />
+      <Authors/>
       <Company>BotFramework</Company>
       <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
       <AssemblyVersion>1.0.0.0</AssemblyVersion>
-      <FileVersion>1.0.0.44</FileVersion>
-      <Version>1.0.0-alpha-45</Version>
-      <PackageVersion>1.0.0-alpha-45</PackageVersion>
+      <FileVersion>1.0.0.53</FileVersion>
+      <Version>1.0.0-alpha-53</Version>
+      <PackageVersion>1.0.0-alpha-53</PackageVersion>
       <PackageLicenseExpression>MIT</PackageLicenseExpression>
       <PackageProjectUrl>https://github.com/AskoldMakaruk/BotFramework</PackageProjectUrl>
       <RepositoryUrl>https://github.com/AskoldMakaruk/BotFramework</RepositoryUrl>
       <RepositoryType>Open</RepositoryType>
       <PackageTags>telegram bot</PackageTags>
-      <PackageReleaseNotes>Identity, .net 6.</PackageReleaseNotes>
+      <PackageReleaseNotes>Critical bugfix, again, again!</PackageReleaseNotes>
       <Nullable>enable</Nullable>
       <LangVersion>10</LangVersion>
   </PropertyGroup>

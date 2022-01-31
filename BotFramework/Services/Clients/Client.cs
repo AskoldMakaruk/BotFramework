@@ -2,7 +2,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using BotFramework.Abstractions;
-using BotFramework.Extensions;
 using Telegram.Bot.Requests.Abstractions;
 using Telegram.Bot.Types;
 
@@ -16,9 +15,9 @@ namespace BotFramework.Services.Clients
         private readonly IRequestSinc _requestSinc;
         private readonly IUpdateQueue _updateQueue;
 
-        public Client(IRequestSinc requestSinc, ICommandStateMachine updateQueue, Update update)
+        public Client(IRequestSinc requestSinc, ICommandStateMachine updateQueue, Update? update)        
         {
-            UserId       = update.GetId()!.Value;
+            UserId       = update?.GetId() ?? -1;
             _requestSinc = requestSinc;
             _updateQueue = updateQueue;
         }
