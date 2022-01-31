@@ -4,12 +4,12 @@ using BotFramework.Abstractions;
 
 namespace BotFramework.Services.Clients
 {
-    public class PriorityUpdateConsumer
+    public class PriorityCommandExcecutor
     {
-        private readonly ConcurrentBag<ICommandUpdateConsumer> consumers = new();
+        private readonly ConcurrentBag<ICommandStateMachine> consumers = new();
 
-        public void Consume(UpdateContext          context,
-                            ICommandUpdateConsumer client)
+        public void Consume(UpdateContext        context,
+                            ICommandStateMachine client)
         {
             var commands = context.Endpoints;
             if (CheckPriority(EndpointPriority.First))
