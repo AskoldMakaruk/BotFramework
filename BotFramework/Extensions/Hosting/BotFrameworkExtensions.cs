@@ -50,6 +50,9 @@ namespace BotFramework.Extensions.Hosting
                 app.Services.AddScoped<EndpointFactory>();
                 app.Services.AddScoped<UpdateContext>();
                 app.Services.AddScoped<CommandEndpoint>();
+                
+                app.Services.AddSingleton<ICache, FluentDictionaryCache>();
+                app.Services.AddSingleton<UserScopeStorage>();
 
                 app.Services.AddSingleton<ICache, FluentDictionaryCache>();
                 app.Services.AddSingleton<UserScopeStorage>();

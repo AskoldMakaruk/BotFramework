@@ -6,7 +6,7 @@ using Telegram.Bot.Types;
 
 namespace BotFramework.Services.Clients
 {
-    public class CommandUpdateConsumer : ICommandUpdateConsumer
+    public class CommandStateMachine : ICommandStateMachine
     {
         public void Initialize(Task command)
         {

@@ -5,15 +5,15 @@ namespace BotFramework.Services;
 
 public static class PriorityUpdateConsumerExtensions
 {
-    public static PriorityUpdateConsumer GetPriorityUpdateConsumer(this IFeatureCollection collection)
+    public static PriorityCommandExcecutor GetPriorityUpdateConsumer(this IFeatureCollection collection)
     {
-        if (collection.FirstOrDefault(pair => pair.Key == typeof(PriorityUpdateConsumer)).Value is { } result)
+        if (collection.FirstOrDefault(pair => pair.Key == typeof(PriorityCommandExcecutor)).Value is { } result)
         {
-            return (PriorityUpdateConsumer)result;
+            return (PriorityCommandExcecutor)result;
         }
 
-        var consumer = new PriorityUpdateConsumer();
-        collection[typeof(PriorityUpdateConsumer)] = consumer;
+        var consumer = new PriorityCommandExcecutor();
+        collection[typeof(PriorityCommandExcecutor)] = consumer;
         return consumer;
     }
 }

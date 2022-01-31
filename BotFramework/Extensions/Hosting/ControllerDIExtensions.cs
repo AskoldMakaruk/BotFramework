@@ -17,7 +17,7 @@ public static class ControllerDIExtensions
     {
         builder.Services.TryAddSingleton(provider =>
         {
-            provider.GetService<ILogger>()
+            provider.GetService<ILogger>()                    
                     ?.LogDebug("Loaded {Count} controllers: {Commands}",
                         controllers.Types.Count,
                         string.Join(", ", controllers.Types.Select(a => a.Name)));

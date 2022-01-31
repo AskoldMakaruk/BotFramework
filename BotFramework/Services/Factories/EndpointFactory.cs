@@ -27,14 +27,18 @@ namespace BotFramework.Services.Factories
                 command = (IStaticCommand)_provider.GetService(command.GetType())!;
             }
 
-            var endpoint = (CommandEndpoint)_provider.GetService(typeof(CommandEndpoint))!;
-            endpoint.Initlialize(command, priority, GetClaims(command.GetType()));
+            var newCommand = (IStaticCommand)_provider.GetService(command.GetType())!;
+            var endpoint   = (CommandEndpoint)_provider.GetService(typeof(CommandEndpoint))!;
+
+            endpoint.Initlialize(newCommand, priority, GetClaims(newCommand));
+
             return endpoint;
         }
 
-        private string[]? GetClaims(MemberInfo command)
+        private string[]? GetClaims(IStaticCommand command)
         {
-            if (command.GetCustomAttribute(typeof(AuthorizeAttribute), true) is AuthorizeAttribute attr)
+            var commandType = command.GetType();
+            if (commandType.GetCustomAttribute(typeof(AuthorizeAttribute), true) is AuthorizeAttribute attr)
             {
                 return attr.Claims;
             }

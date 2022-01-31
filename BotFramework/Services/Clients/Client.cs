@@ -7,6 +7,7 @@ using Telegram.Bot.Types;
 
 namespace BotFramework.Services.Clients
 {
+    /// <inheritdoc cref="IClient"/>
     public class Client : IClient
     {
         public long UserId { get; }
@@ -14,7 +15,7 @@ namespace BotFramework.Services.Clients
         private readonly IRequestSinc _requestSinc;
         private readonly IUpdateQueue _updateQueue;
 
-        public Client(IRequestSinc requestSinc, ICommandUpdateConsumer updateQueue, Update? update)
+        public Client(IRequestSinc requestSinc, ICommandStateMachine updateQueue, Update? update)
         {
             UserId       = update?.GetId() ?? -1;
             _requestSinc = requestSinc;
