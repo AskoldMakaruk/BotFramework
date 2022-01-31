@@ -6,20 +6,17 @@ using Telegram.Bot.Types;
 
 namespace BotFramework.Services.Controllers;
 
-[AttributeUsage(AttributeTargets.Class)]
-public class IgnoreReflectionAttribute : Attribute { }
-
 [IgnoreReflection]
 internal class ControllerEndpointCommand : IStaticCommand
 {
-    private readonly EndpointPriority _priority;
-    private readonly UpdatePredicate  _predicate;
-    private readonly MethodBase       _method;
+    private readonly EndpointPriority    _priority;
+    private readonly Func<Update, bool?> _predicate;
+    private readonly MethodBase          _method;
 
     public object ControllerIntance { get; set; }
     public Type   ControllerType    { get; set; }
 
-    public ControllerEndpointCommand(EndpointPriority priority, UpdatePredicate predicate, MethodBase method)
+    public ControllerEndpointCommand(EndpointPriority priority, Func<Update, bool?> predicate, MethodBase method)
     {
         _priority  = priority;
         _predicate = predicate;
@@ -41,5 +38,3 @@ internal class ControllerEndpointCommand : IStaticCommand
         return _priority == EndpointPriority.First && (_predicate.Invoke(update) ?? false);
     }
 }
-
-public delegate bool? UpdatePredicate(Update update);

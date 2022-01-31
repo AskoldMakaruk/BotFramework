@@ -47,9 +47,7 @@ public class ControllerCommandEndpointMiddleware
             var priority = commandAttributes.FirstOrDefault(a => a.EndpointPriority != null)?.EndpointPriority
                            ?? EndpointPriority.Last;
 
-            var predicate = commandAttributes.Aggregate((UpdatePredicate)Seed, (func, attribute) => func + attribute.Suitable);
-
-            bool? Seed(Update context) => true;
+            var predicate = commandAttributes.Select(a => a.Suitable).Aggregate((func, attribute) => func + attribute);
 
             yield return new ControllerEndpointCommand(priority, predicate, method) { ControllerType = controllerType };
         }
