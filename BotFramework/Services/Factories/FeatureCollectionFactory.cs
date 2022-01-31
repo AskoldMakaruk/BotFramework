@@ -8,7 +8,7 @@ public class FeatureCollectionFactory
     {
         var featureCollection = new FeatureCollection
         {
-            [typeof(PriorityUpdateConsumer)] = new PriorityUpdateConsumer()
+            [typeof(PriorityCommandExcecutor)] = new PriorityCommandExcecutor()
         };
         
         return featureCollection;

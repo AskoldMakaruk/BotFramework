@@ -20,7 +20,7 @@ public class EndpointMiddleware
 
     public Task Invoke(Update                 update,
                        UpdateContext          updateContext,
-                       ICommandUpdateConsumer client)
+                       ICommandStateMachine client)
     {
         var id = update.GetId()!.Value;
 

@@ -26,9 +26,9 @@ namespace BotFramework.Abstractions
     }
 
     /// <summary>
-    /// Consumer for one command. Only one ICommandUpdateConsumer can handle some update at same time
+    /// Consumer for one command. Only one ICommandStateMachine can handle some update at same time
     /// </summary>
-    public interface ICommandUpdateConsumer : IUpdateQueue
+    public interface ICommandStateMachine : IUpdateQueue
     {
         bool IsDone { get; }
 

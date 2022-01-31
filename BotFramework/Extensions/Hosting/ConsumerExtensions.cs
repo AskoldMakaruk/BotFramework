@@ -9,7 +9,7 @@ namespace BotFramework.Extensions.Hosting
     {
         public static IServiceCollection AddUpdateConsumer(this IServiceCollection services)
         {
-            services.AddScoped<ICommandUpdateConsumer, CommandUpdateConsumer>();
+            services.AddScoped<ICommandStateMachine, CommandStateMachine>();
             services.AddSingleton<IRequestSinc, TelegramSink>();
             services.AddScoped<IClient, Client>();
             return services;
@@ -17,7 +17,7 @@ namespace BotFramework.Extensions.Hosting
 
         public static IServiceCollection AddDebugUpdateConsumer(this IServiceCollection services)
         {
-            services.AddScoped<ICommandUpdateConsumer, CommandUpdateConsumer>();
+            services.AddScoped<ICommandStateMachine, CommandStateMachine>();
             services.AddSingleton<AppUpdateProducer>();
             services.AddSingleton<IRequestSinc, MemorySink>();
             services.AddScoped<IClient, Client>();
