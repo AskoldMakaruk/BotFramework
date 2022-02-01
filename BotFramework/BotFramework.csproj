@@ -6,15 +6,15 @@
       <Company>BotFramework</Company>
       <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
       <AssemblyVersion>1.0.0.0</AssemblyVersion>
-      <FileVersion>1.0.0.53</FileVersion>
-      <Version>1.0.0-alpha-53</Version>
-      <PackageVersion>1.0.0-alpha-53</PackageVersion>
+      <FileVersion>1.0.0.60</FileVersion>
+      <Version>1.0.0-alpha-60</Version>
+      <PackageVersion>1.0.0-alpha-60</PackageVersion>
       <PackageLicenseExpression>MIT</PackageLicenseExpression>
       <PackageProjectUrl>https://github.com/AskoldMakaruk/BotFramework</PackageProjectUrl>
       <RepositoryUrl>https://github.com/AskoldMakaruk/BotFramework</RepositoryUrl>
       <RepositoryType>Open</RepositoryType>
       <PackageTags>telegram bot</PackageTags>
-      <PackageReleaseNotes>Critical bugfix, again, again!</PackageReleaseNotes>
+      <PackageReleaseNotes>Working conrollers, also attribute predicates!</PackageReleaseNotes>
       <Nullable>enable</Nullable>
       <LangVersion>10</LangVersion>
   </PropertyGroup>

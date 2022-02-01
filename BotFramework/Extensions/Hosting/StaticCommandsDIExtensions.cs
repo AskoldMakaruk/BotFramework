@@ -28,7 +28,7 @@ public static class StaticCommandsDIExtensions
 
             return staticCommands;
         });
-        builder.UseMiddleware<StaticCommandsMiddleware>();
+        builder.UseMiddleware<CommandEndpointMiddleware>();
 
         foreach (var command in staticCommands.Types)
         {

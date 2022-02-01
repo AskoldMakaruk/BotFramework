@@ -15,13 +15,13 @@ public record StaticCommandsList(IReadOnlyList<Type> Types);
 public record ControllersList(IReadOnlyList<Type> Types);
 
 //todo move commands to ICommandProvider with different implementations
-public class StaticCommandsMiddleware
+public class CommandEndpointMiddleware
 {
     private readonly List<ICommand>                  commands;
     private readonly List<ControllerEndpointCommand> controllerCommands;
     private readonly UpdateDelegate                  _next;
 
-    public StaticCommandsMiddleware(IServiceProvider services, UpdateDelegate next, StaticCommandsList staticCommands,
+    public CommandEndpointMiddleware(IServiceProvider services, UpdateDelegate next, StaticCommandsList staticCommands,
                                     ControllersList  controllersList)
     {
         _next = next;
@@ -80,8 +80,6 @@ public class StaticCommandsMiddleware
 
     private IEnumerable<ControllerEndpointCommand> GetControllerCommands(Type controllerType)
     {
-        //var (classPredicate, classPriority) = GetMemberAttributes(controllerType);
-
         var methods = controllerType.GetMethods(BindingFlags.Public | BindingFlags.Instance);
 
         foreach (var method in methods)
@@ -91,10 +89,7 @@ public class StaticCommandsMiddleware
             {
                 continue;
             }
-
-            // priority ??= classPriority;
-            // CommandPredicate finalPred = (UpdateContext context) =>
-            // (predicate?.Invoke(context) ?? false) && (classPredicate.Invoke(context) ?? false);
+            
             yield return new ControllerEndpointCommand(predicate ?? DefaultPredicate, method, controllerType);
         }
     }
