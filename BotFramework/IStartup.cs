@@ -1,11 +1,10 @@
 ﻿using BotFramework.Abstractions;
 using Microsoft.Extensions.Hosting;
 
-namespace BotFramework
+namespace BotFramework;
+
+public interface IStartup
 {
-    public interface IStartup
-    {
-        public void Configure(IAppBuilder app, HostBuilderContext context);
-        public bool isTesting { get; }
-    }
+    public void Configure(IAppBuilder app, HostBuilderContext context);
+    public bool isTesting { get; }
 }

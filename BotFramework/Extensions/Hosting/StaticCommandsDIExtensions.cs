@@ -10,77 +10,73 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 
-namespace BotFramework.Extensions.Hosting
+namespace BotFramework.Extensions.Hosting;
+
+public static class StaticCommandsDIExtensions
 {
-    public static class StaticCommandsDIExtensions
+    
+
+    public static void UseStaticCommands(this IAppBuilder builder, StaticCommandsList staticCommands)
     {
-        public static void UsePossibleCommands(this IAppBuilder builder)
+    
+        builder.Services.TryAddSingleton(provider =>
         {
-            builder.Services.AddScoped<PossibleCommands>();
+            provider.GetService<ILogger>()
+                    ?.LogDebug("Loaded {Count} static commands: {Endpoints}",
+                        staticCommands.Types.Count,
+                        string.Join(", ", staticCommands.Types.Select(a => a.Name)));
+
+            return staticCommands;
+        });
+        builder.UseMiddleware<StaticCommandsMiddleware>();
+
+        foreach (var command in staticCommands.Types)
+        {
+            builder.Services.AddScoped(command);
+        }
+    }
+
+    public static void UseStaticCommandsAssembly(this IAppBuilder builder, Assembly assembly)
+    {
+        builder.UseStaticCommands(GetStaticCommands(new[] { assembly }));
+    }
+
+    public static void UseStaticCommands(this IAppBuilder builder)
+    {
+        if (builder.Services.Any(x => x.ServiceType == typeof(StaticCommandsList)))
+        {
+            return;
         }
 
-        public static void UseStaticCommands(this IAppBuilder builder, StaticCommandsList staticCommands)
-        {
-            builder.UsePossibleCommands();
-            builder.Services.TryAddSingleton(provider =>
-            {
-                provider.GetService<ILogger>()
-                        ?.LogDebug("Loaded {Count} static commands: {Commands}",
-                            staticCommands.Types.Count,
-                            string.Join(", ", staticCommands.Types.Select(a => a.Name)));
+        builder.UseStaticCommands(GetStaticCommands(GetAssemblies()));
+    }
 
-                return staticCommands;
-            });
-            builder.UseMiddleware<StaticCommandsMiddleware>();
+    // this might not be perfect solution because it loads many assemblies 
+    // we need to investigate it later
+    internal static Assembly[] GetAssemblies()
+    {
+        var assemblies = AppDomain.CurrentDomain.GetAssemblies()
+                                  .Where(a => !a.FullName.Contains("Microsoft")
+                                              && !a.FullName.Contains("System"))
+                                  .ToList();
 
-            foreach (var command in staticCommands.Types)
-            {
-                builder.Services.AddScoped(command);
-            }
-        }
-
-        public static void UseStaticCommandsAssembly(this IAppBuilder builder, Assembly assembly)
-        {
-            builder.UseStaticCommands(GetStaticCommands(new[] { assembly }));
-        }
-
-        public static void UseStaticCommands(this IAppBuilder builder)
-        {
-            if (builder.Services.Any(x => x.ServiceType == typeof(StaticCommandsList)))
-            {
-                return;
-            }
-
-            builder.UseStaticCommands(GetStaticCommands(GetAssemblies()));
-        }
-
-        // this might not be perfect solution because it loads many assemblies 
-        // we need to investigate it later
-        internal static Assembly[] GetAssemblies()
-        {
-            var assemblies = AppDomain.CurrentDomain.GetAssemblies()
-                                      .Where(a => !a.FullName.Contains("Microsoft")
-                                                  && !a.FullName.Contains("System"))
-                                      .ToList();
-
-            var referenced = assemblies.SelectMany(a => a.GetReferencedAssemblies())
-                                       .Where(a => !a.FullName.Contains("Microsoft")
-                                                   && !a.FullName.Contains("System"))
-                                       .Select(Assembly.Load);
+        var referenced = assemblies.SelectMany(a => a.GetReferencedAssemblies())
+                                   .Where(a => !a.FullName.Contains("Microsoft")
+                                               && !a.FullName.Contains("System"))
+                                   .Select(Assembly.Load);
 
 
-            return assemblies.Concat(referenced).ToArray();
-        }
+        return assemblies.Concat(referenced).ToArray();
+    }
 
-        public static StaticCommandsList GetStaticCommands(IEnumerable<Assembly> assemblies)
-        {
-            var allTypes = assemblies.SelectMany(a => a.GetTypes());
-            var res = allTypes.Where(p => typeof(ICommand).IsAssignableFrom(p)
-                                          && !p.IsAbstract
-                                          && p.GetCustomAttributes(true)
-                                              .All(a => a.GetType() != typeof(IgnoreReflectionAttribute)))
-                              .ToList();
-            return new(res);
-        }
+    public static StaticCommandsList GetStaticCommands(IEnumerable<Assembly> assemblies)
+    {
+        var allTypes = assemblies.SelectMany(a => a.GetTypes());
+        var res = allTypes.Where(p => typeof(ICommand).IsAssignableFrom(p)
+                                      && !p.IsAbstract
+                                      && p.GetCustomAttributes(true)
+                                          .All(a => a.GetType() != typeof(IgnoreReflectionAttribute)))
+                          .ToList();
+        return new(res);
     }
 }

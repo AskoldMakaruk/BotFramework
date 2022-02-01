@@ -9,5 +9,5 @@ public interface ICommandController
 
     public Update Update { get; }
 
-    internal void Init(Update update, IClient client);
+    internal void Init(UpdateContext update, IClient client);
 }

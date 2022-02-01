@@ -10,4 +10,9 @@ public class PriorityAttribute : CommandAttribute
     {
         EndpointPriority = priority;
     }
+
+    public override bool? Suitable(UpdateContext context)
+    {
+        return true;
+    }
 }

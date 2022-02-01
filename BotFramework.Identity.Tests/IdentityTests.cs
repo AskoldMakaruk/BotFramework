@@ -51,7 +51,7 @@ public class IdentityTests
         _sink  = host.Services.GetService<IRequestSinc>() as MemorySink;
     }
 
-    public class IdentityCommand : IStaticCommand
+    public class IdentityCommand : ICommand
     {
         private readonly IdentityUser _identityUser;
 
@@ -60,14 +60,15 @@ public class IdentityTests
             _identityUser = identityUser;
         }
 
-        public bool SuitableFirst(Update update)
+
+        public async Task Execute(UpdateContext context)
         {
-            return update.Message.Text == nameof(IdentityCommand);
+            await context.Client.SendTextMessage(_identityUser.UserName);
         }
 
-        public async Task Execute(IClient client)
+        public bool? Suitable(UpdateContext context)
         {
-            await client.SendTextMessage(_identityUser.UserName);
+            return context.Update.Message?.Text == nameof(IdentityCommand);
         }
     }
 

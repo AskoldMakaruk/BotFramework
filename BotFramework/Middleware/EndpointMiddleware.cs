@@ -1,6 +1,8 @@
 using System.Threading.Tasks;
 using BotFramework.Abstractions;
 using BotFramework.Services;
+using BotFramework.Services.Clients;
+using Microsoft.Extensions.Logging;
 using Telegram.Bot.Types;
 
 namespace BotFramework.Middleware;
@@ -18,14 +20,14 @@ public class EndpointMiddleware
         _storage = storage;
     }
 
-    public Task Invoke(Update                 update,
-                       UpdateContext          updateContext,
-                       ICommandStateMachine client)
+    public Task Invoke(UpdateContext                     updateContext,
+                       ICommandStateMachine              client,
+                       ILogger<PriorityCommandExcecutor> logger)
     {
-        var id = update.GetId()!.Value;
+        var id = updateContext.Update.GetId()!.Value;
 
-        _storage.Get(id).GetPriorityUpdateConsumer().Consume(updateContext, client);
+        _storage.Get(id).GetPriorityUpdateConsumer().Consume(updateContext, client, logger);
 
-        return _next.Invoke(update);
+        return _next.Invoke(updateContext);
     }
 }

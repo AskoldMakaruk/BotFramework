@@ -18,13 +18,12 @@ public static class ControllerDIExtensions
         builder.Services.TryAddSingleton(provider =>
         {
             provider.GetService<ILogger>()                    
-                    ?.LogDebug("Loaded {Count} controllers: {Commands}",
+                    ?.LogDebug("Loaded {Count} controllers: {Endpoints}",
                         controllers.Types.Count,
                         string.Join(", ", controllers.Types.Select(a => a.Name)));
 
             return controllers;
         });
-        builder.UseMiddleware<ControllerCommandEndpointMiddleware>();
 
         foreach (var controller in controllers.Types)
         {

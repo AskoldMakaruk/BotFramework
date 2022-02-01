@@ -1,8 +1,7 @@
-namespace BotFramework.Abstractions
+namespace BotFramework.Abstractions;
+
+public enum EndpointPriority
 {
-    public enum EndpointPriority
-    {
-        First,
-        Last
-    }
+    First,
+    Last
 }

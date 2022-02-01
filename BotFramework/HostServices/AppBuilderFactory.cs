@@ -3,27 +3,26 @@ using BotFramework.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-namespace BotFramework.HostServices
+namespace BotFramework.HostServices;
+
+public class AppBuilderFactory : IServiceProviderFactory<AppBuilder>
 {
-    public class AppBuilderFactory : IServiceProviderFactory<AppBuilder>
+    private readonly HostBuilderContext _context;
+
+    public AppBuilderFactory(HostBuilderContext context)
     {
-        private readonly HostBuilderContext _context;
+        _context = context;
+    }
 
-        public AppBuilderFactory(HostBuilderContext context)
-        {
-            _context = context;
-        }
+    public AppBuilder CreateBuilder(IServiceCollection services)
+    {
+        return new(services);
+    }
 
-        public AppBuilder CreateBuilder(IServiceCollection services)
-        {
-            return new(services);
-        }
-
-        public IServiceProvider CreateServiceProvider(AppBuilder containerBuilder)
-        {
-            var (services, app)                                   = containerBuilder.Build();
-            _context.Properties[BotFrameworkExtensions.AppKostyl] = app;
-            return services;
-        }
+    public IServiceProvider CreateServiceProvider(AppBuilder containerBuilder)
+    {
+        var (services, app)                                   = containerBuilder.Build();
+        _context.Properties[BotFrameworkExtensions.AppKostyl] = app;
+        return services;
     }
 }

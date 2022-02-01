@@ -67,6 +67,7 @@ public class ControllersTests
     };
 }
 
+[Priority(EndpointPriority.First)]
 public class TestController : CommandControllerBase
 {
     [StartsWith("/start")]
@@ -75,5 +76,5 @@ public class TestController : CommandControllerBase
         await Client.SendTextMessage("start text");
     }
 
-    public TestController(IClient client, Update update) : base(client, update) { }
+    public TestController(IClient client, UpdateContext update) : base(client, update) { }
 }

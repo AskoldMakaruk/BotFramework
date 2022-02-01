@@ -1,30 +1,16 @@
 ﻿using System.Threading.Tasks;
 
-namespace BotFramework.Abstractions
-{
-    public interface ICommand
-    {
-        public Task Execute(IClient client);
-    }
+namespace BotFramework.Abstractions;
 
-    // public interface IStatelessCommand : ICommand
-    // {
-    //     Task ICommand.Execute(IClient       client) => Execute();
-    //     public Task   Execute(UpdateContext context);
-    // }
-    //
-    // public class StatelessCommand : IStatelessCommand
-    // {
-    //     public Task Execute(IRequestSinc, UpdateContext context)
-    //     {
-    //         
-    //     }
-    // }
-    //
-    // public interface IDialogCommand : ICommand
-    // {
-    //     public int State { init; }
-    //
-    //     public Task Execute(IClient client);
-    // }
+public interface ICommand
+{
+    public Task Execute(UpdateContext context);
+
+    /// <summary>
+    ///     If this returns <c>true</c>, instance of this command will be created and executed. Any other <see cref="Suitable" /> command will be discarded.
+    /// </summary>
+    /// <remarks>
+    ///     It must be thread-save and have access only to static members.
+    /// </remarks>
+    public bool? Suitable(UpdateContext context);
 }

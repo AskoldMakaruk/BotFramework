@@ -3,73 +3,75 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using BotFramework.Abstractions;
+using BotFramework.Services.Factories;
 using Microsoft.Extensions.DependencyInjection;
 using Telegram.Bot.Types;
 
-namespace BotFramework
+namespace BotFramework;
+
+public class AppBuilder : IAppBuilder
 {
-    public class AppBuilder : IAppBuilder
+    // class AppComponent
+    // {
+    //     ;
+    //     public 
+    // }
+    //
+    private readonly List<Func<IServiceProvider, Func<UpdateDelegate, UpdateDelegate>>> _components = new();
+
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="IAppBuilder"/>.
+    /// </summary>
+    /// <param name="applicationServicesBuider">The <see cref="IServiceCollection"/> for application services.</param>
+    public AppBuilder(IServiceCollection applicationServicesBuider)
     {
-        // class AppComponent
-        // {
-        //     ;
-        //     public 
-        // }
-        //
-        private readonly List<Func<IServiceProvider, Func<UpdateDelegate, UpdateDelegate>>> _components = new();
+        Services = applicationServicesBuider;
+    }
 
+    /// <summary>
+    /// Gets the <see cref="IServiceProvider"/> for application services.
+    /// </summary>
+    public IServiceCollection Services { get; set; }
 
-        /// <summary>
-        /// Initializes a new instance of <see cref="IAppBuilder"/>.
-        /// </summary>
-        /// <param name="applicationServicesBuider">The <see cref="IServiceCollection"/> for application services.</param>
-        public AppBuilder(IServiceCollection applicationServicesBuider)
+    /// <summary>
+    /// Adds the middleware to the application request pipeline.
+    /// </summary>
+    /// <param name="middleware">The middleware.</param>
+    /// <returns>An instance of <see cref="IAppBuilder"/> after the operation has completed.</returns>
+    public IAppBuilder Use(Func<IServiceProvider, Func<UpdateDelegate, UpdateDelegate>> middleware)
+    {
+        _components.Add(middleware);
+        return this;
+    }
+
+    /// <summary>
+    /// Produces a <see cref="UpdateDelegate"/> that executes added middlewares.
+    /// Also builds <see cref="IServiceProvider"/>
+    /// </summary>
+    /// <returns>The <see cref="IServiceProvider"/> and <see cref="UpdateDelegate"/>.</returns>
+    public (IServiceProvider services, BotDelegate app) Build()
+    {
+        var provider = Services.BuildServiceProvider();
+
+        return (provider, Build(provider));
+    }
+
+    private BotDelegate Build(IServiceProvider provider)
+    {
+        Task Res(Update update)
         {
-            Services = applicationServicesBuider;
+            var providerScope = provider.CreateScope().ServiceProvider;
+            providerScope.GetService<UpdateFactory>()!.CurrentUpdate = update;
+
+            UpdateDelegate app = _ => Task.CompletedTask;
+            app = _components.Select(t => t(providerScope))
+                             .Reverse()
+                             .Aggregate(app, (current, component) => component(current));
+
+            return app(providerScope.GetService<UpdateContext>()!);
         }
 
-        /// <summary>
-        /// Gets the <see cref="IServiceProvider"/> for application services.
-        /// </summary>
-        public IServiceCollection Services { get; set; }
-
-        /// <summary>
-        /// Adds the middleware to the application request pipeline.
-        /// </summary>
-        /// <param name="middleware">The middleware.</param>
-        /// <returns>An instance of <see cref="IAppBuilder"/> after the operation has completed.</returns>
-        public IAppBuilder Use(Func<IServiceProvider, Func<UpdateDelegate, UpdateDelegate>> middleware)
-        {
-            _components.Add(middleware);
-            return this;
-        }
-
-        /// <summary>
-        /// Produces a <see cref="UpdateDelegate"/> that executes added middlewares.
-        /// Also builds <see cref="IServiceProvider"/>
-        /// </summary>
-        /// <returns>The <see cref="IServiceProvider"/> and <see cref="UpdateDelegate"/>.</returns>
-        public (IServiceProvider services, UpdateDelegate app) Build()
-        {
-            var provider = Services.BuildServiceProvider();
-
-            return (provider, Build(provider));
-        }
-
-        private UpdateDelegate Build(IServiceProvider provider)
-        {
-            Task Res(Update context)
-            {
-                var            providerScope = provider.CreateScope().ServiceProvider;
-                UpdateDelegate app           = _ => Task.CompletedTask;
-
-                app = _components.Select(t => t(providerScope))
-                                 .Reverse()
-                                 .Aggregate(app, (current, component) => component(current));
-                return app(context);
-            }
-
-            return Res;
-        }
+        return Res;
     }
 }

@@ -3,6 +3,7 @@ using BotFramework.Abstractions;
 using BotFramework.Extensions.Hosting;
 using BotFramework.Middleware;
 using BotFramework.Services.Clients;
+using BotFramework.Services.Controllers.Attributes;
 using BotFramework.Services.Extensioins;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
@@ -14,123 +15,125 @@ using Serilog.Events;
 using Telegram.Bot.Requests;
 using Telegram.Bot.Types;
 
-namespace BotFramework.Tests
+namespace BotFramework.Tests;
+
+public class StateMachineTests
 {
-    public class StateMachineTests
+    private AppUpdateProducer client;
+    private MemorySink        _sink;
+
+
+    [SetUp]
+    public void Setup()
     {
-        private AppUpdateProducer client;
-        private MemorySink        _sink;
-
-
-        [SetUp]
-        public void Setup()
-        {
-            var host = Host.CreateDefaultBuilder()
-                           .UseSerilog((context, configuration) =>
+        var host = Host.CreateDefaultBuilder()
+                       .UseSerilog((context, configuration) =>
+                       {
+                           configuration
+                           .MinimumLevel.Verbose()
+                           .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+                           .Enrich.FromLogContext()
+                           .WriteTo.Console();
+                       })
+                       .ConfigureHostConfiguration(builder => builder.AddEnvironmentVariables())
+                       .UseSimpleBotFramework((builder, context) =>
+                       {
+                           builder.UseStaticCommands(new StaticCommandsList(new[]
                            {
-                               configuration
-                               .MinimumLevel.Verbose()
-                               .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
-                               .Enrich.FromLogContext()
-                               .WriteTo.Console();
-                           })
-                           .ConfigureHostConfiguration(builder => builder.AddEnvironmentVariables())
-                           .UseSimpleBotFramework((builder, context) =>
-                           {
-                               builder.UseStaticCommands(new StaticCommandsList(new[]
-                               {
-                                   typeof(CancelCommand),
-                                   typeof(StatefullCommand)
-                               }));
-                           }, true)
-                           .Build();
+                               typeof(CancelCommand),
+                               typeof(StatefullCommand)
+                           }));
+                       }, true)
+                       .Build();
 
-            client = host.Services.GetService<AppUpdateProducer>();
-            _sink  = host.Services.GetService<IRequestSinc>() as MemorySink;
-        }
+        client = host.Services.GetService<AppUpdateProducer>();
+        _sink  = host.Services.GetService<IRequestSinc>() as MemorySink;
+    }
 
-        public class StatefullService
+    public class StatefullService
+    {
+        private int _state;
+        public  int State => _state++;
+    }
+
+    [Priority(EndpointPriority.First)]
+    public class CancelCommand : ICommand
+    {
+        public async Task Execute(UpdateContext context)
         {
-            private int _state;
-            public  int State => _state++;
+            await context.Client.SendTextMessage("Action was canceled");
         }
 
-        public class CancelCommand : IStaticCommand
+        public bool? Suitable(UpdateContext context)
         {
-            public bool SuitableFirst(Update update)
-            {
-                return update.Message.Text == nameof(CancelCommand);
-            }
-
-            public async Task Execute(IClient client)
-            {
-                await client.SendTextMessage("Action was canceled");
-            }
+            return context.Update.Message?.Text == nameof(CancelCommand);
         }
+    }
 
-        public class StatefullCommand : IStaticCommand
+    [Priority(EndpointPriority.Last)]
+    public class StatefullCommand : ICommand
+    {
+        private readonly StatefullService _service;
+
+        public StatefullCommand()
         {
-            private readonly StatefullService _service;
-
-            public StatefullCommand()
-            {
-                _service = new();
-            }
-
-            public bool SuitableFirst(Update update)
-            {
-                return update.Message.Text == "state";
-            }
-
-            public async Task Execute(IClient client)
-            {
-                var _ = await client.GetTextMessage();
-
-                await client.SendTextMessage($"State is {_service.State}");
-
-                _ = await client.GetTextMessage();
-                await client.SendTextMessage($"State is {_service.State}");
-            }
+            _service = new();
         }
 
-        [Test]
-        public async Task StatefullCommand_WhenMultipleMessagesReceived_ShoudPreserveState()
+        public async Task Execute(UpdateContext context)
         {
-            var message = GetMessage();
-            await client.FromUser(message);
-            (await _sink.GetRequest<SendMessageRequest>()).Text.Should().Contain("0");
+            var _ = await context.Client.GetTextMessage();
 
-            message.Text = "<any text>";
-            await client.FromUser(message);
-            (await _sink.GetRequest<SendMessageRequest>()).Text.Should().Contain("1");
+            await context.Client.SendTextMessage($"State is {_service.State}");
+
+            _ = await context.Client.GetTextMessage();
+            await context.Client.SendTextMessage($"State is {_service.State}");
         }
 
-        [Test]
-        public async Task StatefullCommand_WhenCancelMessagesReceived_ShoudDiscardState()
+        public bool? Suitable(UpdateContext context)
         {
-            var message = GetMessage();
-
-            await client.FromUser(message);
-            (await _sink.GetRequest<SendMessageRequest>()).Text.Should().Contain("0");
-
-            message      = GetMessage();
-            message.Text = nameof(CancelCommand);
-
-            await client.FromUser(message);
-            (await _sink.GetRequest<SendMessageRequest>()).Text.Should().Be("Action was canceled");
+            return context.Update.Message?.Text == "state";
         }
+    }
 
-        private static Message GetMessage()
+    [Test]
+    public async Task StatefullCommand_WhenMultipleMessagesReceived_ShoudPreserveState()
+    {
+        var message = GetMessage();
+        await client.FromUser(message);
+        (await _sink.GetRequest<SendMessageRequest>()).Text.Should().Contain("0");
+
+        message.Text = "<any text>";
+        await client.FromUser(message);
+        (await _sink.GetRequest<SendMessageRequest>()).Text.Should().Contain("1");
+    }
+
+    [Test]
+    [Timeout(5000)]
+    public async Task StatefullCommand_WhenCancelMessagesReceived_ShoudDiscardState()
+    {
+        var message = GetMessage();
+
+        await client.FromUser(message);
+        (await _sink.GetRequest<SendMessageRequest>()).Text.Should().Contain("0");
+
+        message      = GetMessage();
+        message.Text = nameof(CancelCommand);
+
+        await client.FromUser(message);
+        (await _sink.GetRequest<SendMessageRequest>()).Text.Should().Be("Action was canceled");
+    }
+
+    private static Message GetMessage()
+    {
+        return new Message
         {
-            return new Message
+            From = new User
             {
-                From = new User
-                {
-                    Id       = 1,
-                    Username = "UserName",
-                },
-                Text = "state"
-            };
-        }
+                Id       = 1,
+                Username = "UserName",
+            },
+            Text = "state"
+        };
     }
 }

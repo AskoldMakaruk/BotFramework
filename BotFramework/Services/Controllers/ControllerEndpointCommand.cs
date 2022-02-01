@@ -2,39 +2,32 @@ using System;
 using System.Reflection;
 using System.Threading.Tasks;
 using BotFramework.Abstractions;
-using Telegram.Bot.Types;
 
 namespace BotFramework.Services.Controllers;
 
 [IgnoreReflection]
-internal class ControllerEndpointCommand : IStaticCommand
+internal class ControllerEndpointCommand : ICommand
 {
-    private readonly EndpointPriority    _priority;
-    private readonly Func<Update, bool?> _predicate;
-    private readonly MethodBase          _method;
+    public string Name => ControllerType.Name + "." + _method.Name;
 
-    public object ControllerIntance { get; set; }
-    public Type   ControllerType    { get; set; }
+    private readonly CommandPredicate _predicate;
+    private readonly MethodBase       _method;
+    public readonly  Type             ControllerType;
 
-    public ControllerEndpointCommand(EndpointPriority priority, Func<Update, bool?> predicate, MethodBase method)
+    public ControllerEndpointCommand(CommandPredicate predicate, MethodBase method, Type controllerType)
     {
-        _priority  = priority;
-        _predicate = predicate;
-        _method    = method;
+        _predicate     = predicate;
+        _method        = method;
+        ControllerType = controllerType;
     }
 
-    public Task Execute(IClient client)
+    public Task Execute(UpdateContext context)
     {
-        return Task.Run(() => _method.Invoke(ControllerIntance, Array.Empty<object>()));
+        return Task.Run(() => _method.Invoke(context.RequestServices.GetService(ControllerType), Array.Empty<object>()));
     }
 
-    public bool SuitableLast(Update update)
+    public bool? Suitable(UpdateContext context)
     {
-        return _priority == EndpointPriority.Last && (_predicate.Invoke(update) ?? false);
-    }
-
-    public bool SuitableFirst(Update update)
-    {
-        return _priority == EndpointPriority.First && (_predicate.Invoke(update) ?? false);
+        return _predicate.Invoke(context) ?? false;
     }
 }

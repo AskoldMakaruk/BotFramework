@@ -1,9 +1,8 @@
 using Telegram.Bot.Types;
 
-namespace BotFramework.Services.Factories
+namespace BotFramework.Services.Factories;
+
+public class UpdateFactory
 {
-    public class UpdateFactory
-    {
-        public Update CurrentUpdate { get; set; }
-    }
+    public Update CurrentUpdate { get; set; }
 }

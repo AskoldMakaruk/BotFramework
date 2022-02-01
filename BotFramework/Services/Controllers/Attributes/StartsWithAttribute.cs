@@ -1,5 +1,5 @@
+using BotFramework.Abstractions;
 using BotFramework.Services.Extensioins;
-using Telegram.Bot.Types;
 
 namespace BotFramework.Services.Controllers.Attributes;
 
@@ -12,5 +12,5 @@ public class StartsWithAttribute : CommandAttribute
         _value = value;
     }
 
-    public override bool? Suitable(Update context) => context.StartsWith(_value);
+    public override bool? Suitable(UpdateContext context) => context.Update.StartsWith(_value);
 }

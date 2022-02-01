@@ -4,21 +4,20 @@ using BotFramework.Abstractions;
 using Telegram.Bot;
 using Telegram.Bot.Requests.Abstractions;
 
-namespace BotFramework.Services.Clients
+namespace BotFramework.Services.Clients;
+
+public class TelegramSink : IRequestSinc
 {
-    public class TelegramSink : IRequestSinc
+    private readonly ITelegramBotClient _botClient;
+
+    public TelegramSink(ITelegramBotClient botClient)
     {
-        private readonly ITelegramBotClient _botClient;
+        _botClient = botClient;
+    }
 
-        public TelegramSink(ITelegramBotClient botClient)
-        {
-            _botClient = botClient;
-        }
-
-        public async Task<TResponse> MakeRequest<TResponse>(IRequest<TResponse> request,
-                                                            CancellationToken   cancellationToken = default)
-        {
-            return await _botClient.MakeRequestAsync(request, cancellationToken);
-        }
+    public async Task<TResponse> MakeRequest<TResponse>(IRequest<TResponse> request,
+                                                        CancellationToken   cancellationToken = default)
+    {
+        return await _botClient.MakeRequestAsync(request, cancellationToken);
     }
 }
