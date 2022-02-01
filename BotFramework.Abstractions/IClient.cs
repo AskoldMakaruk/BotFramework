@@ -15,13 +15,13 @@ public interface IClient
     ///     Identifier of user. Each user has his/her own <see cref="IClient" />
     /// </summary>
     long UserId { get; }
-        
-        
+
+
     /// <inheritdoc cref="IRequestSinc.MakeRequest{TResponse}"/>
     public Task<TResponse> MakeRequest<TResponse>(
         IRequest<TResponse> request,
         CancellationToken   cancellationToken = default);
-        
+
     /// <inheritdoc cref="IUpdateQueue.GetUpdate"/>
     ValueTask<Update> GetUpdate(Func<Update, bool>? filter = null, Action<Update>? onFilterFail = null);
 }
