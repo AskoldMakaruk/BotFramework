@@ -2,9 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using BotFramework.Abstractions;
-using BotFramework.Hosting;
 using BotFramework.Middleware;
-using BotFramework.Services.Controllers;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
@@ -17,7 +15,7 @@ public static class ControllerDIExtensions
     {
         builder.Services.TryAddSingleton(provider =>
         {
-            provider.GetService<ILogger>()                    
+            provider.GetService<ILogger>()
                     ?.LogDebug("Loaded {Count} controllers: {Endpoints}",
                         controllers.Types.Count,
                         string.Join(", ", controllers.Types.Select(a => a.Name)));

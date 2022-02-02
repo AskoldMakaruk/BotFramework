@@ -1,7 +1,7 @@
 using System;
 using BotFramework.Abstractions;
 
-namespace BotFramework.Services.Controllers.Attributes;
+namespace BotFramework.Services.Commands.Attributes;
 
 [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
 public abstract class CommandAttribute : Attribute

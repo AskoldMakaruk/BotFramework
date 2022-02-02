@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Reflection;
-using BotFramework.Extensions.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;

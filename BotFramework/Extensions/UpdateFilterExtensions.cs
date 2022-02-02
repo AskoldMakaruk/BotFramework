@@ -3,7 +3,7 @@ using BotFramework.Abstractions;
 using BotFramework.Services.Clients;
 using Telegram.Bot.Types;
 
-namespace BotFramework.Services.Extensioins;
+namespace BotFramework.Extensions;
 
 public static class UpdateFilterExtensions
 {

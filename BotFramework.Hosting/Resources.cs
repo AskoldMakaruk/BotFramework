@@ -1,6 +1,6 @@
 using System.Globalization;
 
-namespace BotFramework;
+namespace BotFramework.Hosting;
 
 internal static class Resources
 {

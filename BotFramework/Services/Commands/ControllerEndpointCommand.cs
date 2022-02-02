@@ -2,8 +2,9 @@ using System;
 using System.Reflection;
 using System.Threading.Tasks;
 using BotFramework.Abstractions;
+using BotFramework.Services.Commands.Attributes;
 
-namespace BotFramework.Services.Controllers;
+namespace BotFramework.Services.Commands;
 
 [IgnoreReflection]
 internal class ControllerEndpointCommand : ICommand

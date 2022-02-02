@@ -1,6 +1,6 @@
 using Telegram.Bot.Types;
 
-namespace BotFramework.Services.Extensioins;
+namespace BotFramework.Extensions;
 
 public static class UpdatePredicates
 {

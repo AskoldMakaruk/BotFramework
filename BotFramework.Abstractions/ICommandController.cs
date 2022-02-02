@@ -1,7 +1,6 @@
-using BotFramework.Abstractions;
 using Telegram.Bot.Types;
 
-namespace BotFramework.Services.Controllers;
+namespace BotFramework.Abstractions;
 
 public interface ICommandController
 {

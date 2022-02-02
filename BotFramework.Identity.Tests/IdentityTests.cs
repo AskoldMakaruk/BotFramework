@@ -1,9 +1,8 @@
-using System;
 using System.Threading.Tasks;
 using BotFramework.Abstractions;
+using BotFramework.Extensions;
 using BotFramework.Extensions.Hosting;
 using BotFramework.Services.Clients;
-using BotFramework.Services.Extensioins;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,7 +10,6 @@ using Microsoft.Extensions.Hosting;
 using Moq;
 using NUnit.Framework;
 using Serilog;
-using Serilog.Core;
 using Serilog.Events;
 using Telegram.Bot.Requests;
 using Telegram.Bot.Types;

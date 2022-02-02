@@ -5,7 +5,7 @@ using System.Reflection;
 using BotFramework.Abstractions;
 using BotFramework.Hosting;
 using BotFramework.Middleware;
-using BotFramework.Services.Controllers;
+using BotFramework.Services.Commands.Attributes;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
@@ -14,11 +14,8 @@ namespace BotFramework.Extensions.Hosting;
 
 public static class StaticCommandsDIExtensions
 {
-    
-
     public static void UseStaticCommands(this IAppBuilder builder, StaticCommandsList staticCommands)
     {
-    
         builder.Services.TryAddSingleton(provider =>
         {
             provider.GetService<ILogger>()

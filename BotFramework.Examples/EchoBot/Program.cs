@@ -1,11 +1,11 @@
 ﻿using System.Threading.Tasks;
 using BotFramework;
 using BotFramework.Abstractions;
+using BotFramework.Extensions;
 using BotFramework.Extensions.Hosting;
 using BotFramework.Hosting;
 using BotFramework.Middleware;
-using BotFramework.Services.Controllers.Attributes;
-using BotFramework.Services.Extensioins;
+using BotFramework.Services.Commands.Attributes;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using Serilog.Events;

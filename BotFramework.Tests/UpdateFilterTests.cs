@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using BotFramework.Abstractions;
-using BotFramework.Services.Extensioins;
+using BotFramework.Extensions;
 using FluentAssertions;
 using Moq;
 using NUnit.Framework;

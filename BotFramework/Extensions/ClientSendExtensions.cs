@@ -14,7 +14,7 @@ using Telegram.Bot.Types.InputFiles;
 using Telegram.Bot.Types.Payments;
 using Telegram.Bot.Types.ReplyMarkups;
 
-namespace BotFramework.Services.Extensioins;
+namespace BotFramework.Extensions;
 
 public static class ClientSendExtensions
 {

@@ -1,6 +1,6 @@
 using BotFramework.Abstractions;
 
-namespace BotFramework.Services.Controllers.Attributes;
+namespace BotFramework.Services.Commands.Attributes;
 
 public class PriorityAttribute : CommandAttribute
 {

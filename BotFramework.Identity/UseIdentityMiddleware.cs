@@ -2,11 +2,10 @@ using System;
 using System.Reflection;
 using BotFramework.Abstractions;
 using BotFramework.Hosting;
-using BotFramework.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
-namespace BotFramework.Extensions.Hosting;
+namespace BotFramework.Identity;
 
 public static class UseIdentityMiddleware
 {

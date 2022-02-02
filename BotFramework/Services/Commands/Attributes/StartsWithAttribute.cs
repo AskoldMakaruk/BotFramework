@@ -1,7 +1,7 @@
 using BotFramework.Abstractions;
-using BotFramework.Services.Extensioins;
+using BotFramework.Extensions;
 
-namespace BotFramework.Services.Controllers.Attributes;
+namespace BotFramework.Services.Commands.Attributes;
 
 public class StartsWithAttribute : CommandAttribute
 {

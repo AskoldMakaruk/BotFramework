@@ -4,7 +4,7 @@ using BotFramework.Services.Clients;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
 
-namespace BotFramework.Services.Extensioins;
+namespace BotFramework.Extensions;
 
 public static class ClientGetExtensions
 {

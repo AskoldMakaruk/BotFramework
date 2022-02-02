@@ -4,8 +4,8 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using BotFramework.Abstractions;
-using BotFramework.Services.Controllers;
-using BotFramework.Services.Controllers.Attributes;
+using BotFramework.Services.Commands;
+using BotFramework.Services.Commands.Attributes;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace BotFramework.Middleware;
@@ -22,7 +22,7 @@ public class CommandEndpointMiddleware
     private readonly UpdateDelegate                  _next;
 
     public CommandEndpointMiddleware(IServiceProvider services, UpdateDelegate next, StaticCommandsList staticCommands,
-                                    ControllersList  controllersList)
+                                     ControllersList  controllersList)
     {
         _next = next;
         var scope = services.CreateScope();
@@ -44,7 +44,7 @@ public class CommandEndpointMiddleware
 
     public Endpoint CreateCommandEndpoint(ICommand command)
     {
-        var (commandPredicate, endpointPriority) =   GetMemberAttributes(command.GetType());
+        var (commandPredicate, endpointPriority) = GetMemberAttributes(command.GetType());
 
         commandPredicate ??= DefaultPredicate;
         return new Endpoint
@@ -89,7 +89,7 @@ public class CommandEndpointMiddleware
             {
                 continue;
             }
-            
+
             yield return new ControllerEndpointCommand(predicate ?? DefaultPredicate, method, controllerType);
         }
     }
