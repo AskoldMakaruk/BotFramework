@@ -1,11 +1,12 @@
 ﻿using System;
+using BotFramework.Abstractions;
 using BotFramework.Services.Factories;
 using FluentCache;
 using Microsoft.Extensions.Options;
 
 namespace BotFramework.Services;
 
-public class UserScopeStorage
+public class UserScopeStorage : IUserScopeStorage
 {
     private readonly TimeSpan scopeTimeSpan;
 

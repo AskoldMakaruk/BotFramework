@@ -29,3 +29,34 @@ public class UpdateFilter<T>
                       Filters.Aggregate(true, (current, filter) => current && filter(u))));
     }
 }
+
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
+public class PersistentStateAttribute : CommandAttribute
+{
+    public string EndpointName { get; set; }
+    public int    State        { get; }
+
+    public PersistentStateAttribute(int state)
+    {
+        State = state;
+    }
+
+    public PersistentStateAttribute(int state, string endpointName)
+    {
+        State        = state;
+        EndpointName = endpointName;
+    }
+
+    public override bool? Suitable(UpdateContext context)
+    {
+        var state = context.GetUserCommandState();
+        return state?.State == State && EndpointName == state?.EndpointName;
+    }
+}
+
+public class UserCommandState : IUserCommandState
+{
+    public long   UserId       { get; set; }
+    public string EndpointName { get; set; }
+    public int    State        { get; set; }
+}

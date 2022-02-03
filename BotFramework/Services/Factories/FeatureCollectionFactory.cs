@@ -1,4 +1,5 @@
-﻿using BotFramework.Services.Clients;
+﻿using BotFramework.Abstractions;
+using BotFramework.Services.Clients;
 
 namespace BotFramework.Services.Factories;
 
@@ -10,7 +11,7 @@ public class FeatureCollectionFactory
         {
             [typeof(PriorityCommandExcecutor)] = new PriorityCommandExcecutor()
         };
-        
+
         return featureCollection;
     }
 }

@@ -1,6 +1,18 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Threading.Tasks;
+using BotFramework.Abstractions;
+using Microsoft.EntityFrameworkCore;
 
 namespace BotFramework.Identity.EntityFramework;
+
+public class IdentityUserStateContext<TUser, TUserClaim> : IdentityUserContext<TUser, TUserClaim>, IPersistentCommandStorage
+where TUser : IdentityUser, IUserCommandState
+where TUserClaim : IdentityUserClaim
+{
+    public async Task<IUserCommandState> GetUserCommandState(long userId)
+    {
+        return await Users.FirstOrDefaultAsync(a => a.Id == userId);
+    }
+}
 
 /// <summary>
 /// Base class for the Entity Framework database context used for identity.

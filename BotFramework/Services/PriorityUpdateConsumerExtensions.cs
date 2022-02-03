@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using BotFramework.Abstractions;
 using BotFramework.Services.Clients;
 
 namespace BotFramework.Services;

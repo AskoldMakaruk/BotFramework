@@ -4,8 +4,8 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using BotFramework.Abstractions;
+using BotFramework.Services.Clients;
 using BotFramework.Services.Commands;
-using BotFramework.Services.Commands.Attributes;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace BotFramework.Middleware;
@@ -44,36 +44,40 @@ public class CommandEndpointMiddleware
 
     public Endpoint CreateCommandEndpoint(ICommand command)
     {
-        var (commandPredicate, endpointPriority) = GetMemberAttributes(command.GetType());
-
-        commandPredicate ??= DefaultPredicate;
-        return new Endpoint
+        var endpoint = CreateEndpoint(command);
+        endpoint.Name = command.ToString()!;
+        endpoint.Delegate = update =>
         {
-            Name = command.ToString()!,
-            Delegate = update =>
-            {
-                var newCommand = (ICommand)update.RequestServices.GetService(command.GetType())!;
-                return newCommand.Execute(update);
-            },
-            Priority = endpointPriority ?? EndpointPriority.Last,
-            CommandPredicate = (UpdateContext context) =>
-            (command.Suitable(context) ?? false) && (commandPredicate(context) ?? false),
+            var newCommand = (ICommand)update.RequestServices.GetService(command.GetType())!;
+            return newCommand.Execute(update);
         };
+
+        return endpoint;
     }
 
     private Endpoint CreateControllerEndpoint(ControllerEndpointCommand command)
     {
-        var (commandPredicate, endpointPriority) = GetMemberAttributes(command.GetType());
+        var endpoint = CreateEndpoint(command);
+        endpoint.Name     = command.Name;
+        endpoint.Delegate = command.Execute;
 
-        commandPredicate ??= DefaultPredicate;
+        return endpoint;
+    }
+
+    private Endpoint CreateEndpoint(ICommand command)
+    {
+        var attrs     = GetCommandAttributes(command.GetType()).ToList();
+        var predicate = GetPredicate(attrs);
+        var priority  = GetPriority(attrs);
+        var state     = GetState(attrs);
 
         return new Endpoint
         {
-            Name     = command.Name,
-            Delegate = command.Execute,
-            Priority = endpointPriority ?? EndpointPriority.Last,
+            Priority     = priority ?? EndpointPriority.Last,
+            CommandState = state,
             CommandPredicate = (UpdateContext context) =>
-            (command.Suitable(context) ?? false) && (commandPredicate(context) ?? false),
+            (command.Suitable(context) ?? false) && (predicate(context) ?? false),
+            Attributes = attrs
         };
     }
 
@@ -84,36 +88,44 @@ public class CommandEndpointMiddleware
 
         foreach (var method in methods)
         {
-            var (predicate, priority) = GetMemberAttributes(method);
-            if (predicate == default && priority == default)
+            var attrs = GetCommandAttributes(method).ToList();
+            if (attrs.Count == 0)
             {
                 continue;
             }
 
-            yield return new ControllerEndpointCommand(predicate ?? DefaultPredicate, method, controllerType);
+            var predicate = GetPredicate(attrs);
+
+            yield return new ControllerEndpointCommand(predicate, method, controllerType);
         }
     }
 
-    private (CommandPredicate?, EndpointPriority?) GetMemberAttributes(MemberInfo type)
+    private static CommandPredicate GetPredicate(IEnumerable<CommandAttribute> attributes)
     {
-        var attrs             = type.GetCustomAttributes();
-        var commandAttributes = attrs.Where(a => a.GetType().IsSubclassOf(AttributeType)).Cast<CommandAttribute>().ToList();
-
-        if (commandAttributes.Count == 0)
-        {
-            return default;
-        }
-
-        var priority = commandAttributes.FirstOrDefault(a => a.EndpointPriority != null)?.EndpointPriority;
-
         bool? Predicate(UpdateContext context)
         {
-            return commandAttributes.Count == 0 || commandAttributes.Select(a => a.Suitable(context)).All(a => a ?? false);
+            return attributes.Select(a => a.Suitable(context)).All(a => a ?? false);
         }
 
-        return (Predicate, priority);
+        return Predicate;
     }
 
-    private static readonly CommandPredicate DefaultPredicate = _ => true;
-    private static readonly Type             AttributeType    = typeof(CommandAttribute);
+    private EndpointPriority? GetPriority(IEnumerable<CommandAttribute> attributes)
+    {
+        return attributes.FirstOrDefault(a => a.EndpointPriority != null)?.EndpointPriority;
+    }
+
+    private int? GetState(IEnumerable<CommandAttribute> attributes)
+    {
+        var a = attributes.OfType<PersistentStateAttribute>().FirstOrDefault();
+        return a?.State;
+    }
+
+    private IEnumerable<CommandAttribute> GetCommandAttributes(MemberInfo type)
+    {
+        var attrs = type.GetCustomAttributes();
+        return attrs.Where(a => a.GetType().IsSubclassOf(AttributeType)).Cast<CommandAttribute>().ToList();
+    }
+
+    private static readonly Type AttributeType = typeof(CommandAttribute);
 }
