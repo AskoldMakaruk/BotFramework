@@ -78,3 +78,13 @@ public class TestController : CommandControllerBase
 
     public TestController(IClient client, UpdateContext update) : base(client, update) { }
 }
+//
+// public class StateController : PersistentControllerBase
+// {
+//     [PersistentState(1)]
+//     public async Task Start()
+//     {
+//         await Client.SendTextMessage("start text");
+//     }
+//     
+// }

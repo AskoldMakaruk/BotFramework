@@ -58,10 +58,10 @@ public interface IPersistentCommand : ICommand
 
 public abstract class PersistentCommandBase : IPersistentCommand
 {
-    public Task Execute(UpdateContext context)
+    public async Task Execute(UpdateContext context)
     {
         Sinc ??= context.RequestServices.GetService<IRequestSinc>()!;
-        return Execute(context.Update, context.GetUserCommandState()!.State);
+        await Execute(context.Update, (await context.GetUserCommandState())!.State);
     }
 
     public abstract Task Execute(Update update, int state);
@@ -75,16 +75,25 @@ public abstract class PersistentCommandBase : IPersistentCommand
     public IRequestSinc? Sinc { get; private set; }
 }
 
+public abstract class PersistentControllerBase
+{
+    public virtual string Name  => ToString() ?? GetType().Name;
+    
+    public int State { get; internal set; }
+
+    public IRequestSinc? Client { get; private set; }
+}
+
 public interface IUserCommandState
 {
-    long   UserId       { get; }
-    string EndpointName { get; }
-    int    State        { get; }
+    long   UserId       { get; set; }
+    string EndpointName { get; set; }
+    int    State        { get; set; }
 }
 
 public static class UserCommandStateFeatureExtensions
 {
-    public static IUserCommandState? GetUserCommandState(this UpdateContext context)
+    public static async Task<IUserCommandState?> GetUserCommandState(this UpdateContext context)
     {
         var id = context.Update.GetId();
         if (id == null)
@@ -94,55 +103,61 @@ public static class UserCommandStateFeatureExtensions
 
         var storage = context.RequestServices.GetService<IUserScopeStorage>()?.Get(id.Value);
         var state   = storage?.Get<UserCommandStateFeature>()?.State;
+
+        if (state != null)
+        {
+            return state;
+        }
+
+        var service = context.RequestServices.GetService<IPersistentCommandStorage>();
+        var task    = service?.GetUserCommandState(id.Value);
+
+        if (task != null)
+        {
+            state = await task;
+        }
+
         return state;
     }
 }
 
 public record UserCommandStateFeature(IUserCommandState State);
 
-public interface IUserScopeStorage
-{
-    IFeatureCollection Get(long usedId);
-}
-
 public interface IPersistentCommandStorage
 {
     public Task<IUserCommandState> GetUserCommandState(long userId);
+
+    public Task SetUserCommandState(long userId, IUserCommandState state);
 }
 
-/// <summary>
-/// Represents a collection of HTTP features.
-/// </summary>
-public interface IFeatureCollection : IEnumerable<KeyValuePair<Type, object>>
+
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
+public class PersistentStateAttribute : CommandAttribute
 {
-    /// <summary>
-    /// Indicates if the collection can be modified.
-    /// </summary>
-    bool IsReadOnly { get; }
+    public string EndpointName { get; set; }
+    public int    State        { get; }
 
-    /// <summary>
-    /// Incremented for each modification and can be used to verify cached results.
-    /// </summary>
-    int Revision { get; }
+    public PersistentStateAttribute(int state)
+    {
+        State = state;
+    }
 
-    /// <summary>
-    /// Gets or sets a given feature. Setting a null value removes the feature.
-    /// </summary>
-    /// <param name="key"></param>
-    /// <returns>The requested feature, or null if it is not present.</returns>
-    object? this[Type key] { get; set; }
+    public PersistentStateAttribute(int state, string endpointName)
+    {
+        State        = state;
+        EndpointName = endpointName;
+    }
 
-    /// <summary>
-    /// Retrieves the requested feature from the collection.
-    /// </summary>
-    /// <typeparam name="TFeature">The feature key.</typeparam>
-    /// <returns>The requested feature, or null if it is not present.</returns>
-    TFeature? Get<TFeature>();
+    public override bool? Suitable(UpdateContext context)
+    {
+        var state = context.GetUserCommandState().Result;
+        return state?.State == State && EndpointName == state?.EndpointName;
+    }
+}
 
-    /// <summary>
-    /// Sets the given feature in the collection.
-    /// </summary>
-    /// <typeparam name="TFeature">The feature key.</typeparam>
-    /// <param name="instance">The feature value.</param>
-    void Set<TFeature>(TFeature instance);
+public class UserCommandState : IUserCommandState
+{
+    public long   UserId       { get; set; }
+    public string EndpointName { get; set; }
+    public int    State        { get; set; }
 }

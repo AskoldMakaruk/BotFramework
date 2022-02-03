@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
-        <Authors/>
+        <Authors />
         <Company>BotFramework</Company>
         <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
         <AssemblyVersion>1.0.0.0</AssemblyVersion>

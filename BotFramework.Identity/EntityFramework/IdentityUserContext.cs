@@ -5,12 +5,27 @@ using Microsoft.EntityFrameworkCore;
 namespace BotFramework.Identity.EntityFramework;
 
 public class IdentityUserStateContext<TUser, TUserClaim> : IdentityUserContext<TUser, TUserClaim>, IPersistentCommandStorage
-where TUser : IdentityUser, IUserCommandState
+where TUser : IdentityUser, IUserCommandState, new()
 where TUserClaim : IdentityUserClaim
 {
     public async Task<IUserCommandState> GetUserCommandState(long userId)
     {
         return await Users.FirstOrDefaultAsync(a => a.Id == userId);
+    }
+
+    public async Task SetUserCommandState(long userId, IUserCommandState state)
+    {
+        var user = new TUser
+        {
+            Id = userId
+        };
+        Users.Attach(user);
+
+
+        user.State        = state.State;
+        user.EndpointName = state.EndpointName;
+
+        await SaveChangesAsync();
     }
 }
 
