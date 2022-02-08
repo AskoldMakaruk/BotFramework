@@ -2,8 +2,8 @@
 
     <PropertyGroup>
         <FileVersion>1.0.0.50</FileVersion>
-        <Version>1.0.0-alpha-60</Version>
-        <PackageVersion>1.0.0-alpha-60</PackageVersion>
+        <Version>1.0.0-alpha-61</Version>
+        <PackageVersion>1.0.0-alpha-61</PackageVersion>
         <TargetFramework>net6.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>

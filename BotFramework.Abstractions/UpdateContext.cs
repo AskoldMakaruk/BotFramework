@@ -61,7 +61,7 @@ public abstract class PersistentCommandBase : IPersistentCommand
     public async Task Execute(UpdateContext context)
     {
         Sinc ??= context.RequestServices.GetService<IRequestSinc>()!;
-        await Execute(context.Update, (await context.GetUserCommandState())!.State);
+        await Execute(context.Update, (await context.GetUserCommandStateFromDb())!.State);
     }
 
     public abstract Task Execute(Update update, int state);
@@ -69,19 +69,10 @@ public abstract class PersistentCommandBase : IPersistentCommand
     public abstract bool? Suitable(UpdateContext context);
 
 
-    public virtual  string Name  => ToString() ?? GetType().Name;
-    public abstract int    State { get; }
+    public virtual string Name  => ToString() ?? GetType().Name;
+    public         int    State { get; }
 
     public IRequestSinc? Sinc { get; private set; }
-}
-
-public abstract class PersistentControllerBase
-{
-    public virtual string Name  => ToString() ?? GetType().Name;
-    
-    public int State { get; internal set; }
-
-    public IRequestSinc? Client { get; private set; }
 }
 
 public interface IUserCommandState
@@ -93,7 +84,7 @@ public interface IUserCommandState
 
 public static class UserCommandStateFeatureExtensions
 {
-    public static async Task<IUserCommandState?> GetUserCommandState(this UpdateContext context)
+    public static IUserCommandState? GetUserCommandStateFromCache(this UpdateContext context)
     {
         var id = context.Update.GetId();
         if (id == null)
@@ -101,21 +92,42 @@ public static class UserCommandStateFeatureExtensions
             return null;
         }
 
+        var state = context.RequestServices.GetService<IUserCommandState>();
+        if (state != null)
+        {
+            return state;
+        }
+
         var storage = context.RequestServices.GetService<IUserScopeStorage>()?.Get(id.Value);
-        var state   = storage?.Get<UserCommandStateFeature>()?.State;
+        state = storage?.Get<UserCommandStateFeature>()?.State;
+        
+        return state;
+    }
+
+    public static async Task<IUserCommandState?> GetUserCommandStateFromDb(this UpdateContext context)
+    {
+        var state = context.GetUserCommandStateFromCache();
 
         if (state != null)
         {
             return state;
         }
 
+        var id      = context.Update.GetId();
         var service = context.RequestServices.GetService<IPersistentCommandStorage>();
         var task    = service?.GetUserCommandState(id.Value);
+        var storage = context.RequestServices.GetService<IUserScopeStorage>()?.Get(id.Value);
 
         if (task != null)
         {
             state = await task;
         }
+
+        if (state != null && storage != null)
+        {
+            storage.Set(new UserCommandStateFeature(state));
+        }
+
 
         return state;
     }
@@ -130,13 +142,12 @@ public interface IPersistentCommandStorage
     public Task SetUserCommandState(long userId, IUserCommandState state);
 }
 
-
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
 public class PersistentStateAttribute : CommandAttribute
 {
     public string EndpointName { get; set; }
     public int    State        { get; }
-
+    
     public PersistentStateAttribute(int state)
     {
         State = state;
@@ -150,8 +161,8 @@ public class PersistentStateAttribute : CommandAttribute
 
     public override bool? Suitable(UpdateContext context)
     {
-        var state = context.GetUserCommandState().Result;
-        return state?.State == State && EndpointName == state?.EndpointName;
+        var state = context.GetUserCommandStateFromCache();
+        return state?.State == State;
     }
 }
 

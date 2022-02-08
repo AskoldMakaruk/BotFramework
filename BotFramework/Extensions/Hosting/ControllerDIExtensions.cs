@@ -45,7 +45,7 @@ public static class ControllerDIExtensions
     public static ControllersList GetControllers(IEnumerable<Assembly> assemblies)
     {
         var allTypes = assemblies.SelectMany(a => a.GetTypes());
-        var res = allTypes.Where(p => typeof(ICommandController).IsAssignableFrom(p) && !p.IsAbstract)
+        var res = allTypes.Where(p => p.GetInterface("ICommandController") != null && !p.IsAbstract)
                           .ToList();
         return new(res);
     }

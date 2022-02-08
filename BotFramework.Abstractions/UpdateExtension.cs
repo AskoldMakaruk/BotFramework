@@ -106,9 +106,22 @@ public static class UpdateExtensions
                 from     = update.PreCheckoutQuery?.From;
                 fromName = update.PreCheckoutQuery?.From?.Username;
                 break;
+            case UpdateType.MyChatMember:
+                from     = update.MyChatMember?.From;
+                fromName = update.MyChatMember?.From?.Username;
+                break;
+            case UpdateType.ChatMember:
+                from     = update.ChatMember?.From;
+                fromName = update.ChatMember?.From?.Username;
+                break;
+            case UpdateType.Poll:
+            case UpdateType.PollAnswer:
+            case UpdateType.Unknown:
+            case null:
             default:
-                var ex = new NotImplementedException($"We don't support {update?.Type} right now");
-                throw ex;
+                from     = null;
+                fromName = null;
+                break;
         }
 
         return new ParsedUpdate(from, chat, update?.Type, update?.Message?.Type, fromName, contents);

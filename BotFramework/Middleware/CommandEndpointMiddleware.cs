@@ -129,3 +129,22 @@ public class CommandEndpointMiddleware
 
     private static readonly Type AttributeType = typeof(CommandAttribute);
 }
+
+
+//todo as alternetive to IdentityMiddleware for IUserScopeStorage pipeline injection
+public class UserCommandStateMiddleware
+{
+    private UpdateDelegate _next;
+
+    public UserCommandStateMiddleware(IServiceProvider services, UpdateDelegate next, StaticCommandsList staticCommands,
+                                      ControllersList  controllersList)
+    {
+        _next = next;
+    }
+
+
+    public Task Invoke(UpdateContext context)
+    {
+        return _next.Invoke(context);
+    }
+}

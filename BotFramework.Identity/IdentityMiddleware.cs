@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using BotFramework.Abstractions;
+using Microsoft.Extensions.DependencyInjection;
 using Telegram.Bot.Types;
 
 #nullable enable
@@ -24,13 +25,20 @@ public class IdentityMiddleware<TUser> where TUser : IdentityUser, new()
 
         if (userContext.User == null)
         {
-            var dbUser = await manager.FindByIdAsync(user.Id);
-            if (dbUser is null)
+            var dbUser = update.RequestServices.GetService<IUserScopeStorage>()?.Get(user.Id).Get<TUser>();
+            if (dbUser is not null)
             {
-                await manager.CreateAsync(new TUser { Id = user.Id, UserName = user.Username });
+                userContext.User = dbUser;
+                return;
             }
 
             dbUser = await manager.FindByIdAsync(user.Id);
+            if (dbUser is null)
+            {
+                await manager.CreateAsync(new TUser { Id = user.Id, UserName = user.Username });
+                dbUser = await manager.FindByIdAsync(user.Id);
+            }
+
 
             userContext.User = dbUser;
         }

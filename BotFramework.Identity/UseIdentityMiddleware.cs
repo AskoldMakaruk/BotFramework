@@ -7,21 +7,20 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace BotFramework.Identity;
 
-public static class UseIdentityMiddleware
-{
-    public static void UseIdentity<TUser>(this IAppBuilder builder) where TUser : IdentityUser, new()
-    {
-        builder.Services.AddScoped<UserContext<TUser>>();
-        builder.Services.AddScoped(provider => provider.GetService<UserContext<TUser>>()?.User!);
-        builder.UseMiddleware<IdentityMiddleware<TUser>>();
-    }
-}
-
 /// <summary>
 /// Contains extension methods to <see cref="IServiceCollection"/> for configuring identity builder.
 /// </summary>
 public static class IdentityServiceCollectionExtensions
 {
+    public static IdentityBuilder AddIdentityWithPersistence<TUser, TRole>(
+        this IAppBuilder services)
+    where TUser : IdentityUser, IUserCommandState, new()
+    where TRole : class
+    {
+        services.Services.AddScoped<IUserCommandState>(provider => provider.GetService<UserContext<TUser>>()?.User!);
+        return services.AddIdentity<TUser, TRole>();
+    }
+
     /// <summary>
     /// Adds the default identity system configuration for the specified User and Role types.
     /// </summary>
