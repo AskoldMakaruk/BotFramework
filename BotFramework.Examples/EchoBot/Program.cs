@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using BotFramework;
 using BotFramework.Abstractions;
 using BotFramework.Extensions;
@@ -6,6 +7,7 @@ using BotFramework.Extensions.Hosting;
 using BotFramework.Hosting;
 using BotFramework.Middleware;
 using BotFramework.Services.Commands.Attributes;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using Serilog.Events;
@@ -13,43 +15,60 @@ using Telegram.Bot.Types;
 
 namespace EchoBot;
 
+public interface IA { }
+
+public class a : IA { }
+
+public class b : IA { }
+
+public class c
+{
+    public c(IEnumerable<IA> @as) { }
+}
+
 internal class Program
 {
     private static void Main(string[] args)
     {
-        Host.CreateDefaultBuilder(args)
-            .UseConfigurationWithEnvironment()
-            .UseSerilog((context, configuration) =>
-            {
-                configuration
-                .MinimumLevel.Debug()
-                .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
-                .Enrich.FromLogContext()
-                .WriteTo.Console();
-            })
+        var host = Host.CreateDefaultBuilder(args)
+                       .UseConfigurationWithEnvironment()
+                       .UseSerilog((context, configuration) =>
+                       {
+                           configuration
+                           .MinimumLevel.Debug()
+                           .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+                           .Enrich.FromLogContext()
+                           .WriteTo.Console();
+                       })
 
-            // use this 
-            .UseSimpleBotFramework()
+                       // use this 
+                       .UseSimpleBotFramework()
 
-            // --| OR |--
-            // use this
-            .UseBotFramework((app, context) =>
-            {
-                app.Services.AddTelegramClient(context.Configuration["BotToken"]);
-                app.Services.AddUpdateConsumer();
-                app.UseMiddleware<LoggingMiddleware>();
-                app.UseStaticCommands();
-            })
+                       // --| OR |--
+                       // use this
+                       .UseBotFramework((app, context) =>
+                       {
+                           app.Services.AddTelegramClient(context.Configuration["BotToken"]);
+                           app.Services.AddUpdateConsumer();
+                           app.UseMiddleware<LoggingMiddleware>();
+                           app.UseStaticCommands();
 
-            // --| OR |--
-            // use this
-            .UseBotFrameworkStartup<Startup>()
+                           app.Services.AddScoped<IA, a>();
+                           app.Services.AddScoped<IA, b>();
+                           app.Services.AddScoped<c>();
+                       })
 
-            // --| OR |--
-            // use this
-            .UseBotFramework(new Startup().Configure, false)
-            .Build()
-            .Run();
+                       // --| OR |--
+                       // use this
+                       .UseBotFrameworkStartup<Startup>()
+
+                       // --| OR |--
+                       // use this
+                       .UseBotFramework(new Startup().Configure, false)
+                       .Build();
+        var c = host.Services.GetService<c>();
+
+        host.Run();
     }
 }
 

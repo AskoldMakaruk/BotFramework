@@ -27,6 +27,8 @@ public static class ControllerDIExtensions
         {
             builder.Services.AddScoped(controller);
         }
+
+        builder.Services.AddSingleton<IEndpoitBuilder, ControllerEndpointBuilder>();
     }
 
     public static void UseControllers(this IAppBuilder builder)

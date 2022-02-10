@@ -1,6 +1,12 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace BotFramework.Abstractions;
+
+public interface IEndpoitBuilder
+{
+    public IEnumerable<Endpoint> Get();
+}
 
 public interface ICommand
 {

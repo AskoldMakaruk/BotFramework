@@ -38,7 +38,7 @@ public class Endpoint
     public CommandPredicate CommandPredicate { get; set; }
     public UpdateDelegate   Delegate         { get; set; }
 
-    public IList<CommandAttribute> Attributes { get; set; }
+    public List<CommandAttribute> Attributes { get; set; }
 }
 
 public delegate bool? CommandPredicate(UpdateContext update);
