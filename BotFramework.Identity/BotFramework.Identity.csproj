@@ -2,8 +2,8 @@
 
     <PropertyGroup>
         <FileVersion>1.0.0.50</FileVersion>
-        <Version>1.0.0-alpha-62</Version>
-        <PackageVersion>1.0.0-alpha-62</PackageVersion>
+        <Version>1.0.0-alpha-63</Version>
+        <PackageVersion>1.0.0-alpha-63</PackageVersion>
         <TargetFramework>net6.0</TargetFramework>
         <LangVersion>10</LangVersion>
     </PropertyGroup>
