@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using BotFramework.Abstractions;
+using Microsoft.Extensions.Logging;
 
 namespace BotFramework.Middleware;
 
@@ -14,9 +15,15 @@ public class CommandEndpointMiddleware
         _next = next;
     }
 
-    public Task Invoke(UpdateContext context, IEnumerable<IEndpoitBuilder> builders)
+    public Task Invoke(UpdateContext                       context, IEnumerable<IEndpoitBuilder> builders,
+                       ILogger<CommandEndpointMiddleware>? logger = null)
     {
-        context.Endpoints.AddRange(builders.SelectMany(a => a.Get()));
+        var endpoints = builders.SelectMany(a => a.Get()).ToList();
+
+        logger?.LogTrace("Added {Count} commands:\n{CommandList}", endpoints.Count,
+            string.Join(",\n", endpoints.Select(a => a.Name + " " + a.Priority)));
+
+        context.Endpoints.AddRange(endpoints);
         return _next.Invoke(context);
     }
 }

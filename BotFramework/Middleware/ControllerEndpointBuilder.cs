@@ -30,6 +30,7 @@ public class ControllerEndpointBuilder : IEndpoitBuilder
         endpoint.Name     = command.Name;
         endpoint.Delegate = command.Execute;
         endpoint.Attributes.AddRange(command.Attributes);
+        endpoint.Priority = command.Priority;
 
         return endpoint;
     }
@@ -49,7 +50,10 @@ public class ControllerEndpointBuilder : IEndpoitBuilder
 
             var predicate = this.GetPredicate(attrs);
 
-            yield return new ControllerEndpointCommand(predicate, method, controllerType, attrs);
+            yield return new ControllerEndpointCommand(predicate, method, controllerType, attrs)
+            {
+                Priority = this.GetPriority(attrs) ?? EndpointPriority.Last
+            };
         }
     }
 }

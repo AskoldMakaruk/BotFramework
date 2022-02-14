@@ -16,13 +16,15 @@ internal class ControllerEndpointCommand : ICommand
     private readonly MethodBase                      _method;
     public readonly  Type                            ControllerType;
     public readonly  IReadOnlyList<CommandAttribute> Attributes;
+    public           EndpointPriority                Priority { get; init; }
 
-    public ControllerEndpointCommand(CommandPredicate predicate, MethodBase method, Type controllerType, IReadOnlyList<CommandAttribute> attributes)
+    public ControllerEndpointCommand(CommandPredicate                predicate, MethodBase method, Type controllerType,
+                                     IReadOnlyList<CommandAttribute> attributes)
     {
-        _predicate      = predicate;
-        _method         = method;
-        ControllerType  = controllerType;
-        Attributes = attributes;
+        _predicate     = predicate;
+        _method        = method;
+        ControllerType = controllerType;
+        Attributes     = attributes;
     }
 
     public Task Execute(UpdateContext context)
