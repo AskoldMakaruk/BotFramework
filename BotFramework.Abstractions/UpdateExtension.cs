@@ -24,45 +24,104 @@ public static class UpdateExtensions
 
     public static ParsedUpdate GetInfoFromUpdate(this Update? update)
     {
-        User?   from = default;
-        Chat?   chat = default;
+        User? from = default;
+        Chat? chat = default;
         string? fromName;
-        var     contents = string.Empty;
+        var contents = string.Empty;
 
         switch (update?.Type)
         {
             case UpdateType.Message:
                 var message = update.Message;
-                from     = message?.From;
+                from = message?.From;
                 fromName = message?.From?.Username;
-                chat     = message?.Chat;
+                chat = message?.Chat;
                 switch (update.Message.Type)
                 {
+                    case MessageType.Unknown:
+                        contents = "Unknown";
+                        break;
                     case MessageType.Text:
                         contents = message?.Text;
-                        break;
-                    case MessageType.Sticker:
-                        contents = message?.Sticker?.SetName;
                         break;
                     case MessageType.Photo:
                     case MessageType.Audio:
                     case MessageType.Video:
+                    case MessageType.Voice:
                     case MessageType.Document:
                         contents = message?.Caption;
                         break;
-                    case MessageType.Poll:
-                        contents = message?.Poll?.Question;
+                    case MessageType.Sticker:
+                        contents = message?.Sticker?.SetName;
+                        break;
+                    case MessageType.Location:
+                        contents = $"{message?.Location.Latitude} | {message?.Location.Longitude}";
+                        break;
+                    case MessageType.Contact:
+                        contents =
+                  $"{message?.Contact?.FirstName} {message?.Contact?.LastName} {message?.Contact?.PhoneNumber}";
+                        break;
+                    case MessageType.Venue:
+                        contents = message?.Venue.Title;
+                        break;
+                    case MessageType.Game:
+                        contents = message?.Game.Title;
+                        break;
+                    case MessageType.VideoNote:
+                        contents = message?.VideoNote.Duration.ToString();
+                        break;
+                    case MessageType.Invoice:
+                        contents = $"{message?.Invoice.Title}: {message?.Invoice.TotalAmount} {message?.Invoice.Currency}";
+                        break;
+                    case MessageType.SuccessfulPayment:
+                        //todo enhance 
+                        contents = $"{message?.SuccessfulPayment.OrderInfo.Name} {message?.SuccessfulPayment.OrderInfo.Email}";
+                        break;
+                    case MessageType.WebsiteConnected:
+                        contents = message?.ConnectedWebsite;
+                        break;
+                    case MessageType.ChatMembersAdded:
+                    
+                        break;
+                    case MessageType.ChatMemberLeft:
                         break;
                     case MessageType.ChatTitleChanged:
                         contents = message?.Chat?.Title;
                         break;
-                    case MessageType.Contact:
-                        contents =
-                        $"{message?.Contact?.FirstName} {message?.Contact?.LastName} {message?.Contact?.PhoneNumber}";
+                    case MessageType.ChatPhotoChanged:
                         break;
-                    default: throw new ArgumentOutOfRangeException();
+                    case MessageType.MessagePinned:
+                        break;
+                    case MessageType.ChatPhotoDeleted:
+                        break;
+                    case MessageType.GroupCreated:
+                        break;
+                    case MessageType.SupergroupCreated:
+                        break;
+                    case MessageType.ChannelCreated:
+                        break;
+                    case MessageType.MigratedToSupergroup:
+                        break;
+                    case MessageType.MigratedFromGroup:
+                        break;
+                    case MessageType.Poll:
+                        contents = message?.Poll?.Question;
+                        break;
+                    case MessageType.Dice:
+                        break;
+                    case MessageType.MessageAutoDeleteTimerChanged:
+                        break;
+                    case MessageType.ProximityAlertTriggered:
+                        break;
+                    case MessageType.VoiceChatScheduled:
+                        break;
+                    case MessageType.VoiceChatStarted:
+                        break;
+                    case MessageType.VoiceChatEnded:
+                        break;
+                    case MessageType.VoiceChatParticipantsInvited:
+                        break;
                 }
-
                 break;
             case UpdateType.InlineQuery:
                 from     = update.InlineQuery?.From;
@@ -127,7 +186,7 @@ public static class UpdateExtensions
         return new ParsedUpdate(from, chat, update?.Type, update?.Message?.Type, fromName, contents);
     }
 
-    public record ParsedUpdate(User?   From, Chat? Chat, UpdateType? UpdateType, MessageType? MessageType, string? FromName,
+    public record ParsedUpdate(User? From, Chat? Chat, UpdateType? UpdateType, MessageType? MessageType, string? FromName,
                                string? Contents)
     {
         public override string ToString()
