@@ -3,7 +3,7 @@
     <PropertyGroup>
         <FileVersion>1.0.0.64</FileVersion>
         <Version>1.0.0-alpha-64</Version>
-        <PackageVersion>1.0.0-alpha-64</PackageVersion>
+        <PackageVersion>1.0.0-alpha-65</PackageVersion>
         <TargetFramework>net6.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
