@@ -34,13 +34,13 @@ public class UpdateTask
 
     public UpdateTask(Func<Update, bool>? filter,
                       Action<Update>?     onFilterFail,
-                      IEnumerable<Update> existingUpdates,
+                      ConcurrentQueue<Update> existingUpdates,
                       Action<UpdateTask>  onDone)
     {
         this.filter          = filter;
         this.onFilterFail    = onFilterFail;
         this.onDone          = onDone;
-        ExistedBeforeUpdates = new ConcurrentQueue<Update>(existingUpdates);
+        ExistedBeforeUpdates = existingUpdates;
     }
 
     public bool HandleUpdate(Update update)

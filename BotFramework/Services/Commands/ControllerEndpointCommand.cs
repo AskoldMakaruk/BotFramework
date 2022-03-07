@@ -29,11 +29,11 @@ internal class ControllerEndpointCommand : ICommand
 
     public Task Execute(UpdateContext context)
     {
-        return Task.Run(() =>
+        return Task.Run(async () =>
         {
             try
             {
-                return _method.Invoke(context.RequestServices.GetService(ControllerType), Array.Empty<object>());
+                 await (Task)_method.Invoke(context.RequestServices.GetService(ControllerType), Array.Empty<object>())!;
             }
             catch (Exception e)
             {

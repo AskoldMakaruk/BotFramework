@@ -6,9 +6,9 @@
         <Company>BotFramework</Company>
         <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
         <AssemblyVersion>1.0.0.0</AssemblyVersion>
-        <FileVersion>1.0.0.64</FileVersion>
-        <Version>1.0.0-alpha-64</Version>
-        <PackageVersion>1.0.0-alpha-64</PackageVersion>
+        <FileVersion>1.0.0.67</FileVersion>
+        <Version>1.0.0-alpha-67</Version>
+        <PackageVersion>1.0.0-alpha-67</PackageVersion>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <PackageProjectUrl>https://github.com/AskoldMakaruk/BotFramework</PackageProjectUrl>
         <RepositoryUrl>https://github.com/AskoldMakaruk/BotFramework</RepositoryUrl>
@@ -21,7 +21,7 @@
 
     <ItemGroup>
         <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="5.0.0" />
-        <PackageReference Include="Telegram.Bot" Version="16.0.2" />
+        <PackageReference Include="Telegram.Bot" Version="17.0.0" />
     </ItemGroup>
 
 </Project>
