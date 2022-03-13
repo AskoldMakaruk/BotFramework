@@ -18,7 +18,7 @@ public abstract class CommandControllerBase : ICommandController
     public Update        Update  { get; internal set; }
     public UpdateContext Context { get; internal set; }
 
-    void ICommandController.Init(UpdateContext update, IClient client)
+    public void Init(UpdateContext update, IClient client)
     {
         Client  = client;
         Update  = update.Update;

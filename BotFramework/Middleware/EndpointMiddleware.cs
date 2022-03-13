@@ -3,7 +3,6 @@ using BotFramework.Abstractions;
 using BotFramework.Services;
 using BotFramework.Services.Clients;
 using Microsoft.Extensions.Logging;
-using Telegram.Bot.Types;
 
 namespace BotFramework.Middleware;
 

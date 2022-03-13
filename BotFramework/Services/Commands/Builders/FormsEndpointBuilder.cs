@@ -5,7 +5,6 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using BotFramework.Abstractions;
-using BotFramework.Services.Commands;
 using BotFramework.Services.Commands.Attributes;
 
 namespace BotFramework.Middleware;
@@ -18,7 +17,7 @@ public class FormsEndpointBuilder : IEndpoitBuilder
 
     public FormsEndpointBuilder(FormTypes types)
     {
-        // _formEndpointCommands = types.Types.SelectMany(GetControllerCommands).ToList();
+        _formEndpointCommands = types.Types.SelectMany(GetControllerCommands).ToList();
     }
 
     public IEnumerable<Endpoint> Get()
@@ -26,23 +25,23 @@ public class FormsEndpointBuilder : IEndpoitBuilder
         return null;
     }
 
-    // private IEnumerable<FormEndpointCommand> GetControllerCommands(Type controllerType)
-    // {
-    //     var methods = controllerType.GetMethods(BindingFlags.Public | BindingFlags.Instance);
-    //
-    //     foreach (var method in methods)
-    //     {
-    //         var attrs = this.GetCommandAttributes(method).ToList();
-    //         if (attrs.Count == 0)
-    //         {
-    //             continue;
-    //         }
-    //
-    //         var predicate = this.GetPredicate(attrs);
-    //
-    //         yield return new ControllerEndpointCommand(predicate, method, controllerType);
-    //     }
-    // }
+    private IEnumerable<FormEndpointCommand> GetControllerCommands(Type controllerType)
+    {
+        var methods = controllerType.GetMethods(BindingFlags.Public | BindingFlags.Instance);
+
+        foreach (var method in methods)
+        {
+            var attrs = this.GetCommandAttributes(method).ToList();
+            if (attrs.Count == 0)
+            {
+                continue;
+            }
+
+            var predicate = this.GetPredicate(attrs);
+
+            yield return new FormEndpointCommand(predicate, controllerType);
+        }
+    }
 }
 
 public abstract class FormCommandBase<T>
