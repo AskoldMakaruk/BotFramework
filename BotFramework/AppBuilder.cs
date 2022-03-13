@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using BotFramework.Abstractions;
 using BotFramework.Services.Factories;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Telegram.Bot.Types;
 
 namespace BotFramework;
@@ -61,15 +62,23 @@ public class AppBuilder : IAppBuilder
     {
         Task Res(Update update)
         {
-            var providerScope = provider.CreateScope().ServiceProvider;
-            providerScope.GetService<UpdateFactory>()!.CurrentUpdate = update;
+            try
+            {
+                var providerScope = provider.CreateScope().ServiceProvider;
+                providerScope.GetService<UpdateFactory>()!.CurrentUpdate = update;
 
-            UpdateDelegate app = _ => Task.CompletedTask;
-            app = _components.Select(t => t(providerScope))
-                             .Reverse()
-                             .Aggregate(app, (current, component) => component(current));
+                UpdateDelegate app = _ => Task.CompletedTask;
+                app = _components.Select(t => t(providerScope))
+                                 .Reverse()
+                                 .Aggregate(app, (current, component) => component(current));
 
-            return app(providerScope.GetService<UpdateContext>()!);
+                return app(providerScope.GetService<UpdateContext>()!);
+            }
+            catch (Exception e)
+            {
+                provider.GetService<ILogger<IAppBuilder>>().LogError(e, "Critical error while handling update");
+                return Task.CompletedTask;
+            }
         }
 
         return Res;
