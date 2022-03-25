@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using BotFramework.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
-using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 
 #nullable enable
 namespace BotFramework.Identity;
@@ -35,7 +35,15 @@ public class IdentityMiddleware<TUser> where TUser : IdentityUser, new()
             dbUser = await manager.FindByIdAsync(user.Id);
             if (dbUser is null)
             {
-                await manager.CreateAsync(new TUser { Id = user.Id, UserName = user.Username });
+                await manager.CreateAsync(new TUser
+                {
+                    Id                  = user.Id,
+                    UserName            = user.Username,
+                    FirstName           = user.FirstName,
+                    LastName            = user.LastName,
+                    LanguageCode        = user.LanguageCode,
+                    IsPrivateChatOpened = update.Update.GetInfoFromUpdate().Chat?.Type == ChatType.Private
+                });
                 dbUser = await manager.FindByIdAsync(user.Id);
             }
 
