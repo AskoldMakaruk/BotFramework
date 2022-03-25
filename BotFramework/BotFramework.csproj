@@ -6,9 +6,9 @@
       <Company>BotFramework</Company>
       <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
       <AssemblyVersion>1.0.0.0</AssemblyVersion>
-      <FileVersion>1.0.0.68</FileVersion>
-      <Version>1.0.0-alpha-68</Version>
-      <PackageVersion>1.0.0-alpha-68</PackageVersion>
+      <FileVersion>1.0.0.69</FileVersion>
+      <Version>1.0.0-alpha-69</Version>
+      <PackageVersion>1.0.0-alpha-69</PackageVersion>
       <PackageLicenseExpression>MIT</PackageLicenseExpression>
       <PackageProjectUrl>https://github.com/AskoldMakaruk/BotFramework</PackageProjectUrl>
       <RepositoryUrl>https://github.com/AskoldMakaruk/BotFramework</RepositoryUrl>
