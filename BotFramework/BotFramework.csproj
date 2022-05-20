@@ -2,13 +2,13 @@
 
   <PropertyGroup>
       <TargetFramework>net6.0</TargetFramework>
-      <Authors/>
+      <Authors />
       <Company>BotFramework</Company>
       <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
       <AssemblyVersion>1.0.0.0</AssemblyVersion>
-      <FileVersion>1.0.0.70</FileVersion>
-      <Version>1.0.0-alpha-70</Version>
-      <PackageVersion>1.0.0-alpha-70</PackageVersion>
+      <FileVersion>1.0.0.71</FileVersion>
+      <Version>1.0.0-alpha-71</Version>
+      <PackageVersion>1.0.0-alpha-71</PackageVersion>
       <PackageLicenseExpression>MIT</PackageLicenseExpression>
       <PackageProjectUrl>https://github.com/AskoldMakaruk/BotFramework</PackageProjectUrl>
       <RepositoryUrl>https://github.com/AskoldMakaruk/BotFramework</RepositoryUrl>
