@@ -9,6 +9,7 @@ using BotFramework.Extensions;
 using BotFramework.Services.Commands;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace BotFramework.Localization;
 
@@ -113,20 +114,50 @@ public class TranslationsService
 {
     private static readonly object _containerLock = new();
 
-    public static    TranslationContainer? Container;
-    private readonly ITranslationContext   _context;
+    public static    TranslationContainer?        Container;
+    private readonly ITranslationContext          _context;
+    private readonly ILogger<TranslationsService> _logger;
 
-    public TranslationsService(ITranslationContext context)
+    public TranslationsService(ITranslationContext context, ILogger<TranslationsService> logger)
     {
         _context = context;
+        _logger  = logger;
         if (Container == null!)
         {
             Container = GetTranslationContainer().Result;
         }
     }
 
+    private async Task DetectNewKeysAsync()
+    {
+        if (Container == null)
+        {
+            return;
+        }
+
+        var dbKeys  = await _context.BotFrameworkTranslations.GroupBy(a => a.KeyName).Select(a => a.Key).ToListAsync();
+        var locales = await _context.BotFrameworkLocales.Select(a => a.LocaleCode).ToListAsync();
+        var keys    = new List<string>();
+
+        foreach (var pair in Container.Languages)
+        {
+            keys.AddRange(pair.Value.Translations.Where(a => a.Key == a.Value && !dbKeys.Contains(a.Key)).Select(a => a.Key));
+        }
+
+        var translations = locales.SelectMany(a => keys.Select(k => new BotFrameworkTranslation()
+        {
+            LocaleCode = a,
+            Value      = k,
+            KeyName    = k
+        }));
+
+        _context.BotFrameworkTranslations.AddRange(translations);
+        await _context.SaveChangesAsync();
+    }
+
     public async Task ReloadTranslations()
     {
+        await DetectNewKeysAsync();
         var container = await GetTranslationContainer();
         lock (_containerLock)
         {
@@ -199,11 +230,12 @@ public readonly record struct TranslationExport(Dictionary<string, Dictionary<st
 
 public static class LocalizationExtensions
 {
-    public static void UseLocalization<T>(this IAppBuilder builder) where T : ITranslationContext
+    public static void UseLocalization<T>(this IAppBuilder builder) where T : class, ITranslationContext
     {
         builder.Services.AddSingleton<TranslationsService>();
         builder.Services.AddSingleton<TranslationContainer>(_ => TranslationsService.Container!);
         builder.Services.AddScoped<Texts>();
+        builder.Services.AddScoped<ITranslationContext, T>();
     }
 
     public static void UseLocalizationManagment(this IAppBuilder builder)
@@ -212,4 +244,3 @@ public static class LocalizationExtensions
         builder.Services.AddSingleton<ITranlationExporter, CsvTranslationExporter>();
     }
 }
-
