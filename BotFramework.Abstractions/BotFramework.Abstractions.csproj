@@ -17,6 +17,8 @@
         <PackageReleaseNotes>Working conrollers, also attribute predicates!</PackageReleaseNotes>
         <Nullable>enable</Nullable>
         <LangVersion>10</LangVersion>
+        <IncludeSymbols>true</IncludeSymbols>
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     </PropertyGroup>
 
     <ItemGroup>

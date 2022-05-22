@@ -6,6 +6,8 @@
         <PackageVersion>1.0.0-alpha-74</PackageVersion>
         <TargetFramework>net6.0</TargetFramework>
         <LangVersion>10</LangVersion>
+        <IncludeSymbols>true</IncludeSymbols>
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     </PropertyGroup>
 
     <ItemGroup>
