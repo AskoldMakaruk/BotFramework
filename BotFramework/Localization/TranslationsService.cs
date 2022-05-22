@@ -6,33 +6,18 @@ using System.Text;
 using System.Threading.Tasks;
 using BotFramework.Abstractions;
 using BotFramework.Extensions;
-using BotFramework.Services.Commands;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace BotFramework.Localization;
 
-public interface ITranlationExporter
-{
-    string FormatName { get; }
-
-    Task<MemoryStream> Export();
-}
-
-public interface ITranslationImporter
-{
-    string FormatName { get; }
-
-    Task Import(MemoryStream stream);
-}
-
 public class CsvTranslationImporter : ITranslationImporter
 {
-    private readonly TranslationsService _translationsService;
-    public           string              FormatName => ".csv";
+    private readonly ITranslationsService _translationsService;
+    public           string               FormatName => ".csv";
 
-    public CsvTranslationImporter(TranslationsService translationsService)
+    public CsvTranslationImporter(ITranslationsService translationsService)
     {
         _translationsService = translationsService;
     }
@@ -44,11 +29,11 @@ public class CsvTranslationImporter : ITranslationImporter
         var text  = Encoding.UTF8.GetString(stream.ToArray());
         var lines = text.Split('\n');
 
-        var locales = lines[0].Split(s).Skip(1).Where(a => !string.IsNullOrWhiteSpace(a)).ToList();
+        var locales = lines[0].Split(s).Skip(1).Select(a => a.Trim()).Where(a => !string.IsNullOrWhiteSpace(a)).ToList();
 
-        var result = locales.ToDictionary(locale => locale, _ => new Dictionary<string, string>());
+        var result = new List<TransaltionItem>();
 
-        foreach (var line in lines)
+        foreach (var line in lines.Skip(1).Where(a => !string.IsNullOrWhiteSpace(a)))
         {
             var words        = line.Split(s);
             var keyname      = words[0];
@@ -57,7 +42,7 @@ public class CsvTranslationImporter : ITranslationImporter
             var i = 0;
             foreach (var locale in locales)
             {
-                result[locale][keyname] = translations[i];
+                result.Add(new TransaltionItem(locale, keyname.Trim(), translations[i].Trim()));
                 i++;
             }
         }
@@ -68,10 +53,10 @@ public class CsvTranslationImporter : ITranslationImporter
 
 public class CsvTranslationExporter : ITranlationExporter
 {
-    private readonly TranslationsService _translationsService;
-    public           string              FormatName => ".csv";
+    private readonly ITranslationsService _translationsService;
+    public           string               FormatName => ".csv";
 
-    public CsvTranslationExporter(TranslationsService translationsService)
+    public CsvTranslationExporter(ITranslationsService translationsService)
     {
         _translationsService = translationsService;
     }
@@ -87,6 +72,7 @@ public class CsvTranslationExporter : ITranlationExporter
         var             memoryStream = new MemoryStream();
         await using var writer       = new StreamWriter(memoryStream, leaveOpen: true);
 
+        //header
         await writer.WriteAsync($"Key");
         foreach (var locale in locales)
         {
@@ -95,22 +81,27 @@ public class CsvTranslationExporter : ITranlationExporter
 
         await writer.WriteLineAsync();
 
-        foreach (var (key, translations) in export.Values)
+        //body
+        foreach (var key in export.Values.GroupBy(a => a.Key))
         {
-            await writer.WriteAsync($"{key}");
-            foreach (var t in translations.OrderBy(a => a.Key))
+            await writer.WriteAsync($"{key.Key}");
+            foreach (var locale in locales)
             {
-                await writer.WriteAsync($"{s}{t.Value}");
+                var v    = key.FirstOrDefault(a => a.Locale == locale);
+                var text = v == default ? "" : v.Value;
+                await writer.WriteAsync($"{s}{text}");
             }
+
+            await writer.WriteLineAsync();
         }
 
         await writer.FlushAsync();
-
+        memoryStream.Seek(0, SeekOrigin.Begin);
         return memoryStream;
     }
 }
 
-public class TranslationsService
+public class TranslationsService : ITranslationsService
 {
     private static readonly object _containerLock = new();
 
@@ -170,10 +161,9 @@ public class TranslationsService
         await ReloadTranslations();
 
         var keyLocales = Container!.Languages.SelectMany(a =>
-                                   a.Value.Translations.Select(c => new { Locale = a.Key, Key = c.Key, Value = c.Value }))
-                                   .GroupBy(a => a.Key)
-                                   .ToDictionary(arg => arg.Key,
-                                       grouping => grouping.OrderBy(a => a.Locale).ToDictionary(c => c.Locale, c => c.Value));
+                                   a.Value.Translations.Select(c => new TransaltionItem()
+                                   { Locale = a.Key, Key = c.Key, Value = c.Value }))
+                                   .ToList();
 
         return new TranslationExport(keyLocales);
     }
@@ -184,13 +174,13 @@ public class TranslationsService
         var dbTranslations = await _context.BotFrameworkTranslations.ToListAsync();
 
         var locales = export.Locales.Select(a => new BotFrameworkLocale() { LocaleCode = a }).ToList();
-        var translations = export.Values.SelectMany(a =>
-                                 a.Value.Select(x => new BotFrameworkTranslation()
+        var translations = export.Values
+                                 .Select(x => new BotFrameworkTranslation()
                                  {
                                      Value      = x.Value,
-                                     LocaleCode = a.Key,
+                                     LocaleCode = x.Locale,
                                      KeyName    = x.Key
-                                 }))
+                                 })
                                  .ToList();
 
         _context.BotFrameworkLocales.UpdateManyToMany(dbLocales, locales, a => a.LocaleCode,
@@ -223,16 +213,19 @@ public class TranslationsService
 }
 
 //locale key value
-public readonly record struct TranslationExport(Dictionary<string, Dictionary<string, string>> Values)
+public readonly record struct TranslationExport(List<TransaltionItem> Values)
 {
-    public List<string> Locales => Values.Select(a => a.Key).OrderBy(a => a).ToList();
+    public List<string> Locales => Values.GroupBy(a => a.Locale).Select(a => a.Key).OrderBy(a => a).ToList();
+    public List<string> Keys    => Values.GroupBy(a => a.Key).Select(a => a.Key).OrderBy(a => a).ToList();
 }
+
+public readonly record struct TransaltionItem(string Locale, string Key, string Value);
 
 public static class LocalizationExtensions
 {
     public static void UseLocalization<T>(this IAppBuilder builder) where T : class, ITranslationContext
     {
-        builder.Services.AddSingleton<TranslationsService>();
+        builder.Services.AddSingleton<ITranslationsService, TranslationsService>();
         builder.Services.AddSingleton<TranslationContainer>(_ => TranslationsService.Container!);
         builder.Services.AddScoped<Texts>();
         builder.Services.AddScoped<ITranslationContext, T>();
