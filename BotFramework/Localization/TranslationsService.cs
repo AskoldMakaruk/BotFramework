@@ -1,11 +1,14 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using BotFramework.Abstractions;
 using BotFramework.Extensions;
+using CsvHelper;
+using CsvHelper.Configuration;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -26,24 +29,21 @@ public class CsvTranslationImporter : ITranslationImporter
 
     public async Task Import(MemoryStream stream)
     {
-        var text  = Encoding.UTF8.GetString(stream.ToArray());
-        var lines = text.Split('\n');
-
-        var locales = lines[0].Split(s).Skip(1).Select(a => a.Trim()).Where(a => !string.IsNullOrWhiteSpace(a)).ToList();
-
         var result = new List<TransaltionItem>();
 
-        foreach (var line in lines.Skip(1).Where(a => !string.IsNullOrWhiteSpace(a)))
+        using (var reader = new StreamReader(stream))
+        using (var csv = new CsvReader(reader,
+                   new CsvConfiguration(CultureInfo.InvariantCulture)
+                   { Delimiter = s.ToString(), TrimOptions = TrimOptions.Trim }))
         {
-            var words        = line.Split(s);
-            var keyname      = words[0];
-            var translations = words[1..];
+            await csv.ReadAsync();
+            var header  = csv.ReadHeader();
+            var locales = csv.HeaderRecord.Skip(1).Select(a => a.Trim()).Where(a => !string.IsNullOrWhiteSpace(a)).ToList();
 
-            var i = 0;
-            foreach (var locale in locales)
+            while (await csv.ReadAsync())
             {
-                result.Add(new TransaltionItem(locale, keyname.Trim(), translations[i].Trim()));
-                i++;
+                result.AddRange(locales.Select(locale =>
+                new TransaltionItem(locale, csv.GetField("Key").Trim(), csv.GetField(locale).Replace("\\n", "\n").Trim())));
             }
         }
 
