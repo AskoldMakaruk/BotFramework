@@ -11,6 +11,12 @@ namespace BotFramework.Abstractions;
 /// </summary>
 public interface IClient
 {
+    
+    /// <summary>
+    /// Last update that was processed.
+    /// </summary>
+    public Update Update { get; }
+    
     /// <summary>
     ///     Identifier of user. Each user has his/her own <see cref="IClient" />
     /// </summary>
