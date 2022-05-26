@@ -4,7 +4,6 @@ using System.Linq;
 using System.Reflection;
 using BotFramework.Abstractions;
 using BotFramework.Services.Commands;
-using BotFramework.Services.Commands.Attributes;
 
 namespace BotFramework.Middleware;
 
@@ -38,11 +37,12 @@ public class ControllerEndpointBuilder : IEndpoitBuilder
 
     private IEnumerable<ControllerEndpointCommand> GetControllerCommands(Type controllerType)
     {
-        var methods = controllerType.GetMethods(BindingFlags.Public | BindingFlags.Instance);
+        var methods              = controllerType.GetMethods(BindingFlags.Public | BindingFlags.Instance);
+        var controllerAttributes = this.GetCommandAttributes(controllerType);
 
         foreach (var method in methods)
         {
-            var attrs = this.GetCommandAttributes(method).ToList();
+            var attrs = this.GetCommandAttributes(method).Concat(controllerAttributes).ToList();
             if (attrs.Count == 0)
             {
                 continue;
