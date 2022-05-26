@@ -97,6 +97,7 @@ public class StateMachineTests
     }
 
     [Test]
+    [Timeout(5000)]
     public async Task StatefullCommand_WhenMultipleMessagesReceived_ShoudPreserveState()
     {
         var message = GetMessage();

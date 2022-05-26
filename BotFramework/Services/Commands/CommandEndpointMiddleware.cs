@@ -15,7 +15,8 @@ public class CommandEndpointMiddleware
         _next = next;
     }
 
-    public Task Invoke(UpdateContext                       context, IEnumerable<IEndpoitBuilder> builders,
+    public Task Invoke(UpdateContext                       context,
+                       IEnumerable<IEndpoitBuilder>        builders,
                        ILogger<CommandEndpointMiddleware>? logger = null)
     {
         var endpoints = builders.SelectMany(a => a.Get()).ToList();

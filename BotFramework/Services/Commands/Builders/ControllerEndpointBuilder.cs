@@ -38,15 +38,17 @@ public class ControllerEndpointBuilder : IEndpoitBuilder
     private IEnumerable<ControllerEndpointCommand> GetControllerCommands(Type controllerType)
     {
         var methods              = controllerType.GetMethods(BindingFlags.Public | BindingFlags.Instance);
-        var controllerAttributes = this.GetCommandAttributes(controllerType);
+        var controllerAttributes = this.GetCommandAttributes(controllerType).ToList();
 
         foreach (var method in methods)
         {
-            var attrs = this.GetCommandAttributes(method).Concat(controllerAttributes).ToList();
+            var attrs = this.GetCommandAttributes(method).ToList();
             if (attrs.Count == 0)
             {
                 continue;
             }
+
+            attrs.AddRange(controllerAttributes);
 
             var predicate = this.GetPredicate(attrs);
 

@@ -24,7 +24,9 @@ public class ControllerEndtoitBuilderTests
     [Test]
     public void Build_Should_Return_ControllerEndpoint()
     {
-        var endpoint = _builder.Get();
+        var endpoint = _builder.Get().ToList();
+
+        endpoint.Should().ContainSingle();
         endpoint.First()
                 .Attributes.Select(a => a.GetType())
                 .Should()
@@ -41,6 +43,8 @@ public class ControllerEndtoitBuilderTests
         {
             await Task.CompletedTask;
         }
+
+        public void SomeMethod() { }
     }
 
     public class MockAttribute : CommandAttribute { }
