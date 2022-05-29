@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using BotFramework.Abstractions;
 using BotFramework.Extensions.Hosting;
 using BotFramework.Middleware;
 using FluentAssertions;
@@ -42,7 +43,9 @@ public class StaticCommandsMiddlewareTests
     [Test]
     public void ServicesShouldContainStaticCommands()
     {
-        var commands = _host.Services.GetService<StaticCommandsList>()!.Types.ToList();
+        var commands = _host.Services.GetService<IServiceCollection>()!.Where(a => a.ServiceType == typeof(ICommand))
+                            .Select(a => a.ImplementationType)
+                            .ToList();
         commands.Should().Contain(commandTypes);
     }
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -11,44 +12,43 @@ namespace BotFramework.Extensions.Hosting;
 
 public static class ControllerDIExtensions
 {
-    public static void UseControllers(this IAppBuilder builder, ControllersList controllers)
+    public static void UseControllers(this IAppBuilder builder, params Type[] controllers)
     {
-        builder.Services.TryAddSingleton(provider =>
+        foreach (var type in controllers)
         {
-            provider.GetService<ILogger>()
-                    ?.LogDebug("Loaded {Count} controllers: {Endpoints}",
-                        controllers.Types.Count,
-                        string.Join(", ", controllers.Types.Select(a => a.Name)));
-
-            return controllers;
-        });
-
-        foreach (var controller in controllers.Types)
-        {
-            builder.Services.AddScoped(controller);
+            builder.Services.TryAddScoped(type);
         }
 
-        builder.Services.AddSingleton<IEndpoitBuilder, ControllerEndpointBuilder>();
+        builder.Services.TryAddEnumerable(controllers.Select(c => ServiceDescriptor.Scoped(typeof(ICommandController), c)));
+        builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<IEndpoitBuilder, ControllerEndpointBuilder>(provider =>
+            {
+                provider.GetService<ILogger>()
+                        ?.LogDebug("Loaded {Count} controllers: {Endpoints}",
+                            controllers.Length,
+                            string.Join(", ", controllers.Select(a => a.Name)));
+
+                var collection = provider.GetService<IServiceCollection>()!
+                                         .Where(a => a.ServiceType == typeof(ICommandController))
+                                         .Select(a => a.ImplementationType)
+                                         .Cast<Type>()
+                                         .ToList();
+
+                return new ControllerEndpointBuilder(collection);
+            }
+        ));
     }
 
     public static void UseControllers(this IAppBuilder builder)
     {
-        if (builder.Services.Any(x => x.ServiceType == typeof(ControllersList)))
-        {
-            return;
-        }
-
         var assemblies = StaticCommandsDIExtensions.GetAssemblies();
-
-
         builder.UseControllers(GetControllers(assemblies));
     }
 
-    public static ControllersList GetControllers(IEnumerable<Assembly> assemblies)
+    public static Type[] GetControllers(IEnumerable<Assembly> assemblies)
     {
         var allTypes = assemblies.SelectMany(a => a.GetTypes());
         var res = allTypes.Where(p => p.GetInterface("ICommandController") != null && !p.IsAbstract)
-                          .ToList();
-        return new(res);
+                          .ToArray();
+        return res;
     }
 }

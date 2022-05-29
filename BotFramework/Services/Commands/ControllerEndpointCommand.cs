@@ -12,14 +12,17 @@ internal class ControllerEndpointCommand : ICommand
 {
     public string Name => ControllerType.Name + "." + _method.Name;
 
-    private readonly CommandPredicate                _predicate;
-    private readonly MethodBase                      _method;
-    public readonly  Type                            ControllerType;
-    public readonly  IReadOnlyList<CommandAttribute> Attributes;
-    public           EndpointPriority                Priority { get; init; }
+    private readonly CommandPredicate                    _predicate;
+    private readonly MethodBase                          _method;
+    public readonly  Type                                ControllerType;
+    public readonly  IReadOnlyList<CommandAttributeBase> Attributes;
+    public           EndpointPriority                    Priority { get; init; }
 
-    public ControllerEndpointCommand(CommandPredicate                predicate, MethodBase method, Type controllerType,
-                                     IReadOnlyList<CommandAttribute> attributes)
+    public ControllerEndpointCommand(
+        CommandPredicate                    predicate,
+        MethodBase                          method,
+        Type                                controllerType,
+        IReadOnlyList<CommandAttributeBase> attributes)
     {
         _predicate     = predicate;
         _method        = method;
@@ -33,7 +36,7 @@ internal class ControllerEndpointCommand : ICommand
         {
             try
             {
-                 await (Task)_method.Invoke(context.RequestServices.GetService(ControllerType), Array.Empty<object>())!;
+                await (Task)_method.Invoke(context.RequestServices.GetService(ControllerType), Array.Empty<object>())!;
             }
             catch (Exception e)
             {

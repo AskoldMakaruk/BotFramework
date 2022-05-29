@@ -14,26 +14,32 @@ namespace BotFramework.Extensions.Hosting;
 
 public static class StaticCommandsDIExtensions
 {
-    public static void UseStaticCommands(this IAppBuilder builder, StaticCommandsList staticCommands)
+    public static void UseStaticCommands(this IAppBuilder builder, List<Type> commands)
     {
-        builder.Services.TryAddSingleton(provider =>
+        foreach (var type in commands)
         {
-            provider.GetService<ILogger>()
-                    ?.LogDebug("Loaded {Count} static commands: {Endpoints}",
-                        staticCommands.Types.Count,
-                        string.Join(", ", staticCommands.Types.Select(a => a.Name)));
-
-            return staticCommands;
-        });
-
-        builder.Services.AddSingleton<IEndpoitBuilder, CommandEndpointBuilder>();
-        
-        builder.UseMiddleware<CommandEndpointMiddleware>();
-
-        foreach (var command in staticCommands.Types)
-        {
-            builder.Services.AddScoped(command);
+            builder.Services.TryAddScoped(type);
         }
+
+        builder.Services.TryAddEnumerable(commands.Select(c => ServiceDescriptor.Scoped(typeof(ICommand), c)));
+        builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<IEndpoitBuilder, CommandEndpointBuilder>(provider =>
+            {
+                provider.GetService<ILogger>()
+                        ?.LogDebug("Loaded {Count} static commands: {Endpoints}",
+                            commands.Count,
+                            string.Join(", ", commands.Select(a => a.Name)));
+
+                var collection = provider.GetService<IServiceCollection>()!
+                                         .Where(a => a.ServiceType == typeof(ICommand))
+                                         .Select(a => a.ImplementationType)
+                                         .Cast<Type>()
+                                         .ToList();
+
+                return new CommandEndpointBuilder(provider, collection);
+            }
+        ));
+
+        builder.UseMiddleware<CommandEndpointMiddleware>();
     }
 
     public static void UseStaticCommandsAssembly(this IAppBuilder builder, Assembly assembly)
@@ -43,11 +49,6 @@ public static class StaticCommandsDIExtensions
 
     public static void UseStaticCommands(this IAppBuilder builder)
     {
-        if (builder.Services.Any(x => x.ServiceType == typeof(StaticCommandsList)))
-        {
-            return;
-        }
-
         builder.UseStaticCommands(GetStaticCommands(GetAssemblies()));
     }
 
@@ -69,7 +70,7 @@ public static class StaticCommandsDIExtensions
         return assemblies.Concat(referenced).ToArray();
     }
 
-    public static StaticCommandsList GetStaticCommands(IEnumerable<Assembly> assemblies)
+    public static List<Type> GetStaticCommands(IEnumerable<Assembly> assemblies)
     {
         var allTypes = assemblies.SelectMany(a => a.GetTypes());
         var res = allTypes.Where(p => typeof(ICommand).IsAssignableFrom(p)
@@ -77,6 +78,6 @@ public static class StaticCommandsDIExtensions
                                       && p.GetCustomAttributes(true)
                                           .All(a => a.GetType() != typeof(IgnoreReflectionAttribute)))
                           .ToList();
-        return new(res);
+        return res;
     }
 }

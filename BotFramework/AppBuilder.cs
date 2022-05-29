@@ -53,6 +53,7 @@ public class AppBuilder : IAppBuilder
     /// <returns>The <see cref="IServiceProvider"/> and <see cref="UpdateDelegate"/>.</returns>
     public (IServiceProvider services, BotDelegate app) Build()
     {
+        Services.AddSingleton(Services);
         var provider = Services.BuildServiceProvider();
 
         return (provider, Build(provider));

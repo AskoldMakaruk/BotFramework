@@ -11,11 +11,10 @@ public class ControllerEndpointBuilder : IEndpoitBuilder
 {
     private readonly List<ControllerEndpointCommand> controllerCommands;
 
-
-    public ControllerEndpointBuilder(ControllersList staticCommands)
+    public ControllerEndpointBuilder(IEnumerable<Type> controllerTypes)
     {
-        controllerCommands = staticCommands.Types.SelectMany(GetControllerCommands)
-                                           .ToList();
+        controllerCommands = controllerTypes.SelectMany(GetControllerCommands)
+                                            .ToList();
     }
 
     public IEnumerable<Endpoint> Get()

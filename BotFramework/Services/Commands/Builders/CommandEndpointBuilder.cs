@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using BotFramework.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -11,13 +12,12 @@ public class CommandEndpointBuilder : IEndpoitBuilder
     private readonly List<ICommand> commands;
 
 
-    public CommandEndpointBuilder(IServiceProvider services, StaticCommandsList staticCommands)
+    public CommandEndpointBuilder(IServiceProvider services, IEnumerable<Type> commands)
     {
         var scope = services.CreateScope();
-        commands = staticCommands.Types
-                                 .Select(scope.ServiceProvider.GetService)
-                                 .Cast<ICommand>()
-                                 .ToList();
+        this.commands = commands.Select(scope.ServiceProvider.GetService)
+                                .Cast<ICommand>()
+                                .ToList();
     }
 
     public Endpoint Get(ICommand command)

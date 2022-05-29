@@ -17,7 +17,7 @@ public class ControllerEndtoitBuilderTests
     [SetUp]
     public void SetUp()
     {
-        _builder = new ControllerEndpointBuilder(new ControllersList(new[] { typeof(TestController1) }));
+        _builder = new ControllerEndpointBuilder(new[] { typeof(TestController1) });
     }
 
 
@@ -30,7 +30,7 @@ public class ControllerEndtoitBuilderTests
         endpoint.First()
                 .Attributes.Select(a => a.GetType())
                 .Should()
-                .BeEquivalentTo(new[] { typeof(MockAttribute), typeof(StartsWithAttribute) });
+                .BeEquivalentTo(new[] { typeof(MockAttribute), typeof(CommandAttribute) });
     }
 
     [Mock]
@@ -38,7 +38,7 @@ public class ControllerEndtoitBuilderTests
     {
         public TestController1([NotNull] IClient client, [NotNull] UpdateContext update) : base(client, update) { }
 
-        [StartsWith("/start")]
+        [Command("/start")]
         public async Task TestMethod1()
         {
             await Task.CompletedTask;
@@ -47,5 +47,5 @@ public class ControllerEndtoitBuilderTests
         public void SomeMethod() { }
     }
 
-    public class MockAttribute : CommandAttribute { }
+    public class MockAttribute : CommandAttributeBase { }
 }

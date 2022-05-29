@@ -38,15 +38,15 @@ public class Endpoint
     public CommandPredicate CommandPredicate { get; set; }
     public UpdateDelegate   Delegate         { get; set; }
 
-    public List<CommandAttribute> Attributes { get; set; }
+    public List<CommandAttributeBase> Attributes { get; set; }
 }
 
 public delegate bool? CommandPredicate(UpdateContext update);
 
 [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
-public abstract class CommandAttribute : Attribute
+public abstract class CommandAttributeBase : Attribute
 {
-    public virtual EndpointPriority? EndpointPriority                => null;
+    public virtual EndpointPriority? Priority                        { get; init; }
     public virtual bool?             Suitable(UpdateContext context) => null;
 }
 
@@ -100,7 +100,7 @@ public static class UserCommandStateFeatureExtensions
 
         var storage = context.RequestServices.GetService<IUserScopeStorage>()?.Get(id.Value);
         state = storage?.Get<UserCommandStateFeature>()?.State;
-        
+
         return state;
     }
 
@@ -143,11 +143,11 @@ public interface IPersistentCommandStorage
 }
 
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
-public class PersistentStateAttribute : CommandAttribute
+public class PersistentStateAttribute : CommandAttributeBase
 {
     public string EndpointName { get; set; }
     public int    State        { get; }
-    
+
     public PersistentStateAttribute(int state)
     {
         State = state;

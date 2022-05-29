@@ -35,7 +35,7 @@ public class ControllersTests
                        })
                        .ConfigureHostConfiguration(builder => builder.AddEnvironmentVariables())
                        .UseSimpleBotFramework(
-                           (builder, context) => { builder.UseStaticCommandsAssembly(typeof(TestController).Assembly); }, true)
+                           (builder, context) => { builder.UseControllers(typeof(TestController)); }, true)
                        .Build();
 
         producer = host.Services.GetService<AppUpdateProducer>();
@@ -44,10 +44,10 @@ public class ControllersTests
 
 
     [Test]
-    // [Timeout(5000)]
+    [Timeout(5000)]
     public async Task Test1()
     {
-        var text = "/start";
+        var text = "/test_1234";
         await producer.FromUser(
             new Message
             {
@@ -67,10 +67,10 @@ public class ControllersTests
     };
 }
 
-[Priority(EndpointPriority.First)]
+[Command(priority: EndpointPriority.First)]
 public class TestController : CommandControllerBase
 {
-    [StartsWith("/start")]
+    [Command("/test_1234")]
     public async Task Start()
     {
         await Client.SendTextMessage("start text");

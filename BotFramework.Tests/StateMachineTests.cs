@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using BotFramework.Abstractions;
 using BotFramework.Extensions;
@@ -38,11 +40,11 @@ public class StateMachineTests
                        .ConfigureHostConfiguration(builder => builder.AddEnvironmentVariables())
                        .UseSimpleBotFramework((builder, context) =>
                        {
-                           builder.UseStaticCommands(new StaticCommandsList(new[]
+                           builder.UseStaticCommands(new List<Type>
                            {
                                typeof(CancelCommand),
                                typeof(StatefullCommand)
-                           }));
+                           });
                        }, true)
                        .Build();
 
@@ -56,7 +58,7 @@ public class StateMachineTests
         public  int State => _state++;
     }
 
-    [Priority(EndpointPriority.First)]
+    [Command(priority: EndpointPriority.First)]
     public class CancelCommand : ICommand
     {
         public async Task Execute(UpdateContext context)
@@ -70,7 +72,7 @@ public class StateMachineTests
         }
     }
 
-    [Priority(EndpointPriority.Last)]
+    [Command(priority: EndpointPriority.Last)]
     public class StatefullCommand : ICommand
     {
         private readonly StatefullService _service;
