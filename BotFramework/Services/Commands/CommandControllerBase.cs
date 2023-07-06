@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using BotFramework.Abstractions;
 using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;

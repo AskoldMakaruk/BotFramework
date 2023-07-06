@@ -12,13 +12,13 @@ public class CommandAttribute : CommandAttributeBase
     private Regex? _regex;
 
     public CommandAttribute(
-        string?                command    = null,
-        string?                startsWith = null,
-        [RegexPattern] string? regex      = null,
-        string?                endsWith   = null,
-        string?                helpText   = null,
-        string?                callback   = null,
-        EndpointPriority       priority   = default)
+        string?          command    = null,
+        string?          startsWith = null,
+        string?          regex      = null,
+        string?          endsWith   = null,
+        string?          helpText   = null,
+        string?          callback   = null,
+        EndpointPriority priority   = default)
     {
         StartsWith = startsWith;
         EndsWith   = endsWith;
@@ -35,7 +35,7 @@ public class CommandAttribute : CommandAttributeBase
     public string? HelpText   { get; }
     public string? Callback   { get; }
 
-    [RegexPattern] public string? Regex { get; }
+    public string? Regex { get; }
 
     public override bool? Suitable(UpdateContext context)
     {
@@ -76,9 +76,19 @@ public class PriorityAttribute : CommandAttribute
     public PriorityAttribute(EndpointPriority priority) : base(priority: priority) { }
 }
 
+public class FirstPriorityAttribute : CommandAttribute
+{
+    public FirstPriorityAttribute() : base(priority: EndpointPriority.First) { }
+}
+
+public class LastPriorityAttribute : CommandAttribute
+{
+    public LastPriorityAttribute() : base(priority: EndpointPriority.Last) { }
+}
+
 public class RegexAttribute : CommandAttribute
 {
-    public RegexAttribute([RegexPattern] string regex) : base(regex: regex) { }
+    public RegexAttribute(string regex) : base(regex: regex) { }
 }
 
 public class StartsWithAttribute : CommandAttribute

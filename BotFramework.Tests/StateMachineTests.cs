@@ -63,7 +63,7 @@ public class StateMachineTests
     {
         public async Task Execute(UpdateContext context)
         {
-            await context.Client.SendTextMessage("Action was canceled");
+            await context.Client.SendMessageAsync("Action was canceled");
         }
 
         public bool? Suitable(UpdateContext context)
@@ -86,10 +86,10 @@ public class StateMachineTests
         {
             var _ = await context.Client.GetTextMessage();
 
-            await context.Client.SendTextMessage($"State is {_service.State}");
+            await context.Client.SendMessageAsync($"State is {_service.State}");
 
             _ = await context.Client.GetTextMessage();
-            await context.Client.SendTextMessage($"State is {_service.State}");
+            await context.Client.SendMessageAsync($"State is {_service.State}");
         }
 
         public bool? Suitable(UpdateContext context)

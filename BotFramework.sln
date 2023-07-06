@@ -25,6 +25,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotFramework.Abstractions",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Botframework.AspNetCore", "Botframework.AspNetCore\Botframework.AspNetCore.csproj", "{33B9B5C8-A42A-4A30-8C7A-65B97F62BBF1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Generator", "Generator\Generator.csproj", "{C9510AF8-2992-4F52-B02C-9D6130E9ECAC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -67,6 +69,10 @@ Global
 		{33B9B5C8-A42A-4A30-8C7A-65B97F62BBF1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{33B9B5C8-A42A-4A30-8C7A-65B97F62BBF1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{33B9B5C8-A42A-4A30-8C7A-65B97F62BBF1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C9510AF8-2992-4F52-B02C-9D6130E9ECAC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C9510AF8-2992-4F52-B02C-9D6130E9ECAC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C9510AF8-2992-4F52-B02C-9D6130E9ECAC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C9510AF8-2992-4F52-B02C-9D6130E9ECAC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

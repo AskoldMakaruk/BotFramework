@@ -71,7 +71,7 @@ public class IdentityTests
 
         public async Task Execute(UpdateContext context)
         {
-            await context.Client.SendTextMessage(_identityUser.UserName);
+            await context.Client.SendMessageAsync(_identityUser.UserName);
         }
 
         public bool? Suitable(UpdateContext context)
@@ -91,14 +91,14 @@ public class IdentityTests
         [PersistentState(1)]
         public async Task State_1()
         {
-            await Client.SendTextMessage("1");
+            await Client.SendMessageAsync("1");
             SetState(2);
         }
 
         [PersistentState(2)]
         public async Task State_2()
         {
-            await Client.SendTextMessage("2");
+            await Client.SendMessageAsync("2");
             SetState(1);
         }
     }

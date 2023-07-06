@@ -24,18 +24,18 @@ public static class UpdateExtensions
 
     public static ParsedUpdate GetInfoFromUpdate(this Update? update)
     {
-        User? from = default;
-        Chat? chat = default;
+        User?   from = default;
+        Chat?   chat = default;
         string? fromName;
-        var contents = string.Empty;
+        var     contents = string.Empty;
 
         switch (update?.Type)
         {
             case UpdateType.Message:
                 var message = update.Message;
-                from = message?.From;
+                from     = message?.From;
                 fromName = message?.From?.Username;
-                chat = message?.Chat;
+                chat     = message?.Chat;
                 switch (update.Message.Type)
                 {
                     case MessageType.Unknown:
@@ -59,7 +59,7 @@ public static class UpdateExtensions
                         break;
                     case MessageType.Contact:
                         contents =
-                  $"{message?.Contact?.FirstName} {message?.Contact?.LastName} {message?.Contact?.PhoneNumber}";
+                        $"{message?.Contact?.FirstName} {message?.Contact?.LastName} {message?.Contact?.PhoneNumber}";
                         break;
                     case MessageType.Venue:
                         contents = message?.Venue.Title;
@@ -81,7 +81,7 @@ public static class UpdateExtensions
                         contents = message?.ConnectedWebsite;
                         break;
                     case MessageType.ChatMembersAdded:
-                    
+
                         break;
                     case MessageType.ChatMemberLeft:
                         break;
@@ -113,15 +113,24 @@ public static class UpdateExtensions
                         break;
                     case MessageType.ProximityAlertTriggered:
                         break;
-                    case MessageType.VoiceChatScheduled:
-                        break;
-                    case MessageType.VoiceChatStarted:
-                        break;
-                    case MessageType.VoiceChatEnded:
-                        break;
-                    case MessageType.VoiceChatParticipantsInvited:
-                        break;
+                    case MessageType.WebAppData:                   break;
+                    case MessageType.VideoChatScheduled:           break;
+                    case MessageType.VideoChatStarted:             break;
+                    case MessageType.VideoChatEnded:               break;
+                    case MessageType.VideoChatParticipantsInvited: break;
+                    case MessageType.Animation:                    break;
+                    case MessageType.ForumTopicCreated:            break;
+                    case MessageType.ForumTopicClosed:             break;
+                    case MessageType.ForumTopicReopened:           break;
+                    case MessageType.ForumTopicEdited:             break;
+                    case MessageType.GeneralForumTopicHidden:      break;
+                    case MessageType.GeneralForumTopicUnhidden:    break;
+                    case MessageType.WriteAccessAllowed:           break;
+                    case MessageType.UserShared:                   break;
+                    case MessageType.ChatShared:                   break;
+                    default:                                       throw new ArgumentOutOfRangeException();
                 }
+
                 break;
             case UpdateType.InlineQuery:
                 from     = update.InlineQuery?.From;
@@ -177,6 +186,7 @@ public static class UpdateExtensions
             case UpdateType.PollAnswer:
             case UpdateType.Unknown:
             case null:
+            case UpdateType.ChatJoinRequest:
             default:
                 from     = null;
                 fromName = null;
@@ -186,8 +196,12 @@ public static class UpdateExtensions
         return new ParsedUpdate(from, chat, update?.Type, update?.Message?.Type, fromName, contents);
     }
 
-    public record ParsedUpdate(User? From, Chat? Chat, UpdateType? UpdateType, MessageType? MessageType, string? FromName,
-                               string? Contents)
+    public record ParsedUpdate(User?        From,
+                               Chat?        Chat,
+                               UpdateType?  UpdateType,
+                               MessageType? MessageType,
+                               string?      FromName,
+                               string?      Contents)
     {
         public override string ToString()
         {

@@ -73,7 +73,7 @@ public class TestController : CommandControllerBase
     [Command("/test_1234")]
     public async Task Start()
     {
-        await Client.SendTextMessage("start text");
+        await Client.SendMessageAsync("start text");
     }
 
     public TestController(IClient client, UpdateContext update) : base(client, update) { }
@@ -84,7 +84,7 @@ public class TestController : CommandControllerBase
 //     [PersistentState(1)]
 //     public async Task Start()
 //     {
-//         await Client.SendTextMessage("start text");
+//         await Client.SendMessageAsync("start text");
 //     }
 //     
 // }

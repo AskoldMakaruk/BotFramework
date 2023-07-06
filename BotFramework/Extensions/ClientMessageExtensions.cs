@@ -14,17 +14,17 @@ public static class ClientMessageExtensions
         var chatId = reply.ChatId == null ? null : new ChatId(reply.ChatId.Value);
         if (reply.EditMessageId != null)
         {
-            return await client.EditMessageText(reply.EditMessageId.Value, reply.Text, chatId,
+            return await client.EditMessageTextAsync(reply.EditMessageId.Value, reply.Text, chatId,
                        replyMarkup: reply.ReplyMarkup as InlineKeyboardMarkup, parseMode: ParseMode.Html);
         }
 
         if (reply.AnswerCallbackQueryId != null)
         {
-            await client.AnswerCallbackQuery(reply.AnswerCallbackQueryId, reply.Text, reply.ShowAlert);
+            await client.AnswerCallbackQueryAsync(reply.AnswerCallbackQueryId, reply.Text, reply.ShowAlert);
         }
         else
         {
-            return await client.SendTextMessage(reply.Text, chatId, replyMarkup: reply.ReplyMarkup, parseMode: ParseMode.Html);
+            return await client.SendMessageAsync(reply.Text, chatId, replyMarkup: reply.ReplyMarkup, parseMode: ParseMode.Html);
         }
 
         return null;

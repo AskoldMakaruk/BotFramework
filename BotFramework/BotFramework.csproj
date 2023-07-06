@@ -1,51 +1,50 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-      <TargetFramework>net6.0</TargetFramework>
-      <Authors />
-      <Company>BotFramework</Company>
-      <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-      <AssemblyVersion>1.0.0.0</AssemblyVersion>
-      <FileVersion>1.0.0.80</FileVersion>
-      <Version>1.0.0-alpha-80</Version>
-      <PackageVersion>1.0.0-alpha-80</PackageVersion>
-      <PackageLicenseExpression>MIT</PackageLicenseExpression>
-      <PackageProjectUrl>https://github.com/AskoldMakaruk/BotFramework</PackageProjectUrl>
-      <RepositoryUrl>https://github.com/AskoldMakaruk/BotFramework</RepositoryUrl>
-      <RepositoryType>Open</RepositoryType>
-      <PackageTags>telegram bot</PackageTags>
-      <PackageReleaseNotes>Working conrollers, also attribute predicates!</PackageReleaseNotes>
-      <Nullable>enable</Nullable>
-      <LangVersion>10</LangVersion>
-      <IncludeSymbols>true</IncludeSymbols>
-      <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-  </PropertyGroup>
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <Authors />
+        <Company>BotFramework</Company>
+        <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+        <AssemblyVersion>1.0.0.0</AssemblyVersion>
+        <FileVersion>1.0.0.80</FileVersion>
+        <Version>1.0.0-alpha-80</Version>
+        <PackageVersion>1.0.0-alpha-80</PackageVersion>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageProjectUrl>https://github.com/AskoldMakaruk/BotFramework</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/AskoldMakaruk/BotFramework</RepositoryUrl>
+        <RepositoryType>Open</RepositoryType>
+        <PackageTags>telegram bot</PackageTags>
+        <PackageReleaseNotes>Working conrollers, also attribute predicates!</PackageReleaseNotes>
+        <Nullable>enable</Nullable>
+        <LangVersion>10</LangVersion>
+        <IncludeSymbols>true</IncludeSymbols>
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <ShouldCreateLogs>True</ShouldCreateLogs>
-    <AdvancedSettingsExpanded>False</AdvancedSettingsExpanded>
-    <UpdateAssemblyVersion>False</UpdateAssemblyVersion>
-    <UpdateAssemblyFileVersion>False</UpdateAssemblyFileVersion>
-    <UpdateAssemblyInfoVersion>False</UpdateAssemblyInfoVersion>
-    <UpdatePackageVersion>True</UpdatePackageVersion>
-    <AssemblyInfoVersionType>SettingsVersion</AssemblyInfoVersionType>
-    <InheritWinAppVersionFrom>None</InheritWinAppVersionFrom>
-    <PackageVersionSettings>AssemblyFileVersion.NoneWithAutoReset.Alpha</PackageVersionSettings>
-  </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+        <ShouldCreateLogs>True</ShouldCreateLogs>
+        <AdvancedSettingsExpanded>False</AdvancedSettingsExpanded>
+        <UpdateAssemblyVersion>False</UpdateAssemblyVersion>
+        <UpdateAssemblyFileVersion>False</UpdateAssemblyFileVersion>
+        <UpdateAssemblyInfoVersion>False</UpdateAssemblyInfoVersion>
+        <UpdatePackageVersion>True</UpdatePackageVersion>
+        <AssemblyInfoVersionType>SettingsVersion</AssemblyInfoVersionType>
+        <InheritWinAppVersionFrom>None</InheritWinAppVersionFrom>
+        <PackageVersionSettings>AssemblyFileVersion.NoneWithAutoReset.Alpha</PackageVersionSettings>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="FluentCache" Version="4.0.0.2" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.2" />
-    <PackageReference Include="Telegram.Bot" Version="17.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="5.0.0" />
-    <PackageReference Include="Telegram.Bot.Extensions.Polling" Version="1.0.1" />
-      <PackageReference Include="CsvHelper" Version="27.2.1" />
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="FluentCache" Version="4.0.0.2" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
+        <PackageReference Include="Telegram.Bot" Version="19.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.1" />
+        <PackageReference Include="CsvHelper" Version="30.0.1" />
+    </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\BotFramework.Abstractions\BotFramework.Abstractions.csproj" />
-    <ProjectReference Include="..\BotFramework.Hosting\BotFramework.Hosting.csproj" />
-    <ProjectReference Include="..\BotFramework.Identity\BotFramework.Identity.csproj" />
-  </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\BotFramework.Abstractions\BotFramework.Abstractions.csproj" />
+        <ProjectReference Include="..\BotFramework.Hosting\BotFramework.Hosting.csproj" />
+        <ProjectReference Include="..\BotFramework.Identity\BotFramework.Identity.csproj" />
+    </ItemGroup>
 
 </Project>

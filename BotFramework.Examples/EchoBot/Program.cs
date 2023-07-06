@@ -106,14 +106,14 @@ public class EchoCommand : ICommand
 
         logger.Information("DI Works!");
 
-        await client.SendTextMessage($"Hello, here ypur last message {message.Text}, type somethinh again");
+        await client.SendMessageAsync($"Hello, here ypur last message {message.Text}, type somethinh again");
 
         message = await client.GetTextMessage();
 
-        await client.SendTextMessage($"And this is your new message {message.Text}, and now type only message with hello");
+        await client.SendMessageAsync($"And this is your new message {message.Text}, and now type only message with hello");
 
         var helloMessage = await client.GetMessageWithHelloText();
-        await client.SendTextMessage("Well done!");
+        await client.SendMessageAsync("Well done!");
     }
 
     public bool? Suitable(UpdateContext context)
@@ -128,7 +128,7 @@ public class HelpCommand : ICommand
     {
         var client = context.Client;
         var _      = await client.GetTextMessage();
-        await client.SendTextMessage("This is help text");
+        await client.SendMessageAsync("This is help text");
     }
 
     public bool? Suitable(UpdateContext ctx)
