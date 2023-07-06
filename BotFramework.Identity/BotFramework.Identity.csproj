@@ -1,9 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <FileVersion>1.0.0.80</FileVersion>
-        <Version>1.0.0-alpha-80</Version>
-        <PackageVersion>1.0.0-alpha-80</PackageVersion>
+        <FileVersion>1.0.0.90</FileVersion>
+        <Version>1.0.0-alpha-90</Version>
+        <PackageVersion>1.0.0-alpha-90</PackageVersion>
         <TargetFramework>net6.0</TargetFramework>
         <LangVersion>10</LangVersion>
         <IncludeSymbols>true</IncludeSymbols>
